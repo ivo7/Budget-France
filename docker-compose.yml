@@ -1,0 +1,161 @@
+name: budget-france
+
+services:
+  # -----------------------------------------------------------------
+  # PostgreSQL : stockage des abonnés + logs de notifications
+  # -----------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-budget}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-budget}
+      POSTGRES_DB: ${POSTGRES_DB:-budget}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-budget}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  # -----------------------------------------------------------------
+  # Backend Fastify : inscription, confirmation, envoi d'emails,
+  # jobs cron (seuils, bulletin mensuel).
+  # -----------------------------------------------------------------
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    image: budget-france-backend:latest
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-budget}:${POSTGRES_PASSWORD:-budget}@postgres:5432/${POSTGRES_DB:-budget}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:4280}
+      EMAIL_FROM: ${EMAIL_FROM:-Budget France <notifications@budgetfrance.local>}
+      EMAIL_REPLY_TO: ${EMAIL_REPLY_TO:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SNAPSHOT_PATH: /data/budget.json
+      TZ: Europe/Paris
+    volumes:
+      - ./data:/data:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # -----------------------------------------------------------------
+  # Pipeline d'ingestion (à la demande)
+  # -----------------------------------------------------------------
+  pipeline:
+    build:
+      context: .
+      dockerfile: docker/pipeline.Dockerfile
+    image: budget-france-pipeline:latest
+    volumes:
+      - ./data:/data
+    environment:
+      - TZ=Europe/Paris
+    command: ["--output", "/data/budget.json"]
+    restart: "no"
+
+  # -----------------------------------------------------------------
+  # Scheduler : relance le pipeline toutes les 6 heures
+  # -----------------------------------------------------------------
+  scheduler:
+    image: budget-france-pipeline:latest
+    depends_on:
+      - pipeline
+    volumes:
+      - ./data:/data
+    environment:
+      - TZ=Europe/Paris
+    entrypoint: ["/bin/sh", "-c"]
+    # IMPORTANT : on sleep AVANT le premier tick. Le service `pipeline`
+    # s'occupe du run initial ; sans ce décalage on aurait deux écritures
+    # simultanées dans /data/budget.json (corruption observée).
+    command:
+      - |
+        while true; do
+          sleep 21600;
+          echo "[scheduler] tick $(date -Iseconds)";
+          npx tsx src/ingest.ts --output /data/budget.json || echo "[scheduler] ingest failed, keeping old JSON";
+        done
+    restart: unless-stopped
+
+  # -----------------------------------------------------------------
+  # Frontend : dashboard + proxy /api vers backend (nginx)
+  # -----------------------------------------------------------------
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+    image: budget-france-frontend:latest
+    ports:
+      - "4280:80"
+    volumes:
+      - ./data:/usr/share/nginx/html/data:ro
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # -----------------------------------------------------------------
+  # ---------------------------------------------------------------
+  # Outils d'administration backend — profils "admin" (off par défaut)
+  # À lancer à la demande : docker compose --profile admin up -d
+  # ---------------------------------------------------------------
+
+  # Adminer : UI web SQL pour Postgres (http://localhost:8081)
+  # Plus simple que pgAdmin, tout-en-un en 1 fichier PHP.
+  adminer:
+    profiles: ["admin"]
+    image: adminer:4.8.1
+    ports:
+      - "8081:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+      ADMINER_DESIGN: dracula
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Prisma Studio : UI type "notion" typée sur le schéma Prisma
+  # (http://localhost:5555). Idéal pour naviguer entre les tables et
+  # éditer des lignes individuelles sans écrire de SQL.
+  prisma-studio:
+    profiles: ["admin"]
+    image: budget-france-backend:latest
+    working_dir: /app/backend
+    command: ["npx", "prisma", "studio", "--browser", "none", "--hostname", "0.0.0.0", "--port", "5555"]
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-budget}:${POSTGRES_PASSWORD:-budget}@postgres:5432/${POSTGRES_DB:-budget}
+    ports:
+      - "5555:5555"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    restart: unless-stopped
+
+  # Mode dev (hot reload Vite) : docker compose --profile dev up dev
+  # -----------------------------------------------------------------
+  dev:
+    profiles: ["dev"]
+    image: node:22-alpine
+    working_dir: /app/frontend
+    command: ["sh", "-c", "npm install && npm run dev"]
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app/frontend
+      - ./data:/app/data:ro
+    environment:
+      - NODE_ENV=development
+
+volumes:
+  postgres-data:

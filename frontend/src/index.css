@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  @apply bg-white text-slate-900 font-sans antialiased;
+}
+
+/* ---------------------------------------------------------------------
+   Dissuasion de capture : sélection désactivée par défaut, clic-droit
+   intercepté côté JS (voir main.tsx). Important : AUCUN navigateur ne
+   peut bloquer une capture OS-level (Cmd+Shift+4 / PrintScreen). On
+   fait de l'optout, pas de la sécurité.
+   --------------------------------------------------------------------- */
+.protected {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Les champs de formulaire doivent rester sélectionnables pour
+   la saisie clavier. */
+input, textarea, select, .allow-select {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* Flou défensif (non activé par défaut). Décommente dans main.tsx si besoin. */
+body.blur-on-blur:not(:focus-within) main {
+  filter: blur(4px);
+  transition: filter 0.15s;
+}
+
+.card {
+  @apply rounded-2xl bg-white border border-slate-200/80 shadow-card;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.ticker-digit {
+  display: inline-block;
+  min-width: 0.6em;
+  text-align: center;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+.live-dot {
+  animation: pulse-dot 1.8s ease-in-out infinite;
+}

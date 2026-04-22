@@ -1,0 +1,313 @@
+// ============================================================================
+// Schéma Prisma — Budget France
+// ============================================================================
+// Organisation en 3 domaines :
+//
+// 1. NOTIFICATIONS    → Subscriber, NotificationLog, KeyValueStore
+//    Gestion des abonnés aux emails et log d'envois.
+//
+// 2. DATASETS         → DataSeries, DataPoint, CategoryComposition,
+//                       CompositionPoint
+//    Toutes les séries chronologiques qui alimentent les graphiques :
+//    dette publique, PIB, dépenses, recettes, taux, composition par
+//    catégorie (TVA, IR, IS, Défense, etc.).
+//
+// 3. RÉFÉRENTIEL LFI  → LfiEntry
+//    Répartition prévisionnelle votée en Loi de finances initiale
+//    (grandes masses recettes + missions dépenses).
+//
+// Ces tables sont alimentées par le loader backend/src/seed/loadDatasets.ts
+// qui tourne au démarrage si la DB est vide. Le pipeline continue d'écrire
+// data/budget.json pour compatibilité ; à terme le frontend pourra basculer
+// sur les endpoints REST /api/datasets/* pour plus d'interactivité.
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ----------------------------------------------------------------------------
+// Domaine 1 : NOTIFICATIONS
+// ----------------------------------------------------------------------------
+
+enum SubscriberType {
+  particulier
+  entreprise
+}
+
+/// Abonné aux notifications email (particulier ou entreprise).
+/// Un Subscriber n'est vraiment actif qu'après confirmation (confirmedAt).
+model Subscriber {
+  id                String   @id @default(cuid())
+  email             String   @unique
+  type              SubscriberType
+
+  // Double opt-in RGPD
+  createdAt         DateTime  @default(now())
+  confirmedAt       DateTime?
+  unsubscribedAt    DateTime?
+  confirmToken      String    @unique
+  unsubscribeToken  String    @unique
+
+  // Préférences d'envoi
+  prefMonthly       Boolean   @default(true)   // bulletin mensuel
+  prefThreshold     Boolean   @default(true)   // alertes de seuil
+  lastNotifiedAt    DateTime?
+
+  // Champs particuliers
+  firstName         String?
+  lastName          String?
+
+  // Champs entreprises
+  companyName       String?
+  siret             String?
+  role              String?
+  companySize       String?
+
+  notifications     NotificationLog[]
+
+  @@index([confirmedAt])
+  @@index([type])
+}
+
+enum NotificationType {
+  confirm
+  monthly
+  threshold
+}
+
+/// Trace chaque envoi email — succès, erreur, métadonnées.
+/// Nécessaire pour la traçabilité RGPD et le debug.
+model NotificationLog {
+  id            String            @id @default(cuid())
+  subscriberId  String
+  type          NotificationType
+  sentAt        DateTime          @default(now())
+  success       Boolean           @default(true)
+  error         String?
+  metadata      Json?
+  subscriber    Subscriber        @relation(fields: [subscriberId], references: [id], onDelete: Cascade)
+
+  @@index([sentAt])
+  @@index([type])
+}
+
+/// Cache clef-valeur pour détecter les franchissements de seuil
+/// entre deux passages du pipeline (dette, OAT, …).
+model KeyValueStore {
+  key        String   @id
+  value      Json
+  updatedAt  DateTime @updatedAt
+}
+
+// ----------------------------------------------------------------------------
+// Domaine 2 : DATASETS — séries chronologiques pour les graphiques
+// ----------------------------------------------------------------------------
+
+enum DataSeriesKind {
+  dette_publique       // Md€ courants (Maastricht)
+  pib                  // Md€ courants
+  depenses_etat        // Md€ courants (budget général de l'État)
+  recettes_etat        // Md€ courants (budget général)
+  solde_budgetaire     // Md€ courants (négatif = déficit)
+  taux_oat_10ans       // % — rendement OAT 10 ans
+  taux_bund_10ans      // % — rendement Bund 10 ans (Allemagne)
+  spread_oat_bund      // points de base — écart FR-DE
+  taux_directeur_bce   // % — MRO
+  dette_ratio_pib      // % — ratio dette/PIB (pays spécifique via slug)
+  solde_ratio_pib      // % — ratio solde/PIB par pays
+  fraude_fiscale       // Md€ courants
+  fraude_sociale       // Md€ courants
+}
+
+enum DataFrequency {
+  annuel
+  trimestriel
+  mensuel
+  jour
+}
+
+/// Une série chronologique nommée (ex. "Dette publique annuelle 1945-2025").
+/// Chaque série a une unité, une fréquence, une source officielle identifiée.
+model DataSeries {
+  id            String           @id @default(cuid())
+  slug          String           @unique           // ex: "dette-annuelle-1945"
+  kind          DataSeriesKind
+  label         String                            // Libellé lisible
+  description   String?                           // Contexte méthodologique
+  unit          String                            // "EUR" | "PCT" | "RATIO"
+  frequency     DataFrequency
+  sourceLabel   String                            // ex: "INSEE / Eurostat"
+  sourceUrl     String?
+  firstDate     DateTime?                         // min(points.date)
+  lastDate      DateTime?                         // max(points.date)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  points        DataPoint[]
+
+  @@index([kind])
+}
+
+/// Point individuel d'une série. La table est volumineuse (plusieurs milliers
+/// de points) : on indexe par (seriesId, date) pour les requêtes range.
+model DataPoint {
+  id        String       @id @default(cuid())
+  seriesId  String
+  date      DateTime
+  value     Float
+
+  series    DataSeries   @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+
+  @@unique([seriesId, date])
+  @@index([date])
+}
+
+enum CompositionSide {
+  recettes
+  depenses
+}
+
+/// Catégorie de composition historique : TVA, IR, IS, Défense, Éducation, etc.
+/// Chaque catégorie a ses propres points annuels.
+model CategoryComposition {
+  id          String             @id @default(cuid())
+  slug        String             @unique            // ex: "tva", "defense"
+  label       String
+  side        CompositionSide                        // recettes ou depenses
+  colorHex    String                                 // couleur d'affichage
+  ordering    Int                @default(0)         // pour trier dans les charts
+  description String?
+
+  points      CompositionPoint[]
+
+  @@index([side])
+}
+
+/// Point annuel d'une catégorie de composition (ex: TVA en 1970 = 13 Md€).
+model CompositionPoint {
+  id          String               @id @default(cuid())
+  categoryId  String
+  date        DateTime
+  value       Float                                 // en €
+
+  category    CategoryComposition  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, date])
+  @@index([date])
+}
+
+// ----------------------------------------------------------------------------
+// Domaine 3 : Répartition LFI — grandes masses votées
+// ----------------------------------------------------------------------------
+
+/// Ligne de la Loi de finances initiale pour une année donnée.
+/// Ex. "TVA (part État) — 103 Md€ pour 2026" ou "Défense — 53 Md€ pour 2026".
+model LfiEntry {
+  id          String           @id @default(cuid())
+  annee       Int
+  side        CompositionSide                          // recettes / depenses
+  categorie   String                                   // libellé complet
+  valeur      Float                                    // montant en €
+  description String?
+  ordering    Int              @default(0)
+  sourceLabel String
+  sourceUrl   String?
+
+  @@unique([annee, side, categorie])
+  @@index([annee])
+}
+
+// ----------------------------------------------------------------------------
+// Domaine 4 : Glossaire (optionnel — pour servir les définitions via API)
+// ----------------------------------------------------------------------------
+
+// ----------------------------------------------------------------------------
+// Domaine 4bis : Événements historiques marquants (annotations pédagogiques)
+// ----------------------------------------------------------------------------
+
+enum EventCategory {
+  politique
+  economique
+  monetaire
+  militaire
+  crise
+}
+
+enum EventImpact {
+  dette_up       @map("dette+")
+  dette_down     @map("dette-")
+  taux_up        @map("taux+")
+  taux_down      @map("taux-")
+  neutre
+}
+
+/// Événement historique majeur des finances publiques françaises (1945+).
+/// Utilisé pour annoter les courbes longue période avec des repères lisibles
+/// (Maastricht, crise zone euro, Covid, perte du AAA, etc.).
+model HistoricalEvent {
+  id          String         @id @default(cuid())
+  date        DateTime       @unique
+  title       String
+  description String
+  category    EventCategory
+  impact      EventImpact?
+
+  @@index([category])
+  @@index([date])
+}
+
+// ----------------------------------------------------------------------------
+// Domaine 5 : Notations souveraines — S&P / Moody's / Fitch
+// ----------------------------------------------------------------------------
+
+enum RatingAgency {
+  sp
+  moodys
+  fitch
+}
+
+enum RatingOutlook {
+  stable
+  positive
+  negative
+}
+
+/// Événement de notation souveraine (changement de rating ou de perspective).
+/// Une entrée par agence et par date de décision. La note textuelle (AAA, Aa3…)
+/// et son équivalent numérique (20, 17…) sont stockés pour faciliter le rendu
+/// graphique superposé.
+model SovereignRatingEvent {
+  id        String         @id @default(cuid())
+  agency    RatingAgency
+  date      DateTime                                 // date d'annonce officielle
+  rating    String                                   // ex: "AA-" ou "Aa3"
+  numeric   Int                                      // échelle unifiée (AAA=20)
+  outlook   RatingOutlook?
+  note      String?                                  // contexte / motivation
+
+  @@unique([agency, date])
+  @@index([agency])
+  @@index([date])
+}
+
+/// Terme du glossaire affiché dans l'onglet Fiches pédagogiques.
+/// Le contenu vit aussi en dur dans frontend/src/components/Glossary.tsx
+/// pour un rendu instantané ; cette table sert de source unique en prod.
+model GlossaryEntry {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  terme       String
+  abbr        String?
+  categorie   String                                   // ex: "Indicateurs macroéconomiques"
+  definition  String
+  exemple     String?
+  ordering    Int      @default(0)
+
+  @@index([categorie])
+}
