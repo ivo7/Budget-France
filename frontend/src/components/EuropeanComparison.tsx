@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import type { BudgetSnapshot } from "../types";
 import { DownloadableCard } from "./DownloadableCard";
+import { objectsToCsv } from "../lib/csvExport";
 
 interface Props {
   data: BudgetSnapshot;
@@ -60,7 +61,11 @@ export function EuropeanComparison({ data }: Props) {
   const ecart = franceLatest - allemagneLatest;
 
   return (
-    <DownloadableCard filename="budget-france-comparaison-europe" className="card p-5 md:p-6">
+    <DownloadableCard
+      filename={`budget-france-comparaison-europe-${mode}`}
+      className="card p-5 md:p-6"
+      getCsvData={() => objectsToCsv(rows.map((r) => ({ ...r, metrique: mode === "dette" ? "dette/PIB" : "solde/PIB" })))}
+    >
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
           <div className="text-xs uppercase tracking-widest text-muted">Contexte européen</div>

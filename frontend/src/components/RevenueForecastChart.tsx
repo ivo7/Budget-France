@@ -49,13 +49,26 @@ export function RevenueForecastChart({ annee, recettes, depenses }: Props) {
   const sumReelDep = depenses.reduce((a, b) => a + b.reel, 0);
 
   return (
-    <div className="card p-5 md:p-6">
+    <div className="card p-5 md:p-6 ring-2 ring-amber-300/60">
+      {/* Bandeau d'avertissement très visible : ces données ne sont PAS l'exécution réelle */}
+      <div className="mb-4 -mt-1 -mx-1 px-3 py-2 rounded-lg bg-amber-100/70 border border-amber-300 flex items-start gap-2">
+        <span className="text-amber-700 text-base shrink-0 leading-none mt-0.5">⚠</span>
+        <div className="text-xs text-amber-900 leading-relaxed">
+          <strong>Données simulées à des fins pédagogiques.</strong> Ces chiffres ne sont
+          PAS l'exécution réelle du budget de l'État. La DGFiP publie l'exécution réelle dans
+          la Situation Mensuelle Budgétaire avec 1-2 mois de décalage —
+          {" "}<a href="https://www.budget.gouv.fr/documentation/documents-budgetaires/situation-mensuelle-budgetaire" target="_blank" rel="noopener noreferrer" className="underline hover:text-amber-700">
+            voir SMB officielle
+          </a>. Branchement automatique prévu dans une version ultérieure.
+        </div>
+      </div>
+
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
           <div className="flex items-center gap-2">
             <span className="text-xs uppercase tracking-widest text-muted">Exécution {annee}</span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 text-warn border border-amber-200 uppercase tracking-wider">
-              réel estimé
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 uppercase tracking-wider font-bold">
+              ⚠ données simulées
             </span>
           </div>
           <div className="font-display text-xl font-semibold text-slate-900 mt-1">

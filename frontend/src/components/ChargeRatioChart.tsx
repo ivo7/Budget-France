@@ -13,6 +13,7 @@ import {
 import type { BudgetSnapshot } from "../types";
 import { DownloadableCard } from "./DownloadableCard";
 import { formatEurCompact } from "../lib/format";
+import { objectsToCsv } from "../lib/csvExport";
 
 interface Props {
   data: BudgetSnapshot;
@@ -72,7 +73,16 @@ export function ChargeRatioChart({ data }: Props) {
   };
 
   return (
-    <DownloadableCard filename="budget-france-charge-dette-recettes" className="card p-5 md:p-6">
+    <DownloadableCard
+      filename="budget-france-charge-dette-recettes"
+      className="card p-5 md:p-6"
+      getCsvData={() => objectsToCsv(rows.map((r) => ({
+        annee: r.year,
+        charge_dette_eur: r.charge ?? "",
+        recettes_etat_eur: r.recettes ?? "",
+        ratio_pourcent: r.ratio != null ? r.ratio.toFixed(2) : "",
+      })))}
+    >
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
           <div className="text-xs uppercase tracking-widest text-muted">Soutenabilité</div>

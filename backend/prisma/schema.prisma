@@ -40,12 +40,33 @@ enum SubscriberType {
   entreprise
 }
 
+enum SubscriptionPlan {
+  free        // par défaut : bulletin mensuel + alertes standards
+  premium     // 5,99 €/mois : bulletin hebdo + archives + alertes perso
+}
+
+enum SubscriptionStatus {
+  trialing    // pendant les 7 jours d'essai gratuit
+  active      // abonnement payé, en cours
+  past_due    // échec paiement, grâce 3 jours
+  canceled    // annulé par l'utilisateur, accès jusqu'à la fin de la période payée
+  unpaid      // échec paiement confirmé, accès coupé
+}
+
+enum SubscriptionBillingCycle {
+  monthly
+  yearly
+}
+
 /// Abonné aux notifications email (particulier ou entreprise).
 /// Un Subscriber n'est vraiment actif qu'après confirmation (confirmedAt).
 model Subscriber {
   id                String   @id @default(cuid())
   email             String   @unique
   type              SubscriberType
+
+  // Plan d'abonnement — pilote l'accès aux bulletins premium
+  plan              SubscriptionPlan  @default(free)
 
   // Double opt-in RGPD
   createdAt         DateTime  @default(now())
@@ -55,9 +76,14 @@ model Subscriber {
   unsubscribeToken  String    @unique
 
   // Préférences d'envoi
-  prefMonthly       Boolean   @default(true)   // bulletin mensuel
+  prefMonthly       Boolean   @default(true)   // bulletin mensuel (free + premium)
+  prefWeekly        Boolean   @default(true)   // bulletin hebdomadaire (premium only)
   prefThreshold     Boolean   @default(true)   // alertes de seuil
   lastNotifiedAt    DateTime?
+
+  // Seuils personnalisés (premium uniquement)
+  customThresholdDetteEur  Float?              // ex: 50_000_000_000
+  customThresholdOatBp     Int?                // ex: 20 (= 0,20 pt)
 
   // Champs particuliers
   firstName         String?
@@ -70,14 +96,46 @@ model Subscriber {
   companySize       String?
 
   notifications     NotificationLog[]
+  subscription      Subscription?
 
   @@index([confirmedAt])
   @@index([type])
+  @@index([plan])
+}
+
+/// Abonnement Stripe lié à un Subscriber. Un abonné peut avoir au plus
+/// une subscription à un instant T (enforced par @unique sur subscriberId).
+/// On garde l'historique des subscriptions canceled via le champ status.
+model Subscription {
+  id                    String                    @id @default(cuid())
+  subscriberId          String                    @unique
+  stripeCustomerId      String
+  stripeSubscriptionId  String                    @unique
+  status                SubscriptionStatus
+  billingCycle          SubscriptionBillingCycle
+  priceId               String                    // Stripe price ID
+  amountCents           Int                       // 599 pour 5,99 €
+  currency              String                    @default("eur")
+
+  currentPeriodStart    DateTime
+  currentPeriodEnd      DateTime
+  trialEndsAt           DateTime?
+  canceledAt            DateTime?                 // date de demande d'annulation
+  cancelAtPeriodEnd     Boolean                   @default(false)
+
+  createdAt             DateTime                  @default(now())
+  updatedAt             DateTime                  @updatedAt
+
+  subscriber            Subscriber                @relation(fields: [subscriberId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([stripeCustomerId])
 }
 
 enum NotificationType {
   confirm
   monthly
+  weekly       // bulletin premium hebdomadaire
   threshold
 }
 

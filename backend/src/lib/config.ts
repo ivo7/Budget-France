@@ -59,6 +59,18 @@ export const config = {
   // (par défaut 30 req/min). Laisser vide pour désactiver l'API key.
   apiAdminKey: optional("API_ADMIN_KEY"),
 
+  // Stripe — intégration paiements pour le plan premium
+  // Le webhook secret est séparé de la clé secrète pour la vérification
+  // de signature des événements entrants.
+  stripe: {
+    secretKey: optional("STRIPE_SECRET_KEY"),
+    publishableKey: optional("STRIPE_PUBLISHABLE_KEY"),
+    webhookSecret: optional("STRIPE_WEBHOOK_SECRET"),
+    priceMonthly: optional("STRIPE_PRICE_MONTHLY"),       // price_xxx pour 5,99 €/mois
+    priceYearly: optional("STRIPE_PRICE_YEARLY"),         // price_xxx pour 57,50 €/an
+    productPremium: optional("STRIPE_PRODUCT_PREMIUM"),   // prod_xxx
+  },
+
   // Mode dev : si SMTP_HOST est vide, on log les emails dans stdout.
   isEmailConsoleMode: !process.env.SMTP_HOST,
 

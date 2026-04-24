@@ -11,6 +11,7 @@ import {
 import type { BudgetSnapshot } from "../types";
 import { formatEurCompact } from "../lib/format";
 import { DownloadableCard } from "./DownloadableCard";
+import { timeseriesToCsv } from "../lib/csvExport";
 
 interface Props {
   data: BudgetSnapshot;
@@ -48,7 +49,12 @@ export function MissionSelector({ data }: Props) {
   const multiplier = first && last && first.value > 0 ? last.value / first.value : 0;
 
   return (
-    <DownloadableCard filename={`mission-${active.id}-1945-2025`} shareTitle={`Budget France — ${active.label} 1945-2025`} className="card p-5 md:p-6">
+    <DownloadableCard
+      filename={`mission-${active.id}-1945-2025`}
+      shareTitle={`Budget France — ${active.label} 1945-2025`}
+      className="card p-5 md:p-6"
+      getCsvData={() => timeseriesToCsv(active.points, "depenses_eur")}
+    >
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
           <div className="text-xs uppercase tracking-widest text-muted">Évolution par mission</div>

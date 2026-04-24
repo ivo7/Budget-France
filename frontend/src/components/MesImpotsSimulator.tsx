@@ -3,6 +3,7 @@ import type { BudgetSnapshot } from "../types";
 import { formatEurCompact } from "../lib/format";
 import { simulateTaxes, allocateAcrossMissions } from "../lib/taxSimulator";
 import { DownloadableCard } from "./DownloadableCard";
+import { objectsToCsv } from "../lib/csvExport";
 
 interface Props {
   data: BudgetSnapshot;
@@ -30,7 +31,20 @@ export function MesImpotsSimulator({ data }: Props) {
   return (
     <div className="space-y-4">
       {/* Formulaire + résumé */}
-      <DownloadableCard filename="mes-impots-simulation" shareTitle="Budget France — Où vont mes impôts ?" className="card p-5 md:p-6">
+      <DownloadableCard
+        filename="mes-impots-simulation"
+        shareTitle="Budget France — Où vont mes impôts ?"
+        className="card p-5 md:p-6"
+        getCsvData={() => objectsToCsv([
+          { poste: "Salaire mensuel net (€)", valeur: monthlyNet },
+          { poste: "Revenu annuel net (€)", valeur: Math.round(result.annualNetIncome) },
+          { poste: "Impôt sur le revenu (€)", valeur: Math.round(result.ir) },
+          { poste: "TVA estimée (€)", valeur: Math.round(result.tva) },
+          { poste: "TICPE et autres taxes (€)", valeur: Math.round(result.ticpeEtAutres) },
+          { poste: "Total versé à l'État (€)", valeur: Math.round(result.totalEtat) },
+          { poste: "Taux effectif (%)", valeur: (result.effectiveRate * 100).toFixed(2) },
+        ])}
+      >
         <div className="text-xs uppercase tracking-widest text-muted">Simulateur pédagogique</div>
         <h2 className="font-display text-2xl font-semibold text-slate-900 mt-1">
           Où vont tes impôts ?
@@ -89,7 +103,16 @@ export function MesImpotsSimulator({ data }: Props) {
       </DownloadableCard>
 
       {/* Ventilation sur les missions */}
-      <DownloadableCard filename="mes-impots-repartition" shareTitle="Budget France — Répartition de mes impôts" className="card p-5 md:p-6">
+      <DownloadableCard
+        filename="mes-impots-repartition"
+        shareTitle="Budget France — Répartition de mes impôts"
+        className="card p-5 md:p-6"
+        getCsvData={() => objectsToCsv(allocation.map((a) => ({
+          mission: a.categorie,
+          contribution_eur_par_an: Math.round(a.contribution),
+          part_pourcent: (a.part * 100).toFixed(2),
+        })))}
+      >
         <div className="flex items-start justify-between flex-wrap gap-3">
           <div>
             <div className="text-xs uppercase tracking-widest text-muted">Ventilation</div>

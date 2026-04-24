@@ -175,6 +175,60 @@ déterminés trouveront un moyen. La vraie protection contre la redistribution
 abusive passe par les **conditions générales d'utilisation** (usage libre +
 attribution obligatoire).
 
+### Abonnement Premium — intégration Stripe
+
+Le site inclut un système d'abonnement Premium **5,99 €/mois** ou **57,50 €/an** (−20 %) avec
+**7 jours d'essai gratuit**. Bénéfices premium : bulletin hebdomadaire (envoyé chaque lundi
+à 07h45 Europe/Paris), archives des bulletins, alertes de seuil personnalisées.
+
+**Setup Stripe en 5 minutes** :
+
+1. Créer un compte sur https://dashboard.stripe.com/register
+2. Sur https://dashboard.stripe.com/apikeys, récupérer les clés TEST :
+   - `sk_test_...` → `STRIPE_SECRET_KEY` dans `.env`
+   - `pk_test_...` → `STRIPE_PUBLISHABLE_KEY` dans `.env`
+3. Sur https://dashboard.stripe.com/products, créer un produit **"Budget France Premium"** :
+   - Ajouter un prix récurrent mensuel de 5,99 €
+   - Ajouter un prix récurrent annuel de 57,50 €
+   - Copier les IDs `price_...` dans `STRIPE_PRICE_MONTHLY` et `STRIPE_PRICE_YEARLY`
+4. Sur https://dashboard.stripe.com/webhooks, ajouter un endpoint :
+   - URL : `https://ton-domaine.com/api/stripe/webhook`
+   - Events : `checkout.session.completed`, `customer.subscription.created`,
+     `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`
+   - Copier le `whsec_...` dans `STRIPE_WEBHOOK_SECRET`
+
+**En dev local**, utilise Stripe CLI pour recevoir les webhooks :
+
+```bash
+brew install stripe/stripe-cli/stripe
+stripe login
+stripe listen --forward-to localhost:4280/api/stripe/webhook
+```
+
+La CLI affiche un `whsec_...` local à mettre dans `.env` le temps des tests.
+
+**Passage en production** :
+- Créer les mêmes produits + webhooks en mode LIVE (bouton en haut à droite du dashboard Stripe)
+- Remplacer les clés `sk_test_` par `sk_live_`, idem pour `pk_`
+- Vérifier l'activation du mode capture (Stripe >= KYC pour > 1 000 € de revenus)
+
+**Endpoints Stripe exposés** :
+
+| Endpoint | Méthode | Usage |
+|---|---|---|
+| `/api/stripe/checkout` | POST | Lance une Checkout Session, retourne `{ url }` vers Stripe |
+| `/api/stripe/status?token=...` | GET | Récupère l'état d'abonnement d'un abonné (auth via unsubscribeToken) |
+| `/api/stripe/portal` | POST | Ouvre le Customer Portal pour gérer l'abonnement |
+| `/api/stripe/webhook` | POST | Reçu par Stripe. Signature vérifiée. |
+
+**Crons supplémentaires** :
+- **Bulletin hebdo** (`sendWeeklyBulletin`) : tous les lundis 07h45 Europe/Paris. Ciblage : plan=premium + status in (trialing, active) + prefWeekly=true.
+
+**Tester en local** (sans carte réelle) — Stripe fournit des cartes de test :
+- Succès : `4242 4242 4242 4242` (n'importe quelle date future + n'importe quel CVV)
+- Échec : `4000 0000 0000 0002`
+- Nécessite 3D Secure : `4000 0025 0000 3155`
+
 ### Accès direct au backend (base de données)
 
 Trois options, du plus simple au plus technique :

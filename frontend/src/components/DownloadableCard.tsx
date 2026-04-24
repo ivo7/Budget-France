@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { ShareButton } from "./ShareButton";
 import { captureToPng, captureToJpeg, captureToBlob } from "../lib/chartCapture";
+import { toCsv, downloadCsv, type CsvData } from "../lib/csvExport";
 
 interface Props {
   filename: string;
@@ -8,6 +9,9 @@ interface Props {
   className?: string;
   /** Titre utilisé pour le partage (email, WhatsApp, etc.). */
   shareTitle?: string;
+  /** Callback optionnel : retourne les données tabulaires pour l'export CSV.
+   *  Si fourni, le bouton "CSV" apparaît dans le menu de téléchargement. */
+  getCsvData?: () => CsvData;
 }
 
 /**
@@ -17,7 +21,7 @@ interface Props {
  *
  * Les deux boutons partagent le même mécanisme de capture via chartCapture.ts.
  */
-export function DownloadableCard({ filename, children, className = "", shareTitle }: Props) {
+export function DownloadableCard({ filename, children, className = "", shareTitle, getCsvData }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [state, setState] = useState<"idle" | "busy" | "done" | "error">("idle");
   const [open, setOpen] = useState(false);
@@ -45,6 +49,21 @@ export function DownloadableCard({ filename, children, className = "", shareTitl
   async function getImageBlob(): Promise<Blob | null> {
     if (!ref.current) return null;
     return captureToBlob(ref.current);
+  }
+
+  function exportCsv() {
+    if (!getCsvData) return;
+    setOpen(false);
+    try {
+      const data = getCsvData();
+      downloadCsv(`${filename}.csv`, toCsv(data));
+      setState("done");
+      setTimeout(() => setState("idle"), 1600);
+    } catch (e) {
+      console.error("[DownloadableCard] CSV export failed:", e);
+      setState("error");
+      setTimeout(() => setState("idle"), 3000);
+    }
   }
 
   return (
@@ -83,21 +102,30 @@ export function DownloadableCard({ filename, children, className = "", shareTitl
           </button>
 
           {open && (
-            <div className="absolute bottom-full right-0 mb-1.5 bg-white border border-slate-200 rounded-md shadow-lg min-w-[110px] overflow-hidden">
+            <div className="absolute bottom-full right-0 mb-1.5 bg-white border border-slate-200 rounded-md shadow-lg min-w-[140px] overflow-hidden">
               <button
                 type="button"
                 onClick={() => download("png")}
                 className="w-full text-left px-2.5 py-1.5 text-[11px] text-slate-700 hover:bg-brand-soft hover:text-brand transition"
               >
-                PNG
+                <strong>PNG</strong> (image)
               </button>
               <button
                 type="button"
                 onClick={() => download("jpeg")}
                 className="w-full text-left px-2.5 py-1.5 text-[11px] text-slate-700 hover:bg-brand-soft hover:text-brand transition border-t border-slate-100"
               >
-                JPEG
+                <strong>JPEG</strong> (image)
               </button>
+              {getCsvData && (
+                <button
+                  type="button"
+                  onClick={exportCsv}
+                  className="w-full text-left px-2.5 py-1.5 text-[11px] text-slate-700 hover:bg-brand-soft hover:text-brand transition border-t border-slate-100"
+                >
+                  <strong>CSV</strong> (données brutes)
+                </button>
+              )}
             </div>
           )}
         </div>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { BudgetSnapshot } from "../types";
 import { formatEurCompact } from "../lib/format";
 import { DownloadableCard } from "./DownloadableCard";
+import { objectsToCsv } from "../lib/csvExport";
 
 interface Props {
   data: BudgetSnapshot;
@@ -56,7 +57,20 @@ function SensibiliteOat({
   const nouvelleCharge = chargeActuelle + impactLongTerme;
 
   return (
-    <DownloadableCard filename="calc-oat-sensibilite" shareTitle="Budget France — calculatrice OAT" className="card p-5 md:p-6">
+    <DownloadableCard
+      filename="calc-oat-sensibilite"
+      shareTitle="Budget France — calculatrice OAT"
+      className="card p-5 md:p-6"
+      getCsvData={() => objectsToCsv([
+        { parametre: "dette_actuelle_eur", valeur: detteActuelle },
+        { parametre: "oat_actuel_pourcent", valeur: oatActuel },
+        { parametre: "delta_oat_points", valeur: deltaOat },
+        { parametre: "surcout_1ere_annee_eur", valeur: Math.round(impact1An) },
+        { parametre: "surcout_long_terme_eur", valeur: Math.round(impactLongTerme) },
+        { parametre: "charge_actuelle_eur", valeur: chargeActuelle },
+        { parametre: "nouvelle_charge_eur", valeur: Math.round(nouvelleCharge) },
+      ])}
+    >
       <div className="text-xs uppercase tracking-widest text-muted">Calculatrice 1</div>
       <h3 className="font-display text-xl font-semibold text-slate-900 mt-1">
         Si l'OAT 10 ans monte de X points, combien ça coûte ?
@@ -102,7 +116,16 @@ function TempsRemboursement({ detteActuelle }: { detteActuelle: number }) {
   const years = soldeAbs > 0 ? detteActuelle / 1e9 / soldeAbs : Infinity;
 
   return (
-    <DownloadableCard filename="calc-temps-remboursement" shareTitle="Budget France — temps de remboursement" className="card p-5 md:p-6">
+    <DownloadableCard
+      filename="calc-temps-remboursement"
+      shareTitle="Budget France — temps de remboursement"
+      className="card p-5 md:p-6"
+      getCsvData={() => objectsToCsv([
+        { parametre: "dette_actuelle_eur", valeur: detteActuelle },
+        { parametre: "solde_primaire_milliards_par_an", valeur: soldePrimaire },
+        { parametre: "delai_annees", valeur: soldePrimaire <= 0 ? "Infini (dette croît)" : Math.round(years) },
+      ])}
+    >
       <div className="text-xs uppercase tracking-widest text-muted">Calculatrice 2</div>
       <h3 className="font-display text-xl font-semibold text-slate-900 mt-1">
         Combien d'années pour rembourser la dette ?
@@ -179,7 +202,20 @@ function StabilisationRatio({
   const soldeStabilisant = (r - g) * detteActuelle; // en €
 
   return (
-    <DownloadableCard filename="calc-stabilisation-ratio" shareTitle="Budget France — stabilisation dette/PIB" className="card p-5 md:p-6">
+    <DownloadableCard
+      filename="calc-stabilisation-ratio"
+      shareTitle="Budget France — stabilisation dette/PIB"
+      className="card p-5 md:p-6"
+      getCsvData={() => objectsToCsv([
+        { parametre: "dette_actuelle_eur", valeur: detteActuelle },
+        { parametre: "pib_actuel_eur", valeur: pibActuel },
+        { parametre: "ratio_dette_pib_pourcent", valeur: ratio.toFixed(2) },
+        { parametre: "taux_oat_pourcent", valeur: oatActuel },
+        { parametre: "croissance_pib_pourcent", valeur: croissance },
+        { parametre: "effet_boule_neige_pts_pib", valeur: effetBouleNeige.toFixed(3) },
+        { parametre: "solde_primaire_stabilisant_eur", valeur: Math.round(soldeStabilisant) },
+      ])}
+    >
       <div className="text-xs uppercase tracking-widest text-muted">Calculatrice 3</div>
       <h3 className="font-display text-xl font-semibold text-slate-900 mt-1">
         Effet boule de neige : stabiliser le ratio dette / PIB

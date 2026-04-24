@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useBudgetData } from "./hooks/useBudgetData";
 import { useHashRoute } from "./hooks/useHashRoute";
 import { LiveDebtCounter } from "./components/LiveDebtCounter";
+import { LiveSpendingCounter } from "./components/LiveSpendingCounter";
 import { KPICard } from "./components/KPICard";
 import { DebtEvolutionChart } from "./components/DebtEvolutionChart";
 import { RatesChart } from "./components/RatesChart";
@@ -28,13 +29,31 @@ import { Calculators } from "./components/Calculators";
 import { SecuCollectivitesPage } from "./components/SecuCollectivitesPage";
 import { SecuCollecHistoryChart } from "./components/SecuCollecHistoryChart";
 import { MissionSelector } from "./components/MissionSelector";
+import { PricingPage } from "./components/PricingPage";
+import { PaymentSuccessPage } from "./components/PaymentSuccessPage";
+import { AccountPage } from "./components/AccountPage";
+import { SpreadMultiPaysChart } from "./components/SpreadMultiPaysChart";
+import { DetenteursDetteChart } from "./components/DetenteursDetteChart";
+import { RealRateChart } from "./components/RealRateChart";
+import { DebtCostProjection } from "./components/DebtCostProjection";
 import { filterBudgetForHistorique } from "./lib/historiqueFilter";
 import { formatDateTime, formatPercent } from "./lib/format";
+import { timeseriesToCsv, multiSeriesToCsv, objectsToCsv } from "./lib/csvExport";
 import type { BudgetSnapshot } from "./types";
 
-type Page = "dashboard" | "europe" | "historique" | "fraudes" | "mes-impots" | "pedagogie" | "secu-collec" | "sources" | "glossaire";
+// Feature flag — passe à `true` pour réactiver l'abonnement Premium / Stripe.
+// Toute la mécanique Stripe (routes, pages, jobs hebdo, schéma DB) reste
+// présente dans le code ; seule l'interface est masquée pendant la phase
+// gratuite de lancement.
+const PREMIUM_ENABLED = false;
+
+type Page = "dashboard" | "europe" | "historique" | "fraudes" | "mes-impots" | "pedagogie" | "secu-collec" | "sources" | "glossaire" | "tarifs" | "paiement-reussi" | "compte";
 
 function resolvePage(hash: string): Page {
+  // Les routes Stripe doivent être vérifiées avant les autres (matches préfixe)
+  if (hash.startsWith("tarifs") || hash.startsWith("premium")) return "tarifs";
+  if (hash.startsWith("paiement-reussi") || hash.startsWith("success")) return "paiement-reussi";
+  if (hash.startsWith("compte") || hash.startsWith("account")) return "compte";
   if (hash.startsWith("europe")) return "europe";
   if (hash.startsWith("historique")) return "historique";
   if (hash.startsWith("fraudes")) return "fraudes";
@@ -72,11 +91,29 @@ export default function App() {
         {data && page === "pedagogie" && <PedagogyPage data={data} />}
         {data && page === "secu-collec" && <SecuCollectivitesPage data={data} />}
         {data && page === "sources" && <SourcesOnlyPage data={data} />}
+        {/* Les pages Premium ne s'affichent que si le flag est activé */}
+        {PREMIUM_ENABLED && page === "tarifs" && <PricingPage />}
+        {PREMIUM_ENABLED && page === "paiement-reussi" && <PaymentSuccessPage />}
+        {PREMIUM_ENABLED && page === "compte" && <AccountPage />}
 
         {data && (
-          <footer className="mt-10 pt-6 border-t border-slate-200 text-xs text-slate-500 flex flex-wrap gap-3 justify-between">
-            <span>Dernière mise à jour du snapshot : {formatDateTime(data.generatedAt)}</span>
-            <span>Données publiques — Eurostat, INSEE, BCE, Banque de France, data.gouv.fr</span>
+          <footer className="mt-10 pt-6 border-t border-slate-200 text-xs text-slate-500 space-y-2">
+            <div className="flex flex-wrap gap-3 justify-between">
+              <span>Dernière mise à jour du snapshot : {formatDateTime(data.generatedAt)}</span>
+              <span>Données publiques — Eurostat, INSEE, BCE, Banque de France, data.gouv.fr</span>
+            </div>
+            <div className="flex flex-wrap gap-2 justify-between items-center pt-2 border-t border-slate-100">
+              <span>
+                Une question, une remarque, un bug à signaler ?{" "}
+                <a
+                  href="mailto:contact@budgetfrance.org"
+                  className="text-brand hover:underline font-medium"
+                >
+                  contact@budgetfrance.org
+                </a>
+              </span>
+              <span className="text-slate-400">© Budget France · Projet pédagogique indépendant</span>
+            </div>
           </footer>
         )}
       </main>
@@ -87,21 +124,30 @@ export default function App() {
 function DashboardPage({ data }: { data: BudgetSnapshot }) {
   return (
     <>
-      {/* Hero : compteur live */}
-      <section className="mt-6">
+      {/* Hero : compteur dette + compteur dépenses côte-à-côte */}
+      <section className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
         <LiveDebtCounter
           baseValue={data.dettePublique.value}
           asOf={data.dettePublique.asOf}
           eurPerSecond={data.vitesseEndettementEurParSec.value}
         />
-        <div className="mt-2 text-xs text-slate-500">
-          Ratio dette / PIB :{" "}
-          <span className="text-slate-800 font-semibold tabular-nums">
-            {formatPercent(data.ratioDettePib.value)}
-          </span>{" "}
-          — PIB de référence : {(data.pib.value / 1e9).toFixed(0)} Md€
-        </div>
+        <LiveSpendingCounter
+          annualBudget={data.budgetPrevisionnel.value}
+          eurPerSecond={
+            data.vitesseDepensesEurParSec?.value
+              ?? data.budgetPrevisionnel.value / (365 * 86_400)
+          }
+          annee={data.annee}
+        />
       </section>
+
+      <div className="mt-2 text-xs text-slate-500">
+        Ratio dette / PIB :{" "}
+        <span className="text-slate-800 font-semibold tabular-nums">
+          {formatPercent(data.ratioDettePib.value)}
+        </span>{" "}
+        — PIB de référence : {(data.pib.value / 1e9).toFixed(0)} Md€
+      </div>
 
       {/* 4 KPIs */}
       <section className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -133,7 +179,14 @@ function DashboardPage({ data }: { data: BudgetSnapshot }) {
 
       {/* Flux budget + taux */}
       <section className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <DownloadableCard filename={`budget-france-flux-${data.annee}`}>
+        <DownloadableCard
+          filename={`budget-france-flux-${data.annee}`}
+          getCsvData={() => objectsToCsv([
+            { ligne: "Recettes", montant_eur: data.recettesPrevisionnelles.value },
+            { ligne: "Dépenses", montant_eur: data.budgetPrevisionnel.value },
+            { ligne: "Solde", montant_eur: data.soldeBudgetaire.value },
+          ])}
+        >
           <BudgetFlow
             annee={data.annee}
             recettes={data.recettesPrevisionnelles}
@@ -141,7 +194,10 @@ function DashboardPage({ data }: { data: BudgetSnapshot }) {
             solde={data.soldeBudgetaire}
           />
         </DownloadableCard>
-        <DownloadableCard filename="budget-france-oat-10ans">
+        <DownloadableCard
+          filename="budget-france-oat-10ans"
+          getCsvData={() => timeseriesToCsv(data.series.tauxOatHistorique.points, "taux_pct")}
+        >
           <RatesChart series={data.series.tauxOatHistorique} />
         </DownloadableCard>
       </section>
@@ -149,7 +205,13 @@ function DashboardPage({ data }: { data: BudgetSnapshot }) {
       {/* Répartition LFI : recettes + dépenses */}
       {data.repartition && (
         <section className="mt-4">
-          <DownloadableCard filename={`budget-france-repartition-lfi-${data.repartition.annee}`}>
+          <DownloadableCard
+            filename={`budget-france-repartition-lfi-${data.repartition.annee}`}
+            getCsvData={() => objectsToCsv([
+              ...data.repartition!.recettes.map((r) => ({ side: "recettes", ...r })),
+              ...data.repartition!.depenses.map((r) => ({ side: "depenses", ...r })),
+            ])}
+          >
             <BudgetBreakdown
               annee={data.repartition.annee}
               recettes={data.repartition.recettes}
@@ -163,7 +225,13 @@ function DashboardPage({ data }: { data: BudgetSnapshot }) {
       {/* Exécution mensuelle : prévu vs réel */}
       {data.executionCourante && (
         <section className="mt-4">
-          <DownloadableCard filename={`budget-france-execution-${data.executionCourante.annee}`}>
+          <DownloadableCard
+            filename={`budget-france-execution-${data.executionCourante.annee}`}
+            getCsvData={() => objectsToCsv([
+              ...data.executionCourante!.recettes.map((r) => ({ side: "recettes", ...r })),
+              ...data.executionCourante!.depenses.map((r) => ({ side: "depenses", ...r })),
+            ])}
+          >
             <RevenueForecastChart
               annee={data.executionCourante.annee}
               recettes={data.executionCourante.recettes}
@@ -173,12 +241,8 @@ function DashboardPage({ data }: { data: BudgetSnapshot }) {
         </section>
       )}
 
-      {/* Dette récente (Eurostat trimestriel) */}
-      <section className="mt-4">
-        <DownloadableCard filename="budget-france-dette-recente">
-          <DebtEvolutionChart series={data.series.detteHistorique} />
-        </DownloadableCard>
-      </section>
+      {/* La dette récente (Eurostat trimestriel) a été déplacée sur la page
+          Historique pour éviter la redondance avec le compteur live. */}
 
       {/* Équivalences concrètes — rendre les Md€ tangibles */}
       <section className="mt-4">
@@ -196,6 +260,31 @@ function DashboardPage({ data }: { data: BudgetSnapshot }) {
       <section className="mt-4">
         <SubscribeForm />
       </section>
+
+      {/* CTA Premium — masqué pendant la phase gratuite. Code conservé. */}
+      {PREMIUM_ENABLED && (
+        <section className="mt-4">
+          <a
+            href="#/tarifs"
+            className="card block p-6 hover:border-brand hover:shadow-lg transition-all group bg-gradient-to-br from-brand-soft/30 to-white"
+          >
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div>
+                <div className="text-xs uppercase tracking-widest text-brand font-semibold">
+                  ✨ Budget France Premium
+                </div>
+                <div className="font-display text-xl font-semibold text-slate-900 mt-1 group-hover:text-brand transition-colors">
+                  Bulletin hebdomadaire, alertes personnalisées, archives
+                </div>
+                <p className="text-sm text-slate-600 mt-1">
+                  Soutiens le projet à partir de 4,79 €/mois (annuel) — 7 jours d'essai gratuit, sans engagement.
+                </p>
+              </div>
+              <div className="text-brand text-2xl">→</div>
+            </div>
+          </a>
+        </section>
+      )}
 
       {/* Liens vers les autres pages */}
       <section className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -247,6 +336,16 @@ function EuropePage({ data }: { data: BudgetSnapshot }) {
       <section className="mt-4">
         <RatingsTimeline data={data} />
       </section>
+
+      {/* 5. Spread multi-pays (FR vs DE / IT / ES) */}
+      <section className="mt-4">
+        <SpreadMultiPaysChart data={data} />
+      </section>
+
+      {/* 6. Détenteurs de la dette française */}
+      <section className="mt-4">
+        <DetenteursDetteChart data={data} />
+      </section>
     </>
   );
 }
@@ -289,6 +388,11 @@ function PedagogyPage({ data }: { data: BudgetSnapshot }) {
           </p>
         </div>
         <Calculators data={data} />
+      </section>
+
+      {/* 4. Projection à 5 ans du coût de la dette selon scénarios de taux */}
+      <section className="mt-4">
+        <DebtCostProjection data={data} />
       </section>
     </>
   );
@@ -365,8 +469,25 @@ function HistoriquePage({ data }: { data: BudgetSnapshot }) {
 
       {/* Recettes vs dépenses — somme absolue */}
       <section className="mt-6">
-        <DownloadableCard filename="budget-france-recettes-depenses-1945">
+        <DownloadableCard
+          filename="budget-france-recettes-depenses-1945"
+          getCsvData={() => multiSeriesToCsv([
+            { id: "rec", label: "recettes_etat_eur", points: filtered.series.recettesLongue?.points ?? [] },
+            { id: "dep", label: "depenses_etat_eur", points: filtered.series.depensesLongue?.points ?? [] },
+          ])}
+        >
           <RecettesDepensesHistory data={filtered} />
+        </DownloadableCard>
+      </section>
+
+      {/* Dette publique trimestrielle (Eurostat depuis 2000) — déplacée
+          du Dashboard ici pour rassembler tous les graphiques de dette */}
+      <section className="mt-4">
+        <DownloadableCard
+          filename="budget-france-dette-trimestrielle"
+          getCsvData={() => timeseriesToCsv(filtered.series.detteHistorique.points, "dette_eur")}
+        >
+          <DebtEvolutionChart series={filtered.series.detteHistorique} />
         </DownloadableCard>
       </section>
 
@@ -387,7 +508,17 @@ function HistoriquePage({ data }: { data: BudgetSnapshot }) {
       {/* Composition : part de chaque recette et de chaque dépense */}
       {filtered.compositionHistorique && (
         <section className="mt-4">
-          <DownloadableCard filename="budget-france-composition-1945">
+          <DownloadableCard
+            filename="budget-france-composition-1945"
+            getCsvData={() => multiSeriesToCsv([
+              ...filtered.compositionHistorique!.recettes.map((c) => ({
+                id: `rec_${c.id}`, label: `recettes_${c.label}_eur`, points: c.points,
+              })),
+              ...filtered.compositionHistorique!.depenses.map((c) => ({
+                id: `dep_${c.id}`, label: `depenses_${c.label}_eur`, points: c.points,
+              })),
+            ])}
+          >
             <HistoricalComposition
               recettes={filtered.compositionHistorique.recettes}
               depenses={filtered.compositionHistorique.depenses}
@@ -399,11 +530,31 @@ function HistoriquePage({ data }: { data: BudgetSnapshot }) {
       {/* Dette + PIB + taux longue période */}
       {filtered.series.detteLongue && filtered.series.detteLongue.points.length > 0 ? (
         <section className="mt-4">
-          <DownloadableCard filename="budget-france-historique-complet">
+          <DownloadableCard
+            filename="budget-france-historique-complet"
+            getCsvData={() => multiSeriesToCsv([
+              { id: "dette", label: "dette_publique_eur", points: filtered.series.detteLongue?.points ?? [] },
+              { id: "pib", label: "pib_eur", points: filtered.series.pibLongue?.points ?? [] },
+              { id: "depenses", label: "depenses_etat_eur", points: filtered.series.depensesLongue?.points ?? [] },
+              { id: "recettes", label: "recettes_etat_eur", points: filtered.series.recettesLongue?.points ?? [] },
+              { id: "oat", label: "oat_long_terme_pct", points: filtered.series.oatLongue?.points ?? [] },
+            ])}
+          >
             <HistoricalCurves data={filtered} />
           </DownloadableCard>
         </section>
-      ) : (
+      ) : null}
+
+      {/* Taux d'intérêt réel (OAT − inflation) — concept SES */}
+      {filtered.inflation && filtered.series.oatLongue && (
+        <section className="mt-4">
+          <RealRateChart data={filtered} />
+        </section>
+      )}
+
+      {/* On retire le bloc "indisponible" en doublon — le bloc précédent
+          gère les deux cas via opérateur ternaire ci-dessus. */}
+      {!filtered.series.detteLongue || filtered.series.detteLongue.points.length === 0 ? (
         <section className="mt-4">
           <div className="card p-6 text-sm text-slate-600">
             <div className="font-display text-lg text-slate-900 mb-1">Historique 1945+ indisponible</div>
@@ -413,7 +564,7 @@ function HistoriquePage({ data }: { data: BudgetSnapshot }) {
             </code>
           </div>
         </section>
-      )}
+      ) : null}
     </>
   );
 }
@@ -436,6 +587,25 @@ function SourcesOnlyPage({ data }: { data: BudgetSnapshot }) {
 
       <section className="mt-6">
         <SourcesPanel sources={data.sources} generatedAt={data.generatedAt} />
+      </section>
+
+      <section className="mt-6">
+        <div className="card p-5 md:p-6 bg-brand-soft/30 border-brand/20">
+          <div className="text-xs uppercase tracking-widest text-brand">Une question, un signalement ?</div>
+          <h2 className="font-display text-xl font-semibold text-slate-900 mt-1">
+            Contact
+          </h2>
+          <p className="text-sm text-slate-700 mt-2 max-w-2xl">
+            Tu repères une donnée incorrecte, tu veux suggérer un nouvel indicateur, ou tu as une
+            question sur la méthodologie ? Écris-nous, on lit toutes les remontées.
+          </p>
+          <a
+            href="mailto:contact@budgetfrance.org"
+            className="inline-flex items-center gap-2 mt-4 bg-brand hover:bg-brand-dark text-white font-semibold rounded-xl px-5 py-2.5 transition-colors text-sm"
+          >
+            ✉️ contact@budgetfrance.org
+          </a>
+        </div>
       </section>
     </>
   );
@@ -474,6 +644,11 @@ function Header({ page }: { page: Page }) {
     { href: "#/pedagogie",     label: "Comprendre",               target: "pedagogie",   description: "Parcours en 10 étapes" },
     { href: "#/glossaire",     label: "Fiches pédagogiques",      target: "glossaire",   description: "Glossaire complet" },
     { href: "#/sources",       label: "Sources",                  target: "sources",     description: "Traçabilité des données" },
+    // Items Premium masqués pendant la phase gratuite (toggle PREMIUM_ENABLED)
+    ...(PREMIUM_ENABLED ? [
+      { href: "#/tarifs",        label: "Premium",                  target: "tarifs" as Page,      description: "Bulletin hebdo · 7 jours offerts" },
+      { href: "#/compte",        label: "Mon compte",               target: "compte" as Page,      description: "Gérer mon abonnement" },
+    ] : []),
   ];
 
   return (

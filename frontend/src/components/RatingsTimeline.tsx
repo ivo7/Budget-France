@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import type { BudgetSnapshot } from "../types";
 import { DownloadableCard } from "./DownloadableCard";
+import { objectsToCsv } from "../lib/csvExport";
 
 interface Props {
   data: BudgetSnapshot;
@@ -72,7 +73,22 @@ export function RatingsTimeline({ data }: Props) {
   });
 
   return (
-    <DownloadableCard filename="budget-france-ratings-souverains" className="card p-5 md:p-6">
+    <DownloadableCard
+      filename="budget-france-ratings-souverains"
+      className="card p-5 md:p-6"
+      getCsvData={() => objectsToCsv(
+        ratings.agencies.flatMap((a) =>
+          a.events.map((e) => ({
+            agence: a.label,
+            date: e.date,
+            note: e.rating,
+            note_numerique: e.numeric,
+            perspective: e.outlook ?? "",
+            commentaire: e.note ?? "",
+          }))
+        )
+      )}
+    >
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
           <div className="text-xs uppercase tracking-widest text-muted">Notations souveraines</div>

@@ -45,6 +45,7 @@ export interface BudgetSnapshot {
   tauxOat10ans: Metric;
   tauxDirecteurBce: Metric;
   vitesseEndettementEurParSec: Metric;
+  vitesseDepensesEurParSec: Metric;
   series: {
     detteHistorique: Timeseries;
     soldeHistorique: Timeseries;
@@ -84,6 +85,13 @@ export interface BudgetSnapshot {
     oatFr: TimeseriesPoint[];
     bundDe: TimeseriesPoint[];
     spread: TimeseriesPoint[];
+    source: SourceInfo;
+  };
+  spreadsMultiPays?: {
+    btpItalie: TimeseriesPoint[];
+    bonosEspagne: TimeseriesPoint[];
+    spreadFrIt: TimeseriesPoint[];
+    spreadFrEs: TimeseriesPoint[];
     source: SourceInfo;
   };
   events?: {
@@ -135,6 +143,20 @@ export interface BudgetSnapshot {
       description: string;
       valeurApprox: string;
       source: "secu" | "collectivites";
+    }[];
+    source: SourceInfo;
+  };
+  inflation?: {
+    points: TimeseriesPoint[];
+    source: SourceInfo;
+  };
+  detenteursDette?: {
+    categories: {
+      id: string;
+      label: string;
+      partPourcent: number;
+      description: string;
+      beneficesExemple?: string;
     }[];
     source: SourceInfo;
   };

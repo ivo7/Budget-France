@@ -12,6 +12,7 @@ import {
 import type { BudgetSnapshot, TimeseriesPoint } from "../types";
 import { formatEurCompact } from "../lib/format";
 import { DownloadableCard } from "./DownloadableCard";
+import { objectsToCsv } from "../lib/csvExport";
 
 interface Props {
   data: BudgetSnapshot;
@@ -45,7 +46,18 @@ export function SecuCollecHistoryChart({ data }: Props) {
   const lastRow = rows[rows.length - 1];
 
   return (
-    <DownloadableCard filename="secu-collec-1945-2025" shareTitle="Budget France — Sécu + Collectivités 1945-2025" className="card p-5 md:p-6">
+    <DownloadableCard
+      filename="secu-collec-1945-2025"
+      shareTitle="Budget France — Sécu + Collectivités 1945-2025"
+      className="card p-5 md:p-6"
+      getCsvData={() => objectsToCsv(rows.map((r) => ({
+        annee: r.year,
+        secu_depenses_eur: r.secuDep ?? "",
+        secu_recettes_eur: r.secuRec ?? "",
+        collec_depenses_eur: r.collecDep ?? "",
+        collec_recettes_eur: r.collecRec ?? "",
+      })))}
+    >
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
           <div className="text-xs uppercase tracking-widest text-muted">Longue période · sphères publiques hors État</div>

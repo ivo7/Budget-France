@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import type { BudgetSnapshot } from "../types";
 import { DownloadableCard } from "./DownloadableCard";
+import { objectsToCsv } from "../lib/csvExport";
 
 interface Props {
   data: BudgetSnapshot;
@@ -96,33 +97,43 @@ export function SecuCollectivitesPage({ data }: Props) {
         </DownloadableCard>
       </section>
 
-      {/* Branches Sécu + Niveaux Collectivités */}
+      {/* Branches Sécu + Niveaux Collectivités — il s'agit bien de la
+          répartition des DÉPENSES (et non des recettes), c.-à-d. ce que
+          chaque sous-ensemble verse aux assurés / habitants. */}
       <section className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
         <BranchesBreakdown
-          title="Sécurité sociale — par branche"
+          title="Sécurité sociale — répartition des dépenses par branche"
+          subtitle="Ce que la Sécu verse chaque année (prestations + frais de gestion), ventilé par branche."
           total={secuDep}
           items={sc.secu.branches.map((b) => ({ ...b, value: b.depenses }))}
           color="#16a34a"
+          source={sc.source.label}
         />
         <BranchesBreakdown
-          title="Collectivités — par niveau"
+          title="Collectivités — répartition des dépenses par niveau"
+          subtitle="Ce que dépensent communes, départements et régions (fonctionnement + investissement), ventilé par niveau."
           total={collecDep}
           items={sc.collectivites.niveaux.map((b) => ({ ...b, value: b.depenses }))}
           color="#d97706"
+          source={sc.source.label}
         />
       </section>
 
-      {/* Financement */}
+      {/* Financement = d'où viennent les RECETTES de chaque sphère. */}
       <section className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
         <FinancementBreakdown
-          title="D'où vient l'argent de la Sécu ?"
+          title="Sécurité sociale — répartition des recettes (financement)"
+          subtitle="Cotisations, CSG, taxes affectées, transferts de l'État…"
           items={sc.secu.financement}
           color="#16a34a"
+          source={sc.source.label}
         />
         <FinancementBreakdown
-          title="D'où vient l'argent des collectivités ?"
+          title="Collectivités — répartition des recettes (financement)"
+          subtitle="Impôts locaux, dotations de l'État, fiscalité transférée…"
           items={sc.collectivites.financement}
           color="#d97706"
+          source={sc.source.label}
         />
       </section>
 
@@ -164,20 +175,39 @@ function SphereCard({
 }
 
 function BranchesBreakdown({
-  title, total, items, color,
+  title, subtitle, total, items, color, source,
 }: {
   title: string;
+  subtitle?: string;
   total: number;
   items: { id: string; label: string; value: number; description: string; beneficesExemple: string }[];
   color: string;
+  source?: string;
 }) {
   const max = Math.max(...items.map((i) => i.value));
+  const csvData = () => {
+    const rows = [...items].sort((a, b) => b.value - a.value).map((i) => ({
+      id: i.id,
+      label: i.label,
+      depenses_milliards: i.value,
+      part_pourcent: ((i.value / total) * 100).toFixed(1),
+      description: i.description,
+      benefices_exemple: i.beneficesExemple,
+    }));
+    return objectsToCsv(rows);
+  };
   return (
-    <DownloadableCard filename={`breakdown-${title.slice(0, 20)}`} shareTitle={`Budget France — ${title}`} className="card p-5 md:p-6">
-      <div className="flex items-baseline justify-between mb-3">
+    <DownloadableCard
+      filename={`breakdown-${title.slice(0, 20)}`}
+      shareTitle={`Budget France — ${title}`}
+      className="card p-5 md:p-6"
+      getCsvData={csvData}
+    >
+      <div className="flex items-baseline justify-between mb-1">
         <h3 className="font-display text-lg font-semibold text-slate-900">{title}</h3>
         <span className="text-sm font-semibold tabular-nums" style={{ color }}>{total} Md€</span>
       </div>
+      {subtitle && <p className="text-xs text-slate-500 mb-3 leading-relaxed">{subtitle}</p>}
 
       <ul className="space-y-3">
         {items.sort((a, b) => b.value - a.value).map((item) => {
@@ -201,20 +231,38 @@ function BranchesBreakdown({
           );
         })}
       </ul>
+      {source && <div className="mt-4 text-[10px] text-slate-400">Source : {source}</div>}
     </DownloadableCard>
   );
 }
 
 function FinancementBreakdown({
-  title, items, color,
+  title, subtitle, items, color, source,
 }: {
   title: string;
+  subtitle?: string;
   items: { id: string; label: string; partPourcent: number; description: string }[];
   color: string;
+  source?: string;
 }) {
+  const csvData = () => {
+    const rows = [...items].sort((a, b) => b.partPourcent - a.partPourcent).map((i) => ({
+      id: i.id,
+      label: i.label,
+      part_pourcent: i.partPourcent,
+      description: i.description,
+    }));
+    return objectsToCsv(rows);
+  };
   return (
-    <DownloadableCard filename={`financement-${title.slice(0, 20)}`} shareTitle={title} className="card p-5 md:p-6">
-      <h3 className="font-display text-lg font-semibold text-slate-900 mb-3">{title}</h3>
+    <DownloadableCard
+      filename={`financement-${title.slice(0, 20)}`}
+      shareTitle={title}
+      className="card p-5 md:p-6"
+      getCsvData={csvData}
+    >
+      <h3 className="font-display text-lg font-semibold text-slate-900 mb-1">{title}</h3>
+      {subtitle && <p className="text-xs text-slate-500 mb-3 leading-relaxed">{subtitle}</p>}
       <ul className="space-y-2.5">
         {items.sort((a, b) => b.partPourcent - a.partPourcent).map((item) => (
           <li key={item.id}>
@@ -229,6 +277,7 @@ function FinancementBreakdown({
           </li>
         ))}
       </ul>
+      {source && <div className="mt-4 text-[10px] text-slate-400">Source : {source}</div>}
     </DownloadableCard>
   );
 }

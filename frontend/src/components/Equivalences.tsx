@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { DownloadableCard } from "./DownloadableCard";
 import { formatEurCompact } from "../lib/format";
+import { objectsToCsv } from "../lib/csvExport";
 
 interface Equivalence {
   label: string;
@@ -108,7 +109,19 @@ export function Equivalences({
   );
 
   return (
-    <DownloadableCard filename="budget-france-equivalences" shareTitle="Budget France — que représente 1 milliard" className="card p-5 md:p-6">
+    <DownloadableCard
+      filename="budget-france-equivalences"
+      shareTitle="Budget France — que représente 1 milliard"
+      className="card p-5 md:p-6"
+      getCsvData={() => objectsToCsv(EQUIVALENCES.map((eq) => ({
+        equivalence: eq.label,
+        unite: eq.unit,
+        cout_unitaire_eur: eq.unitCost,
+        nombre_pour_montant: Math.round(amount / eq.unitCost),
+        montant_reference_eur: amount,
+        source: eq.source,
+      })))}
+    >
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
           <div className="text-xs uppercase tracking-widest text-muted">Rendre les chiffres tangibles</div>

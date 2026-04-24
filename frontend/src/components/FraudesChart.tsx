@@ -14,6 +14,7 @@ import {
 import type { BudgetSnapshot, TimeseriesPoint } from "../types";
 import { formatEurCompact } from "../lib/format";
 import { DownloadableCard } from "./DownloadableCard";
+import { objectsToCsv } from "../lib/csvExport";
 
 interface Props {
   data: BudgetSnapshot;
@@ -93,7 +94,16 @@ export function FraudesChart({ data }: Props) {
   return (
     <div className="space-y-4">
       {/* Montants absolus */}
-      <DownloadableCard filename="budget-france-fraudes-montants" className="card p-5 md:p-6">
+      <DownloadableCard
+        filename="budget-france-fraudes-montants"
+        className="card p-5 md:p-6"
+        getCsvData={() => objectsToCsv(absoluesData.map((r) => ({
+          annee: r.year,
+          fraude_fiscale_milliards: r.fiscale ?? "",
+          fraude_sociale_milliards: r.sociale ?? "",
+          total_milliards: (r.fiscale ?? 0) + (r.sociale ?? 0),
+        })))}
+      >
         <div className="flex items-start justify-between flex-wrap gap-3">
           <div>
             <div className="flex items-center gap-2">
@@ -192,7 +202,16 @@ export function FraudesChart({ data }: Props) {
       </DownloadableCard>
 
       {/* Ratio fraudes / recettes */}
-      <DownloadableCard filename="budget-france-fraudes-ratio" className="card p-5 md:p-6">
+      <DownloadableCard
+        filename="budget-france-fraudes-ratio"
+        className="card p-5 md:p-6"
+        getCsvData={() => objectsToCsv(ratioData.map((r) => ({
+          annee: r.year,
+          fraude_totale_milliards: r.total ?? "",
+          recettes_etat_milliards: r.recettes ?? "",
+          ratio_pourcent: r.ratio != null ? r.ratio.toFixed(2) : "",
+        })))}
+      >
         <div className="flex items-start justify-between flex-wrap gap-3">
           <div>
             <div className="text-xs uppercase tracking-widest text-muted">Ratio</div>

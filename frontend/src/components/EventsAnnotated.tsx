@@ -12,6 +12,7 @@ import {
 import type { BudgetSnapshot } from "../types";
 import { formatPercent } from "../lib/format";
 import { DownloadableCard } from "./DownloadableCard";
+import { objectsToCsv } from "../lib/csvExport";
 
 interface Props {
   data: BudgetSnapshot;
@@ -84,7 +85,29 @@ export function EventsAnnotated({ data }: Props) {
   if (!data.events || ratioData.length === 0) return null;
 
   return (
-    <DownloadableCard filename="budget-france-dette-evenements" shareTitle="Budget France — dette et événements 1945+" className="card p-5 md:p-6">
+    <DownloadableCard
+      filename="budget-france-dette-evenements"
+      shareTitle="Budget France — dette et événements 1945+"
+      className="card p-5 md:p-6"
+      getCsvData={() => objectsToCsv([
+        ...ratioData.map((r) => ({
+          type: "ratio",
+          annee: r.year,
+          ratio_dette_pib_pourcent: r.ratio?.toFixed(2),
+          evenement: "",
+          categorie: "",
+          description: "",
+        })),
+        ...eventPoints.map((ev) => ({
+          type: "evenement",
+          annee: ev.year,
+          ratio_dette_pib_pourcent: ev.ratio.toFixed(2),
+          evenement: ev.title,
+          categorie: CATEGORY_LABEL[ev.category] ?? ev.category,
+          description: ev.description,
+        })),
+      ])}
+    >
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
           <div className="text-xs uppercase tracking-widest text-muted">Contexte pédagogique</div>

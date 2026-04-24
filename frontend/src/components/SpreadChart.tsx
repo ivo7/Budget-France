@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import type { BudgetSnapshot } from "../types";
 import { DownloadableCard } from "./DownloadableCard";
+import { timeseriesToCsv } from "../lib/csvExport";
 
 interface Props {
   data: BudgetSnapshot;
@@ -45,7 +46,11 @@ export function SpreadChart({ data }: Props) {
   const color = latest < 40 ? "#16a34a" : latest < 100 ? "#d97706" : "#EF4135";
 
   return (
-    <DownloadableCard filename="budget-france-spread-oat-bund" className="card p-5 md:p-6">
+    <DownloadableCard
+      filename="budget-france-spread-oat-bund"
+      className="card p-5 md:p-6"
+      getCsvData={() => timeseriesToCsv(sp.spread, "spread_pb")}
+    >
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
           <div className="text-xs uppercase tracking-widest text-muted">Prime de risque souveraine</div>

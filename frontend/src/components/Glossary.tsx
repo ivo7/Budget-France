@@ -443,7 +443,7 @@ const GLOSSAIRE: Categorie[] = [
       {
         terme: "Webhook",
         definition:
-          "URL HTTP sur laquelle un système externe est notifié quand un événement se produit. Budget France peut pinger Slack, Discord ou un endpoint personnalisé à chaque alerte de seuil franchi.",
+          "URL HTTP sur laquelle un système externe est notifié quand un événement se produit. Budget France peut pinger Slack, Discord ou un endpoint personnalisé à chaque mise à jour publiée.",
         exemple: "Configuration : SLACK_WEBHOOK_URL=https://hooks.slack.com/services/... dans .env",
       },
       {
@@ -628,14 +628,9 @@ const GLOSSAIRE: Categorie[] = [
           "Badge jaune : l'API n'a pas répondu ou n'est pas encore câblée. Le pipeline a utilisé une valeur de référence statique (« seed ») pour ne pas casser l'affichage.",
       },
       {
-        terme: "Seuil d'alerte",
+        terme: "Notification de mise à jour",
         definition:
-          "Variation minimale pour déclencher une notification email aux abonnés. Par défaut : +50 Md€ de dette ou ±0,20 pt sur l'OAT entre deux mesures.",
-      },
-      {
-        terme: "Double opt-in",
-        definition:
-          "Bonne pratique RGPD : un email de confirmation est envoyé avant toute inscription aux notifications. Tant que le lien n'est pas cliqué, aucune notification n'est envoyée.",
+          "Email envoyé aux abonnés quand le site évolue : nouvel indicateur, mise à jour de données importantes, ou nouvelle fiche pédagogique. La fréquence dépend de l'activité du projet.",
       },
     ],
   },

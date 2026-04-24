@@ -11,8 +11,10 @@ import { registerConfirmRoutes } from "./routes/confirm.ts";
 import { registerUnsubscribeRoutes } from "./routes/unsubscribe.ts";
 import { registerHealthRoutes } from "./routes/health.ts";
 import { registerDatasetRoutes } from "./routes/datasets.ts";
+import { registerStripeRoutes } from "./routes/stripe.ts";
 import { checkThresholds } from "./jobs/threshold.ts";
 import { sendMonthlyBulletin } from "./jobs/monthly.ts";
+import { sendWeeklyBulletin } from "./jobs/weekly.ts";
 import { loadDatasetsIfNeeded } from "./seed/loadDatasets.ts";
 
 const app = Fastify({
@@ -56,11 +58,37 @@ async function main() {
     },
   });
 
+  // Raw body pour la vérification de signature du webhook Stripe.
+  // Sans dépendance externe : on branche un content-type parser dédié
+  // à la route /api/stripe/webhook qui stocke le body brut dans req.rawBody
+  // au lieu de le parser en JSON.
+  app.addContentTypeParser(
+    "application/json",
+    { parseAs: "buffer" },
+    (req, body, done) => {
+      // Si c'est la route webhook Stripe, on garde le raw body
+      if (req.url === "/api/stripe/webhook") {
+        (req as unknown as { rawBody: Buffer }).rawBody = body as Buffer;
+        done(null, body); // body passe tel quel (Buffer)
+      } else {
+        // Pour toutes les autres routes, parse JSON normalement
+        try {
+          const str = (body as Buffer).toString("utf8");
+          const parsed = str ? JSON.parse(str) : {};
+          done(null, parsed);
+        } catch (e) {
+          done(e as Error);
+        }
+      }
+    },
+  );
+
   registerSubscribeRoutes(app);
   registerConfirmRoutes(app);
   registerUnsubscribeRoutes(app);
   registerHealthRoutes(app);
   registerDatasetRoutes(app);
+  registerStripeRoutes(app);
 
   // Charge les datasets en DB au démarrage (idempotent).
   // À faire APRÈS prisma db push (géré dans le Dockerfile) et AVANT listen.
@@ -73,6 +101,10 @@ async function main() {
   });
   app.post("/api/admin/run/monthly", async () => {
     await sendMonthlyBulletin();
+    return { ok: true };
+  });
+  app.post("/api/admin/run/weekly", async () => {
+    await sendWeeklyBulletin();
     return { ok: true };
   });
 
@@ -91,6 +123,15 @@ async function main() {
     "0 9 1 * *",
     () => {
       sendMonthlyBulletin().catch((e) => app.log.error(e, "monthly job failed"));
+    },
+    { timezone: "Europe/Paris" },
+  );
+
+  // - Bulletin hebdomadaire premium : chaque lundi à 07:45 Europe/Paris
+  cron.schedule(
+    "45 7 * * 1",
+    () => {
+      sendWeeklyBulletin().catch((e) => app.log.error(e, "weekly job failed"));
     },
     { timezone: "Europe/Paris" },
   );

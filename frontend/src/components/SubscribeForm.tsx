@@ -76,8 +76,9 @@ export function SubscribeForm() {
             Reçois les mouvements du budget dans ta boîte mail
           </h2>
           <p className="text-sm text-slate-600 mt-2 max-w-lg">
-            Bulletin mensuel + alertes quand la dette ou les taux bougent significativement.
-            Double opt-in, désinscription en un clic.
+            Reçois des notifications quand le site évolue (nouveaux indicateurs,
+            mises à jour de données, articles pédagogiques).
+            Désinscription en un clic.
           </p>
         </div>
       </div>
@@ -145,11 +146,13 @@ export function SubscribeForm() {
 
         <fieldset className="md:col-span-2 mt-2 space-y-2 text-sm">
           <legend className="text-xs uppercase tracking-widest text-muted mb-2">Notifications</legend>
-          <Checkbox name="prefMonthly" defaultChecked>
-            Bulletin mensuel (chiffres clés macro, 1er du mois)
-          </Checkbox>
+          {/* On garde le nom de champ "prefThreshold" pour rester compatible
+              avec le backend existant (Postgres + jobs cron). Côté UX,
+              le sens est élargi : recevoir une notification quand le site
+              évolue (nouveaux indicateurs, MAJ données, fiches…). */}
           <Checkbox name="prefThreshold" defaultChecked>
-            Alertes de seuil (mouvements significatifs dette / taux)
+            Recevoir des notifications quand le site évolue (nouveaux indicateurs,
+            mises à jour de données, fiches pédagogiques)
           </Checkbox>
         </fieldset>
 

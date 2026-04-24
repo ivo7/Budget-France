@@ -61,6 +61,8 @@ export interface BudgetSnapshot {
 
   // Dérivée pour le compteur live
   vitesseEndettementEurParSec: Metric;
+  // Dérivée pour le compteur "dépenses de l'État" (budget annuel / nb secondes/an)
+  vitesseDepensesEurParSec: Metric;
 
   // Séries temporelles pour les graphiques
   series: {
@@ -120,6 +122,15 @@ export interface BudgetSnapshot {
     source: SourceInfo;
   };
 
+  // Spreads souverains multi-pays — France vs Italie, Espagne (en plus du Bund DE).
+  spreadsMultiPays: {
+    btpItalie: TimeseriesPoint[];      // %
+    bonosEspagne: TimeseriesPoint[];   // %
+    spreadFrIt: TimeseriesPoint[];     // pb
+    spreadFrEs: TimeseriesPoint[];     // pb
+    source: SourceInfo;
+  };
+
   // Événements historiques marquants — annotés sur les graphiques longue période.
   events: {
     items: {
@@ -176,6 +187,24 @@ export interface BudgetSnapshot {
       description: string;
       valeurApprox: string;
       source: "secu" | "collectivites";
+    }[];
+    source: SourceInfo;
+  };
+
+  // Inflation France 1945-2025 — pour calculer le taux d'intérêt réel
+  inflation: {
+    points: TimeseriesPoint[];
+    source: SourceInfo;
+  };
+
+  // Détenteurs de la dette publique française (à qui doit-on l'argent ?)
+  detenteursDette: {
+    categories: {
+      id: string;
+      label: string;
+      partPourcent: number;
+      description: string;
+      beneficesExemple?: string;
     }[];
     source: SourceInfo;
   };

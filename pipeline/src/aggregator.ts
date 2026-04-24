@@ -43,6 +43,16 @@ import {
   missionsHistoriques,
   missionsSource,
 } from "./secuCollecHistoriqueSeed.ts";
+import {
+  btpItaliePoints,
+  bonosEspagnePoints,
+  computeSpread,
+  spreadMultiPaysSourceLabel,
+  spreadMultiPaysSourceUrl,
+} from "./spreadMultiPaysSeed.ts";
+import { detenteursDetteFrance, detenteursSourceInfo } from "./detenteursDetteSeed.ts";
+import { inflationPoints, inflationSourceLabel, inflationSourceUrl } from "./inflationSeed.ts";
+import { oatFrancePoints as oatFrenchMonthly } from "./spreadSeed.ts";
 import * as eurostat from "./sources/eurostat.ts";
 import * as ecb from "./sources/ecb.ts";
 import * as insee from "./sources/insee.ts";
@@ -214,6 +224,22 @@ export async function buildSnapshot(annee: number, opts: { mock?: boolean } = {}
     asOf: new Date().toISOString().slice(0, 10),
   };
 
+  // Vitesse d'écoulement des dépenses de l'État (budget général lissé sur l'année)
+  // = budget annuel prévu / nombre de secondes dans une année
+  const vitesseDepensesEurParSec: Metric = {
+    value: seed.budgetPrevisionnel.value / (365 * 86_400),
+    unit: "EUR_PER_SEC",
+    source: {
+      id: "calc.vitesse_depenses",
+      label: "Calcul — Vitesse d'écoulement des dépenses (LFI / 31,5 M s)",
+      url: "",
+      fetchedAt: new Date().toISOString(),
+      status: "ok",
+    },
+    alternates: [],
+    asOf: new Date().toISOString().slice(0, 10),
+  };
+
   // --- Séries longues (1945+) et exécution 2026 ---
   const histSource: SourceInfo = {
     id: "hist.seed",
@@ -258,7 +284,7 @@ export async function buildSnapshot(annee: number, opts: { mock?: boolean } = {}
     histSource,
     {
       id: "lfi.source",
-      label: "Direction du Budget — Loi de finances initiale " + annee,
+      label: "Direction du Budget — Loi de finances initiale " + annee + " (base des compteurs dépenses et solde)",
       url: "https://www.budget.gouv.fr/documentation/documents-budgetaires",
       fetchedAt: nowIso,
       status: "fallback",
@@ -456,6 +482,7 @@ export async function buildSnapshot(annee: number, opts: { mock?: boolean } = {}
     tauxOat10ans,
     tauxDirecteurBce,
     vitesseEndettementEurParSec: vitesseMetric,
+    vitesseDepensesEurParSec,
     series: {
       detteHistorique,
       soldeHistorique: seed.series.soldeHistorique,
@@ -505,6 +532,33 @@ export async function buildSnapshot(annee: number, opts: { mock?: boolean } = {}
         fetchedAt: new Date().toISOString(),
         status: "fallback",
       },
+    },
+    spreadsMultiPays: {
+      btpItalie: btpItaliePoints,
+      bonosEspagne: bonosEspagnePoints,
+      spreadFrIt: computeSpread(oatFrenchMonthly, btpItaliePoints),
+      spreadFrEs: computeSpread(oatFrenchMonthly, bonosEspagnePoints),
+      source: {
+        id: "spread.multipays",
+        label: spreadMultiPaysSourceLabel,
+        url: spreadMultiPaysSourceUrl,
+        fetchedAt: new Date().toISOString(),
+        status: "fallback",
+      },
+    },
+    inflation: {
+      points: inflationPoints,
+      source: {
+        id: "insee.inflation",
+        label: inflationSourceLabel,
+        url: inflationSourceUrl,
+        fetchedAt: new Date().toISOString(),
+        status: "fallback",
+      },
+    },
+    detenteursDette: {
+      categories: detenteursDetteFrance,
+      source: detenteursSourceInfo,
     },
     events: {
       items: historicalEvents,

@@ -39,6 +39,16 @@ import {
   missionsHistoriques,
   missionsSource,
 } from "./secuCollecHistoriqueSeed.ts";
+import {
+  btpItaliePoints,
+  bonosEspagnePoints,
+  computeSpread,
+  spreadMultiPaysSourceLabel,
+  spreadMultiPaysSourceUrl,
+} from "./spreadMultiPaysSeed.ts";
+import { detenteursDetteFrance, detenteursSourceInfo } from "./detenteursDetteSeed.ts";
+import { inflationPoints, inflationSourceLabel, inflationSourceUrl } from "./inflationSeed.ts";
+import { oatFrancePoints as oatFrenchMonthlySeed } from "./spreadSeed.ts";
 
 const now = new Date().toISOString();
 
@@ -210,6 +220,19 @@ export function seedSnapshot(annee: number): BudgetSnapshot {
       alternates: [],
       asOf: now.slice(0, 10),
     },
+    vitesseDepensesEurParSec: {
+      value: 580_000_000_000 / (365 * 86_400), // ~18 392 €/s
+      unit: "EUR_PER_SEC",
+      source: {
+        id: "calc.vitesse_depenses",
+        label: "Calcul — Vitesse des dépenses (LFI / année)",
+        url: "",
+        fetchedAt: now,
+        status: "ok",
+      },
+      alternates: [],
+      asOf: now.slice(0, 10),
+    },
     series: {
       detteHistorique: toTs(
         "dette.historique",
@@ -315,6 +338,33 @@ export function seedSnapshot(annee: number): BudgetSnapshot {
         status: "fallback",
       },
     },
+    spreadsMultiPays: {
+      btpItalie: btpItaliePoints,
+      bonosEspagne: bonosEspagnePoints,
+      spreadFrIt: computeSpread(oatFrenchMonthlySeed, btpItaliePoints),
+      spreadFrEs: computeSpread(oatFrenchMonthlySeed, bonosEspagnePoints),
+      source: {
+        id: "spread.multipays",
+        label: spreadMultiPaysSourceLabel,
+        url: spreadMultiPaysSourceUrl,
+        fetchedAt: now,
+        status: "fallback",
+      },
+    },
+    inflation: {
+      points: inflationPoints,
+      source: {
+        id: "insee.inflation",
+        label: inflationSourceLabel,
+        url: inflationSourceUrl,
+        fetchedAt: now,
+        status: "fallback",
+      },
+    },
+    detenteursDette: {
+      categories: detenteursDetteFrance,
+      source: detenteursSourceInfo,
+    },
     events: {
       items: historicalEvents,
       source: eventsSource,
@@ -347,7 +397,50 @@ export function seedSnapshot(annee: number): BudgetSnapshot {
       agencies: ratingsAgencies,
       source: ratingsSource,
     },
-    sources: [sourceInsee, sourceBdf, sourceDataGouv],
+    // Liste complète des sources officielles utilisées par toutes les
+    // composantes du dashboard. En mode mock = même liste qu'en production
+    // (toutes en statut "fallback") pour que l'audit soit représentatif.
+    sources: [
+      sourceInsee,
+      sourceBdf,
+      sourceDataGouv,
+      // LFI 2026 et budget de l'État
+      seedSource("budget.gouv", "Direction du Budget — LFI " + annee, "https://www.budget.gouv.fr/documentation/documents-budgetaires"),
+      seedSource("dgfip.smb", "DGFiP — Situation Mensuelle Budgétaire", "https://www.budget.gouv.fr/documentation/documents-budgetaires/situation-mensuelle-budgetaire"),
+      // Sécu + URSSAF + collectivités
+      seedSource("secu.lfss", "Sécurité sociale — LFSS / PLFSS", "https://www.securite-sociale.fr/la-secu-cest-quoi/financement"),
+      seedSource("urssaf.baremes", "URSSAF — barèmes des cotisations", "https://www.urssaf.fr/accueil/employeur/cotisations/taux-cotisations.html"),
+      seedSource("ccomptes.secu", "Cour des comptes — rapport LFSS", "https://www.ccomptes.fr/fr/domaines-dintervention/securite-sociale"),
+      seedSource("dgcl.collec", "DGCL — Collectivités locales (OFGL)", "https://www.collectivites-locales.gouv.fr/"),
+      seedSource("insee.apul", "INSEE — Comptes APUL", "https://www.insee.fr/fr/statistiques/5421158"),
+      seedSource("unedic", "Unédic — situation financière", "https://www.unedic.org/"),
+      // Eurostat / BCE / agences
+      seedSource("eurostat.dette", "Eurostat — gov_10q_ggdebt", "https://ec.europa.eu/eurostat/databrowser/view/gov_10q_ggdebt"),
+      seedSource("eurostat.solde", "Eurostat — gov_10q_ggnfa", "https://ec.europa.eu/eurostat/databrowser/view/gov_10q_ggnfa"),
+      seedSource("ecb.taux", "BCE — Data Portal (taux OAT + Bund)", "https://data.ecb.europa.eu/"),
+      seedSource("aft", "Agence France Trésor — synthèses", "https://www.aft.gouv.fr/"),
+      // Notations
+      seedSource("sp.ratings", "Standard & Poor's Global Ratings", "https://disclosure.spglobal.com/ratings/"),
+      seedSource("moodys.ratings", "Moody's Ratings", "https://ratings.moodys.com/"),
+      seedSource("fitch.ratings", "Fitch Ratings — France", "https://www.fitchratings.com/issuers/france"),
+      // Fraude + recherche
+      seedSource("ccomptes.fraude", "Cour des comptes — fraude aux prélèvements obligatoires", "https://www.ccomptes.fr/fr/publications/la-fraude-aux-prelevements-obligatoires"),
+      seedSource("cpo", "Conseil des Prélèvements Obligatoires", "https://www.ccomptes.fr/fr/institutions-associees/conseil-des-prelevements-obligatoires"),
+      seedSource("ofce", "OFCE — séries longues budgétaires", "https://www.ofce.sciences-po.fr/"),
+      // Démographie + barèmes pour le simulateur
+      seedSource("insee.population", "INSEE — Estimation de population", "https://www.insee.fr/fr/statistiques/1893198"),
+      seedSource("impots.bareme", "impots.gouv.fr — Barème IR 2024", "https://www.impots.gouv.fr/particulier/le-calcul-de-limpot-sur-le-revenu"),
+      // Équivalences concrètes
+      seedSource("education.nationale", "Éducation nationale — rémunérations enseignants", "https://www.education.gouv.fr/"),
+      seedSource("sante.gouv", "Ministère de la Santé — budget hôpitaux", "https://sante.gouv.fr/"),
+      seedSource("sncf.reseau", "SNCF Réseau — coûts LGV", "https://www.sncf-reseau.com/fr"),
+      seedSource("ush", "Union sociale pour l'habitat — coûts logement", "https://www.union-habitat.org/"),
+      seedSource("dga", "Direction générale de l'armement — Rafale", "https://www.defense.gouv.fr/dga"),
+      seedSource("cnsa", "CNSA — coût EHPAD", "https://www.cnsa.fr/"),
+      seedSource("rte", "RTE — coûts énergies renouvelables", "https://www.rte-france.com/"),
+      // Chronologie
+      seedSource("bdf.chronologie", "Banque de France — Chronologie", "https://www.banque-france.fr/fr/publications-et-statistiques/chronologie"),
+    ],
   };
 }
 

@@ -12,6 +12,7 @@
     "ingest:mock": "tsx src/ingest.ts --mock",
     "watch": "tsx watch src/ingest.ts",
     "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --no-warnings --test tests/*.test.ts",
     "build": "tsc -p tsconfig.build.json"
   },
   "dependencies": {},
