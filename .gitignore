@@ -61,3 +61,7 @@ coverage/
 # Prisma (client généré)
 backend/node_modules/.prisma/
 backend/prisma/dev.db*
+
+# Fichiers locaux contenant des mots de passe ou notes perso
+CREDENTIALS.local.md
+*.local.md

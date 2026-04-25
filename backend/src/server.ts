@@ -12,6 +12,7 @@ import { registerUnsubscribeRoutes } from "./routes/unsubscribe.ts";
 import { registerHealthRoutes } from "./routes/health.ts";
 import { registerDatasetRoutes } from "./routes/datasets.ts";
 import { registerStripeRoutes } from "./routes/stripe.ts";
+import { registerAdminRoutes, isAdminAuthenticated } from "./routes/admin.ts";
 import { checkThresholds } from "./jobs/threshold.ts";
 import { sendMonthlyBulletin } from "./jobs/monthly.ts";
 import { sendWeeklyBulletin } from "./jobs/weekly.ts";
@@ -89,21 +90,34 @@ async function main() {
   registerHealthRoutes(app);
   registerDatasetRoutes(app);
   registerStripeRoutes(app);
+  registerAdminRoutes(app);
 
   // Charge les datasets en DB au démarrage (idempotent).
   // À faire APRÈS prisma db push (géré dans le Dockerfile) et AVANT listen.
   await loadDatasetsIfNeeded((msg) => app.log.info(msg));
 
-  // Endpoint admin déclenchant manuellement les jobs (utile pour les tests)
-  app.post("/api/admin/run/threshold", async () => {
+  // Endpoints admin déclenchant manuellement les jobs.
+  // Protégés par le même Bearer token que les autres routes /api/admin/*.
+  // Avant cette protection, ces routes étaient publiques et permettaient
+  // à n'importe qui de déclencher des envois d'emails.
+  app.post("/api/admin/run/threshold", async (req, reply) => {
+    if (!isAdminAuthenticated(req)) {
+      return reply.code(401).send({ error: "unauthorized" });
+    }
     await checkThresholds();
     return { ok: true };
   });
-  app.post("/api/admin/run/monthly", async () => {
+  app.post("/api/admin/run/monthly", async (req, reply) => {
+    if (!isAdminAuthenticated(req)) {
+      return reply.code(401).send({ error: "unauthorized" });
+    }
     await sendMonthlyBulletin();
     return { ok: true };
   });
-  app.post("/api/admin/run/weekly", async () => {
+  app.post("/api/admin/run/weekly", async (req, reply) => {
+    if (!isAdminAuthenticated(req)) {
+      return reply.code(401).send({ error: "unauthorized" });
+    }
     await sendWeeklyBulletin();
     return { ok: true };
   });

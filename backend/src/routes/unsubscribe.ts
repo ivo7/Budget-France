@@ -2,6 +2,8 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { prisma } from "../lib/db.ts";
 import { config } from "../lib/config.ts";
+import { sendEmail } from "../lib/email.ts";
+import { buildUnsubscribedEmail } from "../templates/unsubscribed.ts";
 
 const querySchema = z.object({ token: z.string().min(16).max(100) });
 
@@ -41,10 +43,36 @@ export function registerUnsubscribeRoutes(app: FastifyInstance) {
       data: { unsubscribedAt: new Date() },
     });
 
+    // Envoi d'un email d'accusé de désinscription (bonne pratique RGPD).
+    // On loggue l'échec sans bloquer la confirmation côté UI : la désinscription
+    // côté base est déjà effective, l'email est un bonus.
+    try {
+      const msg = buildUnsubscribedEmail({
+        to: sub.email,
+        firstName: sub.firstName,
+        resubscribeUrl: `${config.publicBaseUrl}#subscribe`,
+      });
+      const sendRes = await sendEmail(msg);
+      await prisma.notificationLog.create({
+        data: {
+          subscriberId: sub.id,
+          type: "confirm",          // pas de type dédié pour l'instant
+          success: sendRes.ok,
+          error: sendRes.error ?? null,
+          metadata: { kind: "unsubscribed" },
+        },
+      });
+    } catch (e) {
+      // Ne pas faire planter la page de désinscription si l'email échoue
+      app.log.error({ err: e }, "failed to send unsubscribe confirmation email");
+    }
+
     return reply.type("text/html").send(renderPage({
       ok: true,
       title: "Désinscription confirmée",
-      message: "C'est fait. Tu ne recevras plus de notifications Budget France.",
+      message:
+        "C'est fait. Tu ne recevras plus de notifications Budget France. " +
+        "Un email de confirmation vient d'être envoyé à ton adresse.",
     }));
   });
 }

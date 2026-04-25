@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type Tab = "particulier" | "entreprise";
 
@@ -16,6 +16,8 @@ interface SubmitState {
 export function SubscribeForm() {
   const [tab, setTab] = useState<Tab>("particulier");
   const [state, setState] = useState<SubmitState>({ status: "idle" });
+  // La popup s'ouvre dès que le statut bascule en "success" ou "error".
+  const [modalOpen, setModalOpen] = useState(false);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -53,17 +55,30 @@ export function SubscribeForm() {
           message: body?.error === "validation" ? "Vérifie les champs en rouge." : "Une erreur est survenue. Réessaie dans un instant.",
           fieldErrors: body?.issues,
         });
+        setModalOpen(true);
         return;
       }
       setState({
         status: "success",
-        message: body?.message ?? "Email de confirmation envoyé.",
+        message: body?.message ?? "Email de confirmation envoyé. Clique sur le lien dans ta boîte de réception pour finaliser ton inscription.",
       });
+      setModalOpen(true);
       form.reset();
     } catch (err) {
       setState({ status: "error", message: (err as Error).message });
+      setModalOpen(true);
     }
   }
+
+  // Touche Echap pour fermer la popup
+  useEffect(() => {
+    if (!modalOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setModalOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [modalOpen]);
 
   const err = (path: string) => state.fieldErrors?.find((e) => e.path === path)?.message;
 
@@ -172,14 +187,23 @@ export function SubscribeForm() {
           >
             {state.status === "loading" ? "Envoi…" : `S'inscrire ${tab === "entreprise" ? "(entreprise)" : ""}`}
           </button>
-          {state.status === "success" && (
-            <span className="text-money text-sm font-medium">{state.message}</span>
-          )}
-          {state.status === "error" && (
-            <span className="text-flag-red text-sm font-medium">{state.message}</span>
-          )}
         </div>
       </form>
+
+      {/* Popup modale de confirmation/erreur */}
+      {modalOpen && (state.status === "success" || state.status === "error") && (
+        <ResultModal
+          status={state.status}
+          message={state.message}
+          onClose={() => {
+            setModalOpen(false);
+            // On garde le statut "success" pour que l'utilisateur puisse rouvrir
+            // la popup en cliquant sur la bannière s'il le souhaite. En cas
+            // d'erreur on remet à zéro pour qu'il puisse réessayer.
+            if (state.status === "error") setState({ status: "idle" });
+          }}
+        />
+      )}
 
       <style>{`
         .input {
@@ -239,5 +263,96 @@ function Checkbox({ name, defaultChecked, required, children }: { name: string; 
       />
       <span className="text-slate-700 text-sm leading-relaxed">{children}</span>
     </label>
+  );
+}
+
+// ----------------------------------------------------------------------------
+// ResultModal — popup centrée affichée après une soumission du formulaire.
+// Bloque le scroll en arrière-plan, fermable via Échap, clic sur l'overlay
+// ou bouton OK.
+// ----------------------------------------------------------------------------
+
+function ResultModal({
+  status,
+  message,
+  onClose,
+}: {
+  status: "success" | "error";
+  message?: string;
+  onClose: () => void;
+}) {
+  const isSuccess = status === "success";
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="subscribe-result-title"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+    >
+      {/* Overlay — clic = fermer */}
+      <div
+        className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+
+      {/* Boîte */}
+      <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 md:p-8 border border-slate-200">
+        {/* Icône d'état */}
+        <div
+          className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 ${
+            isSuccess ? "bg-green-50 text-money" : "bg-red-50 text-flag-red"
+          }`}
+        >
+          {isSuccess ? (
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          ) : (
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+          )}
+        </div>
+
+        <h2
+          id="subscribe-result-title"
+          className={`font-display text-xl font-bold text-center ${
+            isSuccess ? "text-money" : "text-flag-red"
+          }`}
+        >
+          {isSuccess ? "Inscription enregistrée !" : "Une erreur est survenue"}
+        </h2>
+
+        <p className="text-sm text-slate-700 text-center mt-3 leading-relaxed">
+          {message ??
+            (isSuccess
+              ? "Email de confirmation envoyé."
+              : "Réessaie dans un instant.")}
+        </p>
+
+        {isSuccess && (
+          <div className="mt-4 p-3 rounded-lg bg-brand-soft/30 border border-brand/20 text-xs text-slate-600 text-center">
+            💡 Pense à vérifier le dossier <strong>spam</strong> si tu ne reçois rien dans la minute.
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={onClose}
+          autoFocus
+          className={`mt-6 w-full inline-flex items-center justify-center gap-2 font-semibold rounded-xl px-5 py-3 transition-colors ${
+            isSuccess
+              ? "bg-brand hover:bg-brand-dark text-white"
+              : "bg-slate-100 hover:bg-slate-200 text-slate-700"
+          }`}
+        >
+          OK
+        </button>
+      </div>
+    </div>
   );
 }

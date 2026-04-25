@@ -36,6 +36,7 @@ import { SpreadMultiPaysChart } from "./components/SpreadMultiPaysChart";
 import { DetenteursDetteChart } from "./components/DetenteursDetteChart";
 import { RealRateChart } from "./components/RealRateChart";
 import { DebtCostProjection } from "./components/DebtCostProjection";
+import { AdminDashboard } from "./components/AdminDashboard";
 import { filterBudgetForHistorique } from "./lib/historiqueFilter";
 import { formatDateTime, formatPercent } from "./lib/format";
 import { timeseriesToCsv, multiSeriesToCsv, objectsToCsv } from "./lib/csvExport";
@@ -47,10 +48,11 @@ import type { BudgetSnapshot } from "./types";
 // gratuite de lancement.
 const PREMIUM_ENABLED = false;
 
-type Page = "dashboard" | "europe" | "historique" | "fraudes" | "mes-impots" | "pedagogie" | "secu-collec" | "sources" | "glossaire" | "tarifs" | "paiement-reussi" | "compte";
+type Page = "dashboard" | "europe" | "historique" | "fraudes" | "mes-impots" | "pedagogie" | "secu-collec" | "sources" | "glossaire" | "tarifs" | "paiement-reussi" | "compte" | "admin";
 
 function resolvePage(hash: string): Page {
-  // Les routes Stripe doivent être vérifiées avant les autres (matches préfixe)
+  // Routes prioritaires (matches préfixe)
+  if (hash.startsWith("admin")) return "admin";
   if (hash.startsWith("tarifs") || hash.startsWith("premium")) return "tarifs";
   if (hash.startsWith("paiement-reussi") || hash.startsWith("success")) return "paiement-reussi";
   if (hash.startsWith("compte") || hash.startsWith("account")) return "compte";
@@ -96,6 +98,10 @@ export default function App() {
         {PREMIUM_ENABLED && page === "paiement-reussi" && <PaymentSuccessPage />}
         {PREMIUM_ENABLED && page === "compte" && <AccountPage />}
 
+        {/* Back-office (login requis) — pas de lien public, on y accède
+            via l'URL #/admin (ou le lien discret dans le footer). */}
+        {page === "admin" && <AdminDashboard />}
+
         {data && (
           <footer className="mt-10 pt-6 border-t border-slate-200 text-xs text-slate-500 space-y-2">
             <div className="flex flex-wrap gap-3 justify-between">
@@ -112,7 +118,16 @@ export default function App() {
                   contact@budgetfrance.org
                 </a>
               </span>
-              <span className="text-slate-400">© Budget France · Projet pédagogique indépendant</span>
+              <span className="text-slate-400">
+                © Budget France · Projet pédagogique indépendant ·{" "}
+                <a
+                  href="#/admin"
+                  className="hover:text-brand transition-colors"
+                  title="Espace administrateur"
+                >
+                  admin
+                </a>
+              </span>
             </div>
           </footer>
         )}
@@ -670,17 +685,29 @@ function Header({ page }: { page: Page }) {
           </div>
         </a>
 
-        {/* Bouton burger — toujours visible */}
-        <button
-          type="button"
-          onClick={() => setMenuOpen((v) => !v)}
-          aria-label={menuOpen ? "Fermer le menu" : "Ouvrir le menu"}
-          aria-expanded={menuOpen}
-          className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 text-slate-700 hover:border-brand hover:text-brand transition"
-        >
-          {menuOpen ? <CloseIcon /> : <BurgerIcon />}
-          <span className="hidden sm:inline text-sm font-medium">Menu</span>
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Lien admin discret — icône cadenas */}
+          <a
+            href="#/admin"
+            aria-label="Espace administrateur"
+            title="Espace administrateur"
+            className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:border-brand hover:text-brand transition"
+          >
+            <LockIcon />
+          </a>
+
+          {/* Bouton burger — toujours visible */}
+          <button
+            type="button"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label={menuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+            aria-expanded={menuOpen}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 text-slate-700 hover:border-brand hover:text-brand transition"
+          >
+            {menuOpen ? <CloseIcon /> : <BurgerIcon />}
+            <span className="hidden sm:inline text-sm font-medium">Menu</span>
+          </button>
+        </div>
       </div>
 
       {/* Panneau menu burger */}
@@ -727,6 +754,14 @@ function BurgerIcon() {
       <line x1="3" y1="6" x2="21" y2="6" />
       <line x1="3" y1="12" x2="21" y2="12" />
       <line x1="3" y1="18" x2="21" y2="18" />
+    </svg>
+  );
+}
+function LockIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
     </svg>
   );
 }

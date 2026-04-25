@@ -59,6 +59,10 @@ export const config = {
   // (par défaut 30 req/min). Laisser vide pour désactiver l'API key.
   apiAdminKey: optional("API_ADMIN_KEY"),
 
+  // Mot de passe du dashboard admin (/admin). Si vide, le dashboard est
+  // désactivé (l'API renvoie 503 sur /api/admin/login).
+  adminPassword: optional("ADMIN_PASSWORD"),
+
   // Stripe — intégration paiements pour le plan premium
   // Le webhook secret est séparé de la clé secrète pour la vérification
   // de signature des événements entrants.
