@@ -282,6 +282,247 @@ export function registerAdminRoutes(app: FastifyInstance) {
   });
 
   // --------------------------------------------------------------------------
+  // GET /api/admin/check-sources — vérifie que toutes les URLs des sources
+  // répondent (HTTP 2xx/3xx). Réponse : status, latence, code HTTP par source.
+  // Timeout serré (5s/source) car appel synchrone depuis le dashboard.
+  // --------------------------------------------------------------------------
+  app.get(
+    "/api/admin/check-sources",
+    { preHandler: requireAdmin },
+    async () => {
+      const raw = await readFile(config.snapshotPath, "utf-8");
+      const snapshot = JSON.parse(raw) as {
+        generatedAt?: string;
+        sources?: Array<{ id: string; label: string; url?: string }>;
+      };
+      const sources = snapshot.sources ?? [];
+
+      const results = await Promise.all(
+        sources.map(async (s) => {
+          if (!s.url) {
+            return {
+              id: s.id,
+              label: s.label,
+              url: null,
+              ok: false,
+              error: "URL manquante",
+              httpStatus: null,
+              durationMs: 0,
+            };
+          }
+          const start = Date.now();
+          try {
+            const ctrl = new AbortController();
+            const timer = setTimeout(() => ctrl.abort(), 5000);
+            // HEAD d'abord, GET avec Range si HEAD ne marche pas
+            let res = await fetch(s.url, {
+              method: "HEAD",
+              signal: ctrl.signal,
+              redirect: "follow",
+              headers: {
+                "User-Agent":
+                  "BudgetFrance-SourceChecker/1.0 (https://budgetfrance.org)",
+              },
+            }).catch(() => null);
+            if (!res || res.status === 405) {
+              const ctrl2 = new AbortController();
+              const timer2 = setTimeout(() => ctrl2.abort(), 5000);
+              res = await fetch(s.url, {
+                method: "GET",
+                signal: ctrl2.signal,
+                redirect: "follow",
+                headers: {
+                  "User-Agent":
+                    "BudgetFrance-SourceChecker/1.0 (https://budgetfrance.org)",
+                  Range: "bytes=0-1023",
+                },
+              }).catch(() => null);
+              clearTimeout(timer2);
+            }
+            clearTimeout(timer);
+            if (!res) {
+              return {
+                id: s.id,
+                label: s.label,
+                url: s.url,
+                ok: false,
+                error: "no response",
+                httpStatus: null,
+                durationMs: Date.now() - start,
+              };
+            }
+            return {
+              id: s.id,
+              label: s.label,
+              url: s.url,
+              ok: res.status >= 200 && res.status < 400,
+              httpStatus: res.status,
+              error: null,
+              durationMs: Date.now() - start,
+            };
+          } catch (e) {
+            return {
+              id: s.id,
+              label: s.label,
+              url: s.url,
+              ok: false,
+              error: e instanceof Error ? e.message : String(e),
+              httpStatus: null,
+              durationMs: Date.now() - start,
+            };
+          }
+        }),
+      );
+
+      results.sort((a, b) => a.id.localeCompare(b.id));
+      const counts = {
+        total: results.length,
+        ok: results.filter((r) => r.ok).length,
+        ko: results.filter((r) => !r.ok && r.url).length,
+        noUrl: results.filter((r) => !r.url).length,
+      };
+      return { generatedAt: snapshot.generatedAt ?? null, counts, results };
+    },
+  );
+
+  // --------------------------------------------------------------------------
+  // GET /api/admin/analytics — fréquentation, téléchargements, top pages
+  // --------------------------------------------------------------------------
+  app.get(
+    "/api/admin/analytics",
+    { preHandler: requireAdmin },
+    async () => {
+      const now = new Date();
+      const dayAgo = new Date(now.getTime() - 1 * 86_400_000);
+      const weekAgo = new Date(now.getTime() - 7 * 86_400_000);
+      const monthAgo = new Date(now.getTime() - 30 * 86_400_000);
+
+      // Vues et visiteurs uniques sur différentes fenêtres
+      const [
+        viewsTotal,
+        viewsDay,
+        viewsWeek,
+        viewsMonth,
+        sessionsDay,
+        sessionsWeek,
+        sessionsMonth,
+        downloadsTotal,
+        downloadsDay,
+        downloadsWeek,
+      ] = await Promise.all([
+        prisma.pageView.count(),
+        prisma.pageView.count({ where: { ts: { gte: dayAgo } } }),
+        prisma.pageView.count({ where: { ts: { gte: weekAgo } } }),
+        prisma.pageView.count({ where: { ts: { gte: monthAgo } } }),
+        prisma.pageView.findMany({
+          where: { ts: { gte: dayAgo } },
+          distinct: ["sessionId"],
+          select: { sessionId: true },
+        }),
+        prisma.pageView.findMany({
+          where: { ts: { gte: weekAgo } },
+          distinct: ["sessionId"],
+          select: { sessionId: true },
+        }),
+        prisma.pageView.findMany({
+          where: { ts: { gte: monthAgo } },
+          distinct: ["sessionId"],
+          select: { sessionId: true },
+        }),
+        prisma.downloadEvent.count(),
+        prisma.downloadEvent.count({ where: { ts: { gte: dayAgo } } }),
+        prisma.downloadEvent.count({ where: { ts: { gte: weekAgo } } }),
+      ]);
+
+      // Top pages sur 30 jours
+      const topPages = await prisma.pageView.groupBy({
+        by: ["page"],
+        where: { ts: { gte: monthAgo } },
+        _count: { _all: true },
+        orderBy: { _count: { page: "desc" } },
+        take: 20,
+      });
+
+      // Téléchargements par format
+      const dlByFormat = await prisma.downloadEvent.groupBy({
+        by: ["format"],
+        _count: { _all: true },
+      });
+
+      // Top fichiers téléchargés
+      const topFiles = await prisma.downloadEvent.groupBy({
+        by: ["filename", "format"],
+        _count: { _all: true },
+        orderBy: { _count: { filename: "desc" } },
+        take: 25,
+      });
+
+      // Évolution sur 30 jours (vues + visiteurs uniques + téléchargements)
+      const allViewsLastMonth = await prisma.pageView.findMany({
+        where: { ts: { gte: monthAgo } },
+        select: { ts: true, sessionId: true },
+      });
+      const allDlsLastMonth = await prisma.downloadEvent.findMany({
+        where: { ts: { gte: monthAgo } },
+        select: { ts: true },
+      });
+
+      const byDay = new Map<
+        string,
+        { date: string; views: number; sessions: Set<string>; downloads: number }
+      >();
+      const ensureDay = (date: string) => {
+        let e = byDay.get(date);
+        if (!e) {
+          e = { date, views: 0, sessions: new Set(), downloads: 0 };
+          byDay.set(date, e);
+        }
+        return e;
+      };
+      for (const v of allViewsLastMonth) {
+        const d = v.ts.toISOString().slice(0, 10);
+        const e = ensureDay(d);
+        e.views++;
+        e.sessions.add(v.sessionId);
+      }
+      for (const d of allDlsLastMonth) {
+        const day = d.ts.toISOString().slice(0, 10);
+        const e = ensureDay(day);
+        e.downloads++;
+      }
+      const evolution = Array.from(byDay.values())
+        .sort((a, b) => a.date.localeCompare(b.date))
+        .map((e) => ({
+          date: e.date,
+          views: e.views,
+          sessions: e.sessions.size,
+          downloads: e.downloads,
+        }));
+
+      return {
+        windows: {
+          today: { views: viewsDay, sessions: sessionsDay.length, downloads: downloadsDay },
+          week: { views: viewsWeek, sessions: sessionsWeek.length, downloads: downloadsWeek },
+          month: {
+            views: viewsMonth,
+            sessions: sessionsMonth.length,
+            downloads: 0, // recalculable, ici on garde week/day pour rester rapide
+          },
+          allTime: { views: viewsTotal, downloads: downloadsTotal },
+        },
+        topPages: topPages.map((p) => ({ page: p.page, views: p._count._all })),
+        downloadsByFormat: dlByFormat.map((d) => ({ format: d.format, count: d._count._all })),
+        topFiles: topFiles.map((f) => ({
+          filename: f.filename,
+          format: f.format,
+          count: f._count._all,
+        })),
+        evolution,
+      };
+    },
+  );
+
+  // --------------------------------------------------------------------------
   // GET /api/admin/email-logs — logs d'envoi email
   // --------------------------------------------------------------------------
   app.get(

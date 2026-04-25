@@ -1,19 +1,19 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-interface Entry {
+export interface Entry {
   terme: string;
   abbr?: string;
   definition: string;
   exemple?: string;
 }
 
-interface Categorie {
+export interface Categorie {
   titre: string;
   description: string;
   entrees: Entry[];
 }
 
-const GLOSSAIRE: Categorie[] = [
+export const GLOSSAIRE: Categorie[] = [
   {
     titre: "Indicateurs macroéconomiques",
     description: "Les grandes grandeurs qui résument la santé financière du pays.",
@@ -627,17 +627,84 @@ const GLOSSAIRE: Categorie[] = [
         definition:
           "Badge jaune : l'API n'a pas répondu ou n'est pas encore câblée. Le pipeline a utilisé une valeur de référence statique (« seed ») pour ne pas casser l'affichage.",
       },
-      {
-        terme: "Notification de mise à jour",
-        definition:
-          "Email envoyé aux abonnés quand le site évolue : nouvel indicateur, mise à jour de données importantes, ou nouvelle fiche pédagogique. La fréquence dépend de l'activité du projet.",
-      },
     ],
   },
 ];
 
+// ---------------------------------------------------------------------------
+// Helpers de lookup : utilisés par <GlossaryTerm /> pour afficher un popover
+// quand on clique sur un terme dans le reste de l'app.
+// ---------------------------------------------------------------------------
+
+/** Slug stable utilisé dans les URLs (#/glossaire?term=oat). */
+export function termeSlug(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+/**
+ * Cherche une entrée dans le glossaire à partir du terme, de son abréviation
+ * ou du slug. Renvoie la première correspondance, sinon null.
+ */
+export function findGlossaryEntry(query: string): { entry: Entry; categorie: string } | null {
+  const q = query.trim().toLowerCase();
+  if (!q) return null;
+  const slugQ = termeSlug(query);
+  for (const cat of GLOSSAIRE) {
+    for (const e of cat.entrees) {
+      if (
+        e.terme.toLowerCase() === q ||
+        (e.abbr && e.abbr.toLowerCase() === q) ||
+        termeSlug(e.terme) === slugQ ||
+        (e.abbr && termeSlug(e.abbr) === slugQ)
+      ) {
+        return { entry: e, categorie: cat.titre };
+      }
+    }
+  }
+  return null;
+}
+
 export function Glossary() {
   const [query, setQuery] = useState("");
+  const [highlightedSlug, setHighlightedSlug] = useState<string | null>(null);
+
+  // Lit le paramètre ?term=xxx dans l'URL (#/glossaire?term=oat) pour pré-remplir
+  // la recherche et scroller vers la fiche correspondante.
+  useEffect(() => {
+    function readTermFromHash() {
+      const hash = window.location.hash;
+      const idx = hash.indexOf("?");
+      if (idx < 0) return;
+      const params = new URLSearchParams(hash.slice(idx + 1));
+      const term = params.get("term");
+      if (term) {
+        setQuery(term);
+        setHighlightedSlug(term);
+      }
+    }
+    readTermFromHash();
+    window.addEventListener("hashchange", readTermFromHash);
+    return () => window.removeEventListener("hashchange", readTermFromHash);
+  }, []);
+
+  // Scroll vers la fiche après le rendu
+  useEffect(() => {
+    if (!highlightedSlug) return;
+    const el = document.getElementById(`glossary-entry-${highlightedSlug}`);
+    if (el) {
+      // Décalage pour ne pas être collé au header sticky
+      const top = el.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({ top, behavior: "smooth" });
+    }
+    // On efface l'effet visuel après quelques secondes
+    const t = setTimeout(() => setHighlightedSlug(null), 4000);
+    return () => clearTimeout(t);
+  }, [highlightedSlug, query]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -701,25 +768,37 @@ export function Glossary() {
             <p className="text-sm text-slate-500">{cat.description}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {cat.entrees.map((e) => (
-              <article key={e.terme} className="card p-5">
-                <div className="flex items-baseline gap-2 flex-wrap">
-                  <h3 className="font-display text-lg font-semibold text-slate-900">{e.terme}</h3>
-                  {e.abbr && (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-brand-soft text-brand border border-blue-200 font-mono">
-                      {e.abbr}
-                    </span>
+            {cat.entrees.map((e) => {
+              const slug = termeSlug(e.terme);
+              const slugAbbr = e.abbr ? termeSlug(e.abbr) : "";
+              const isHighlighted =
+                highlightedSlug && (slug === termeSlug(highlightedSlug) || slugAbbr === termeSlug(highlightedSlug));
+              return (
+                <article
+                  key={e.terme}
+                  id={`glossary-entry-${slug}`}
+                  className={`card p-5 transition-all ${
+                    isHighlighted ? "ring-2 ring-brand shadow-lg bg-brand-soft/30" : ""
+                  }`}
+                >
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    <h3 className="font-display text-lg font-semibold text-slate-900">{e.terme}</h3>
+                    {e.abbr && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-brand-soft text-brand border border-blue-200 font-mono">
+                        {e.abbr}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-slate-700 leading-relaxed mt-2">{e.definition}</p>
+                  {e.exemple && (
+                    <p className="text-xs text-slate-500 mt-3 pt-3 border-t border-slate-100">
+                      <span className="font-semibold text-slate-700">Exemple : </span>
+                      {e.exemple}
+                    </p>
                   )}
-                </div>
-                <p className="text-sm text-slate-700 leading-relaxed mt-2">{e.definition}</p>
-                {e.exemple && (
-                  <p className="text-xs text-slate-500 mt-3 pt-3 border-t border-slate-100">
-                    <span className="font-semibold text-slate-700">Exemple : </span>
-                    {e.exemple}
-                  </p>
-                )}
-              </article>
-            ))}
+                </article>
+              );
+            })}
           </div>
         </section>
       ))}

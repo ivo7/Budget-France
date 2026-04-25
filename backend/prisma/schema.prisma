@@ -354,6 +354,46 @@ model SovereignRatingEvent {
   @@index([date])
 }
 
+// ----------------------------------------------------------------------------
+// Domaine 6 : Analytics — fréquentation et téléchargements
+// ----------------------------------------------------------------------------
+// Pas d'identification personnelle : on ne stocke qu'un sessionId aléatoire
+// (cookie côté client) pour distinguer 1 utilisateur de N reviews. Aucun IP,
+// aucun email, aucun User-Agent identifiant. Conforme RGPD sans consentement.
+
+/// Une visite de page (changement de hash route côté SPA).
+model PageView {
+  id          String    @id @default(cuid())
+  sessionId   String                                   // hash random côté client
+  page        String                                   // ex: "dashboard", "europe", "secu-collec"
+  ts          DateTime  @default(now())
+  referrer    String?                                  // referer simplifié (host uniquement)
+
+  @@index([ts])
+  @@index([page])
+  @@index([sessionId])
+}
+
+enum DownloadFormat {
+  png
+  jpeg
+  csv
+}
+
+/// Téléchargement d'un graphique (PNG/JPEG/CSV).
+model DownloadEvent {
+  id          String          @id @default(cuid())
+  sessionId   String
+  filename    String                                   // ex: "budget-france-oat-10ans"
+  format      DownloadFormat
+  ts          DateTime        @default(now())
+  page        String?                                  // page sur laquelle a eu lieu le download
+
+  @@index([ts])
+  @@index([format])
+  @@index([filename])
+}
+
 /// Terme du glossaire affiché dans l'onglet Fiches pédagogiques.
 /// Le contenu vit aussi en dur dans frontend/src/components/Glossary.tsx
 /// pour un rendu instantané ; cette table sert de source unique en prod.

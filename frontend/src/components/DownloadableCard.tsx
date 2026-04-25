@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { ShareButton } from "./ShareButton";
 import { captureToPng, captureToJpeg, captureToBlob } from "../lib/chartCapture";
 import { toCsv, downloadCsv, type CsvData } from "../lib/csvExport";
+import { trackDownload } from "../hooks/useAnalytics";
 
 interface Props {
   filename: string;
@@ -37,6 +38,7 @@ export function DownloadableCard({ filename, children, className = "", shareTitl
       a.download = `${filename}.${format}`;
       a.href = dataUrl;
       a.click();
+      trackDownload(filename, format);
       setState("done");
       setTimeout(() => setState("idle"), 1600);
     } catch (e) {
@@ -57,6 +59,7 @@ export function DownloadableCard({ filename, children, className = "", shareTitl
     try {
       const data = getCsvData();
       downloadCsv(`${filename}.csv`, toCsv(data));
+      trackDownload(filename, "csv");
       setState("done");
       setTimeout(() => setState("idle"), 1600);
     } catch (e) {

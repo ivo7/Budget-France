@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-25T08:02:42.724Z",
+  "generatedAt": "2026-04-25T17:55:14.537Z",
   "annee": 2026,
   "budgetPrevisionnel": {
     "value": 580000000000,
@@ -8,7 +8,7 @@
       "id": "datagouv.seed",
       "label": "data.gouv.fr — LFI 2026 (fallback)",
       "url": "https://www.data.gouv.fr/fr/datasets/budget-de-letat/",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     "alternates": [],
@@ -21,20 +21,20 @@
       "id": "datagouv.seed",
       "label": "data.gouv.fr — LFI 2026 (fallback)",
       "url": "https://www.data.gouv.fr/fr/datasets/budget-de-letat/",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     "alternates": [],
     "asOf": "2026-01-01"
   },
   "budgetExecute": {
-    "value": 181683261029.93402,
+    "value": 182337182578.00607,
     "unit": "EUR",
     "source": {
       "id": "datagouv.seed",
       "label": "data.gouv.fr — LFI 2026 (fallback)",
       "url": "https://www.data.gouv.fr/fr/datasets/budget-de-letat/",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     "alternates": [],
@@ -47,7 +47,7 @@
       "id": "datagouv.seed",
       "label": "data.gouv.fr — LFI 2026 (fallback)",
       "url": "https://www.data.gouv.fr/fr/datasets/budget-de-letat/",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     "alternates": [],
@@ -60,7 +60,7 @@
       "id": "eurostat.dette",
       "label": "Eurostat — Dette publique (gov_10q_ggdebt)",
       "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/gov_10q_ggdebt?format=JSON&geo=FR&sector=S13&na_item=GD&unit=MIO_EUR",
-      "fetchedAt": "2026-04-25T08:02:37.712Z",
+      "fetchedAt": "2026-04-25T17:55:12.957Z",
       "status": "ok"
     },
     "alternates": [],
@@ -73,7 +73,7 @@
       "id": "eurostat.pib",
       "label": "Eurostat — PIB France (nama_10_gdp)",
       "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nama_10_gdp?format=JSON&geo=FR&na_item=B1GQ&unit=CP_MEUR",
-      "fetchedAt": "2026-04-25T08:02:37.843Z",
+      "fetchedAt": "2026-04-25T17:55:13.058Z",
       "status": "ok"
     },
     "alternates": [],
@@ -86,7 +86,7 @@
       "id": "calc.dette_sur_pib",
       "label": "Calcul — Dette / PIB",
       "url": "",
-      "fetchedAt": "2026-04-25T08:02:42.723Z",
+      "fetchedAt": "2026-04-25T17:55:14.536Z",
       "status": "ok"
     },
     "alternates": [],
@@ -99,7 +99,7 @@
       "id": "ecb.oat10",
       "label": "BCE — Rendement OAT 10 ans (IRS M.FR.L.L40)",
       "url": "https://data-api.ecb.europa.eu/service/data/IRS/M.FR.L.L40.CI.0000.EUR.N.Z?format=csvdata&startPeriod=2015-01",
-      "fetchedAt": "2026-04-25T08:02:40.971Z",
+      "fetchedAt": "2026-04-25T17:55:13.315Z",
       "status": "ok"
     },
     "alternates": [],
@@ -112,7 +112,7 @@
       "id": "ecb.mro",
       "label": "BCE — Taux directeur (MRO)",
       "url": "https://data-api.ecb.europa.eu/service/data/FM/D.U2.EUR.4F.KR.MRR_FR.LEV?format=csvdata&lastNObservations=1",
-      "fetchedAt": "2026-04-25T08:02:41.656Z",
+      "fetchedAt": "2026-04-25T17:55:13.532Z",
       "status": "ok"
     },
     "alternates": [],
@@ -125,7 +125,7 @@
       "id": "calc.vitesse_endettement",
       "label": "Calcul — Vitesse d'endettement (dérivée 12 mois)",
       "url": "",
-      "fetchedAt": "2026-04-25T08:02:42.723Z",
+      "fetchedAt": "2026-04-25T17:55:14.536Z",
       "status": "ok"
     },
     "alternates": [],
@@ -138,7 +138,7 @@
       "id": "calc.vitesse_depenses",
       "label": "Calcul — Vitesse d'écoulement des dépenses (LFI / 31,5 M s)",
       "url": "",
-      "fetchedAt": "2026-04-25T08:02:42.723Z",
+      "fetchedAt": "2026-04-25T17:55:14.536Z",
       "status": "ok"
     },
     "alternates": [],
@@ -571,7 +571,7 @@
         "id": "eurostat.dette",
         "label": "Eurostat — Dette publique (gov_10q_ggdebt)",
         "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/gov_10q_ggdebt?format=JSON&geo=FR&sector=S13&na_item=GD&unit=MIO_EUR",
-        "fetchedAt": "2026-04-25T08:02:37.712Z",
+        "fetchedAt": "2026-04-25T17:55:12.957Z",
         "status": "ok"
       }
     },
@@ -629,7 +629,7 @@
         "id": "datagouv.seed",
         "label": "data.gouv.fr — LFI 2026 (fallback)",
         "url": "https://www.data.gouv.fr/fr/datasets/budget-de-letat/",
-        "fetchedAt": "2026-04-25T08:02:37.443Z",
+        "fetchedAt": "2026-04-25T17:55:12.736Z",
         "status": "fallback"
       }
     },
@@ -1183,7 +1183,7 @@
         "id": "ecb.oat10",
         "label": "BCE — Rendement OAT 10 ans (IRS M.FR.L.L40)",
         "url": "https://data-api.ecb.europa.eu/service/data/IRS/M.FR.L.L40.CI.0000.EUR.N.Z?format=csvdata&startPeriod=2015-01",
-        "fetchedAt": "2026-04-25T08:02:40.971Z",
+        "fetchedAt": "2026-04-25T17:55:13.315Z",
         "status": "ok"
       }
     },
@@ -1521,7 +1521,7 @@
         "id": "hist.seed",
         "label": "Séries longues 1945-2025 (INSEE + DGFiP + BdF)",
         "url": "https://www.insee.fr/fr/statistiques/serie/010565692",
-        "fetchedAt": "2026-04-25T08:02:42.723Z",
+        "fetchedAt": "2026-04-25T17:55:14.536Z",
         "status": "fallback"
       }
     },
@@ -1859,7 +1859,7 @@
         "id": "hist.seed",
         "label": "Séries longues 1945-2025 (INSEE + DGFiP + BdF)",
         "url": "https://www.insee.fr/fr/statistiques/serie/010565692",
-        "fetchedAt": "2026-04-25T08:02:42.723Z",
+        "fetchedAt": "2026-04-25T17:55:14.536Z",
         "status": "fallback"
       }
     },
@@ -2197,7 +2197,7 @@
         "id": "hist.seed",
         "label": "Séries longues 1945-2025 (INSEE + DGFiP + BdF)",
         "url": "https://www.insee.fr/fr/statistiques/serie/010565692",
-        "fetchedAt": "2026-04-25T08:02:42.723Z",
+        "fetchedAt": "2026-04-25T17:55:14.536Z",
         "status": "fallback"
       }
     },
@@ -2535,7 +2535,7 @@
         "id": "hist.seed",
         "label": "Séries longues 1945-2025 (INSEE + DGFiP + BdF)",
         "url": "https://www.insee.fr/fr/statistiques/serie/010565692",
-        "fetchedAt": "2026-04-25T08:02:42.723Z",
+        "fetchedAt": "2026-04-25T17:55:14.536Z",
         "status": "fallback"
       }
     },
@@ -2873,7 +2873,7 @@
         "id": "hist.seed",
         "label": "Séries longues 1945-2025 (INSEE + DGFiP + BdF)",
         "url": "https://www.insee.fr/fr/statistiques/serie/010565692",
-        "fetchedAt": "2026-04-25T08:02:42.723Z",
+        "fetchedAt": "2026-04-25T17:55:14.536Z",
         "status": "fallback"
       }
     }
@@ -2884,22 +2884,22 @@
       {
         "mois": "2026-01",
         "prevu": 27000000000,
-        "reel": 27063057127.501045
+        "reel": 27101044119.359734
       },
       {
         "mois": "2026-02",
         "prevu": 28687500000,
-        "reel": 27565710529.849403
+        "reel": 29449217446.40221
       },
       {
         "mois": "2026-03",
         "prevu": 30375000000,
-        "reel": 30187566640.402935
+        "reel": 31488502034.67315
       },
       {
         "mois": "2026-04",
         "prevu": 32062500000,
-        "reel": 31233209274.14284
+        "reel": 32249808696.966805
       },
       {
         "mois": "2026-05",
@@ -2946,22 +2946,22 @@
       {
         "mois": "2026-01",
         "prevu": 48333333333.33333,
-        "reel": 47832304093.72555
+        "reel": 49387940607.543396
       },
       {
         "mois": "2026-02",
         "prevu": 45916666666.66666,
-        "reel": 47038493934.35688
+        "reel": 45250762347.08977
       },
       {
         "mois": "2026-03",
         "prevu": 48333333333.33333,
-        "reel": 48182234435.94755
+        "reel": 48766944636.729645
       },
       {
         "mois": "2026-04",
         "prevu": 48333333333.33333,
-        "reel": 47736680775.03339
+        "reel": 48796573130.60156
       },
       {
         "mois": "2026-05",
@@ -3150,7 +3150,7 @@
       "id": "lfi.2026.seed",
       "label": "LFI 2026 — grandes masses (seed)",
       "url": "https://www.budget.gouv.fr/documentation/documents-budgetaires/exercice-2026",
-      "fetchedAt": "2026-04-25T08:02:37.425Z",
+      "fetchedAt": "2026-04-25T17:55:12.718Z",
       "status": "fallback"
     }
   },
@@ -7458,7 +7458,7 @@
       "id": "fraude.seed",
       "label": "Cour des comptes, CPO, OFCE, Solidaires Finances publiques (synthèse)",
       "url": "https://www.ccomptes.fr/fr/publications/la-fraude-aux-prelevements-obligatoires",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.537Z",
       "status": "fallback"
     }
   },
@@ -8781,7 +8781,7 @@
       "id": "europe.seed",
       "label": "Eurostat — gov_10q_ggdebt + gov_10q_ggnfa (Excessive Deficit Procedure)",
       "url": "https://ec.europa.eu/eurostat/web/government-finance-statistics",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.537Z",
       "status": "fallback"
     }
   },
@@ -12588,7 +12588,7 @@
       "id": "spread.seed",
       "label": "BCE — Data Portal (IRS France + Allemagne 10 ans)",
       "url": "https://data.ecb.europa.eu/",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.537Z",
       "status": "fallback"
     }
   },
@@ -17661,7 +17661,7 @@
       "id": "spread.multipays",
       "label": "BCE Data Portal — IRS 10 ans (FR / DE / IT / ES)",
       "url": "https://data.ecb.europa.eu/",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.537Z",
       "status": "fallback"
     }
   },
@@ -17996,7 +17996,7 @@
       "id": "insee.inflation",
       "label": "INSEE — Indice des prix à la consommation (IPC)",
       "url": "https://www.insee.fr/fr/statistiques/serie/001769682",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.537Z",
       "status": "fallback"
     }
   },
@@ -18043,7 +18043,7 @@
       "id": "aft.detenteurs",
       "label": "Agence France Trésor — Composition de la détention de la dette",
       "url": "https://www.aft.gouv.fr/files/medias-aft/9_Investisseurs/9.4_Composition.pdf",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     }
   },
@@ -18166,7 +18166,7 @@
       "id": "events.seed",
       "label": "Chronologie Banque de France + INSEE + Cour des comptes",
       "url": "https://www.banque-france.fr/fr/publications-et-statistiques/chronologie",
-      "fetchedAt": "2026-04-25T08:02:37.433Z",
+      "fetchedAt": "2026-04-25T17:55:12.728Z",
       "status": "fallback"
     }
   },
@@ -19479,7 +19479,7 @@
       "id": "secu-collec-hist.seed",
       "label": "LFSS + Comptes Sécu historiques + INSEE APUL + DGCL annuaire",
       "url": "https://www.insee.fr/fr/statistiques/5421158",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.537Z",
       "status": "fallback"
     },
     "missions": [
@@ -24136,7 +24136,7 @@
       "id": "missions.seed",
       "label": "Direction du Budget — historique des missions (reconstitution)",
       "url": "https://www.budget.gouv.fr/documentation/documents-budgetaires",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.537Z",
       "status": "fallback"
     }
   },
@@ -24405,7 +24405,7 @@
       "id": "secu-collec.seed",
       "label": "LFSS + URSSAF + DGCL + Cour des comptes (Sécu) + INSEE (APUL)",
       "url": "https://www.securite-sociale.fr/la-secu-cest-quoi/financement",
-      "fetchedAt": "2026-04-25T08:02:37.433Z",
+      "fetchedAt": "2026-04-25T17:55:12.728Z",
       "status": "fallback"
     }
   },
@@ -24547,7 +24547,7 @@
       "id": "ratings.seed",
       "label": "S&P Global Ratings + Moody's + Fitch Ratings",
       "url": "https://www.aft.gouv.fr/",
-      "fetchedAt": "2026-04-25T08:02:37.433Z",
+      "fetchedAt": "2026-04-25T17:55:12.728Z",
       "status": "fallback"
     }
   },
@@ -24556,35 +24556,35 @@
       "id": "eurostat.dette",
       "label": "Eurostat — Dette publique (gov_10q_ggdebt)",
       "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/gov_10q_ggdebt?format=JSON&geo=FR&sector=S13&na_item=GD&unit=MIO_EUR",
-      "fetchedAt": "2026-04-25T08:02:37.712Z",
+      "fetchedAt": "2026-04-25T17:55:12.957Z",
       "status": "ok"
     },
     {
       "id": "eurostat.pib",
       "label": "Eurostat — PIB France (nama_10_gdp)",
       "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nama_10_gdp?format=JSON&geo=FR&na_item=B1GQ&unit=CP_MEUR",
-      "fetchedAt": "2026-04-25T08:02:37.843Z",
+      "fetchedAt": "2026-04-25T17:55:13.058Z",
       "status": "ok"
     },
     {
       "id": "ecb.oat10",
       "label": "BCE — Rendement OAT 10 ans (IRS M.FR.L.L40)",
       "url": "https://data-api.ecb.europa.eu/service/data/IRS/M.FR.L.L40.CI.0000.EUR.N.Z?format=csvdata&startPeriod=2015-01",
-      "fetchedAt": "2026-04-25T08:02:40.971Z",
+      "fetchedAt": "2026-04-25T17:55:13.315Z",
       "status": "ok"
     },
     {
       "id": "ecb.mro",
       "label": "BCE — Taux directeur (MRO)",
       "url": "https://data-api.ecb.europa.eu/service/data/FM/D.U2.EUR.4F.KR.MRR_FR.LEV?format=csvdata&lastNObservations=1",
-      "fetchedAt": "2026-04-25T08:02:41.656Z",
+      "fetchedAt": "2026-04-25T17:55:13.532Z",
       "status": "ok"
     },
     {
       "id": "bdf.webstat",
       "label": "Banque de France — Webstat (taux)",
       "url": "https://webstat.banque-france.fr/ws_wsfr/fr/exports/taux_interet/TLMBSI-FR.csv",
-      "fetchedAt": "2026-04-25T08:02:42.723Z",
+      "fetchedAt": "2026-04-25T17:55:14.503Z",
       "status": "error",
       "error": "HTTP 404 Not Found — https://webstat.banque-france.fr/ws_wsfr/fr/exports/taux_interet/TLMBSI-FR.csv"
     },
@@ -24592,413 +24592,413 @@
       "id": "datagouv.lfi",
       "label": "data.gouv.fr — Projet de loi de finances pour 2012  (PLF 2012), jaune données relations financières union européenne part de financement des  états membres",
       "url": "https://www.data.gouv.fr/datasets/projet-de-loi-de-finances-pour-2012-plf-2012-jaune-donnees-relations-financieres-union-europeenne-part-de-financement-des-etats-membres",
-      "fetchedAt": "2026-04-25T08:02:42.685Z",
+      "fetchedAt": "2026-04-25T17:55:14.536Z",
       "status": "ok"
     },
     {
       "id": "hist.seed",
       "label": "Séries longues 1945-2025 (INSEE + DGFiP + BdF)",
       "url": "https://www.insee.fr/fr/statistiques/serie/010565692",
-      "fetchedAt": "2026-04-25T08:02:42.723Z",
+      "fetchedAt": "2026-04-25T17:55:14.536Z",
       "status": "fallback"
     },
     {
       "id": "lfi.source",
       "label": "Direction du Budget — Loi de finances initiale 2026 (base des compteurs dépenses et solde)",
       "url": "https://www.budget.gouv.fr/documentation/documents-budgetaires",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.536Z",
       "status": "fallback"
     },
     {
       "id": "fraude.source",
       "label": "Cour des comptes — La fraude aux prélèvements obligatoires",
       "url": "https://www.ccomptes.fr/fr/publications/la-fraude-aux-prelevements-obligatoires",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.536Z",
       "status": "fallback"
     },
     {
       "id": "cpo.source",
       "label": "Conseil des Prélèvements Obligatoires — études TVA / IS",
       "url": "https://www.ccomptes.fr/fr/institutions-associees/conseil-des-prelevements-obligatoires",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.536Z",
       "status": "fallback"
     },
     {
       "id": "ofce.source",
       "label": "OFCE — séries longues budgétaires France",
       "url": "https://www.ofce.sciences-po.fr/",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.536Z",
       "status": "fallback"
     },
     {
       "id": "europe.source",
       "label": "Eurostat — gov_10q_ggdebt + gov_10q_ggnfa (FR · DE · IT · ES · UE)",
       "url": "https://ec.europa.eu/eurostat/web/government-finance-statistics",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.536Z",
       "status": "fallback"
     },
     {
       "id": "spread.source",
       "label": "BCE — Data Portal (OAT FR + Bund DE, taux mensuels)",
       "url": "https://data.ecb.europa.eu/",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.536Z",
       "status": "fallback"
     },
     {
       "id": "sp.source",
       "label": "Standard & Poor's Global Ratings — France",
       "url": "https://disclosure.spglobal.com/ratings/",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.536Z",
       "status": "fallback"
     },
     {
       "id": "moodys.source",
       "label": "Moody's Ratings — France",
       "url": "https://ratings.moodys.com/",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.536Z",
       "status": "fallback"
     },
     {
       "id": "fitch.source",
       "label": "Fitch Ratings — France",
       "url": "https://www.fitchratings.com/issuers/france",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.536Z",
       "status": "fallback"
     },
     {
       "id": "aft.source",
       "label": "Agence France Trésor — synthèses ratings et émissions",
       "url": "https://www.aft.gouv.fr/",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.536Z",
       "status": "fallback"
     },
     {
       "id": "dgfip.source",
       "label": "DGFiP — Situation Mensuelle Budgétaire",
       "url": "https://www.budget.gouv.fr/documentation/documents-budgetaires/situation-mensuelle-budgetaire",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.536Z",
       "status": "fallback"
     },
     {
       "id": "insee.population",
       "label": "INSEE — Estimation de population (68,5 M au 01/01/2026)",
       "url": "https://www.insee.fr/fr/statistiques/1893198",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.536Z",
       "status": "fallback"
     },
     {
       "id": "impots.bareme",
       "label": "impots.gouv.fr — Barème de l'impôt sur le revenu 2024",
       "url": "https://www.impots.gouv.fr/particulier/le-calcul-de-limpot-sur-le-revenu",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.536Z",
       "status": "fallback"
     },
     {
       "id": "education.nationale",
       "label": "Éducation nationale — rémunération moyenne enseignants secondaire",
       "url": "https://www.education.gouv.fr/les-personnels-de-l-education-nationale-6515",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.536Z",
       "status": "fallback"
     },
     {
       "id": "sante.hopitaux",
       "label": "Ministère de la Santé — budget moyen d'un centre hospitalier",
       "url": "https://sante.gouv.fr/",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.536Z",
       "status": "fallback"
     },
     {
       "id": "sncf.reseau",
       "label": "SNCF Réseau — coût moyen d'une LGV récente",
       "url": "https://www.sncf-reseau.com/fr",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.536Z",
       "status": "fallback"
     },
     {
       "id": "ush.logement",
       "label": "Union sociale pour l'habitat — coûts construction logement social",
       "url": "https://www.union-habitat.org/",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.536Z",
       "status": "fallback"
     },
     {
       "id": "dga.armement",
       "label": "Direction générale de l'armement — prix export Rafale",
       "url": "https://www.defense.gouv.fr/dga",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.536Z",
       "status": "fallback"
     },
     {
       "id": "cnsa.ehpad",
       "label": "CNSA — coût moyen d'une place en EHPAD",
       "url": "https://www.cnsa.fr/",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.536Z",
       "status": "fallback"
     },
     {
       "id": "rte.reseau",
       "label": "RTE — coûts installés des énergies renouvelables",
       "url": "https://www.rte-france.com/",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.536Z",
       "status": "fallback"
     },
     {
       "id": "secu.lfss",
       "label": "Sécurité sociale — Loi de financement (LFSS) et annexes PLFSS",
       "url": "https://www.securite-sociale.fr/la-secu-cest-quoi/financement",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.536Z",
       "status": "fallback"
     },
     {
       "id": "urssaf.baremes",
       "label": "URSSAF — barèmes des cotisations 2024-2025",
       "url": "https://www.urssaf.fr/accueil/employeur/cotisations/taux-cotisations.html",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.536Z",
       "status": "fallback"
     },
     {
       "id": "ccomptes.secu",
       "label": "Cour des comptes — rapport annuel sur l'application de la LFSS",
       "url": "https://www.ccomptes.fr/fr/domaines-dintervention/securite-sociale",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.536Z",
       "status": "fallback"
     },
     {
       "id": "dgcl.collec",
       "label": "DGCL — Direction générale des collectivités locales (OFGL)",
       "url": "https://www.collectivites-locales.gouv.fr/",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.536Z",
       "status": "fallback"
     },
     {
       "id": "insee.apul",
       "label": "INSEE — Comptes nationaux des administrations publiques locales (APUL)",
       "url": "https://www.insee.fr/fr/statistiques/5421158",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.536Z",
       "status": "fallback"
     },
     {
       "id": "unedic.financement",
       "label": "Unédic — situation financière et rapport d'activité",
       "url": "https://www.unedic.org/",
-      "fetchedAt": "2026-04-25T08:02:42.724Z",
+      "fetchedAt": "2026-04-25T17:55:14.536Z",
       "status": "fallback"
     },
     {
       "id": "insee.seed",
       "label": "INSEE — valeurs connues (fallback)",
       "url": "https://www.insee.fr/fr/statistiques/2830192",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     {
       "id": "bdf.seed",
       "label": "Banque de France — valeurs connues (fallback)",
       "url": "https://www.banque-france.fr/",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     {
       "id": "datagouv.seed",
       "label": "data.gouv.fr — LFI 2026 (fallback)",
       "url": "https://www.data.gouv.fr/fr/datasets/budget-de-letat/",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     {
       "id": "budget.gouv",
       "label": "Direction du Budget — LFI 2026",
       "url": "https://www.budget.gouv.fr/documentation/documents-budgetaires",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     {
       "id": "dgfip.smb",
       "label": "DGFiP — Situation Mensuelle Budgétaire",
       "url": "https://www.budget.gouv.fr/documentation/documents-budgetaires/situation-mensuelle-budgetaire",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     {
       "id": "secu.lfss",
       "label": "Sécurité sociale — LFSS / PLFSS",
       "url": "https://www.securite-sociale.fr/la-secu-cest-quoi/financement",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     {
       "id": "urssaf.baremes",
       "label": "URSSAF — barèmes des cotisations",
       "url": "https://www.urssaf.fr/accueil/employeur/cotisations/taux-cotisations.html",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     {
       "id": "ccomptes.secu",
       "label": "Cour des comptes — rapport LFSS",
       "url": "https://www.ccomptes.fr/fr/domaines-dintervention/securite-sociale",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     {
       "id": "dgcl.collec",
       "label": "DGCL — Collectivités locales (OFGL)",
       "url": "https://www.collectivites-locales.gouv.fr/",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     {
       "id": "insee.apul",
       "label": "INSEE — Comptes APUL",
       "url": "https://www.insee.fr/fr/statistiques/5421158",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     {
       "id": "unedic",
       "label": "Unédic — situation financière",
       "url": "https://www.unedic.org/",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     {
       "id": "eurostat.dette",
       "label": "Eurostat — gov_10q_ggdebt",
       "url": "https://ec.europa.eu/eurostat/databrowser/view/gov_10q_ggdebt",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     {
       "id": "eurostat.solde",
       "label": "Eurostat — gov_10q_ggnfa",
       "url": "https://ec.europa.eu/eurostat/databrowser/view/gov_10q_ggnfa",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     {
       "id": "ecb.taux",
       "label": "BCE — Data Portal (taux OAT + Bund)",
       "url": "https://data.ecb.europa.eu/",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     {
       "id": "aft",
       "label": "Agence France Trésor — synthèses",
       "url": "https://www.aft.gouv.fr/",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     {
       "id": "sp.ratings",
       "label": "Standard & Poor's Global Ratings",
       "url": "https://disclosure.spglobal.com/ratings/",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     {
       "id": "moodys.ratings",
       "label": "Moody's Ratings",
       "url": "https://ratings.moodys.com/",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     {
       "id": "fitch.ratings",
       "label": "Fitch Ratings — France",
       "url": "https://www.fitchratings.com/issuers/france",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     {
       "id": "ccomptes.fraude",
       "label": "Cour des comptes — fraude aux prélèvements obligatoires",
       "url": "https://www.ccomptes.fr/fr/publications/la-fraude-aux-prelevements-obligatoires",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     {
       "id": "cpo",
       "label": "Conseil des Prélèvements Obligatoires",
       "url": "https://www.ccomptes.fr/fr/institutions-associees/conseil-des-prelevements-obligatoires",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     {
       "id": "ofce",
       "label": "OFCE — séries longues budgétaires",
       "url": "https://www.ofce.sciences-po.fr/",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     {
       "id": "insee.population",
       "label": "INSEE — Estimation de population",
       "url": "https://www.insee.fr/fr/statistiques/1893198",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     {
       "id": "impots.bareme",
       "label": "impots.gouv.fr — Barème IR 2024",
       "url": "https://www.impots.gouv.fr/particulier/le-calcul-de-limpot-sur-le-revenu",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     {
       "id": "education.nationale",
       "label": "Éducation nationale — rémunérations enseignants",
       "url": "https://www.education.gouv.fr/",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     {
       "id": "sante.gouv",
       "label": "Ministère de la Santé — budget hôpitaux",
       "url": "https://sante.gouv.fr/",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     {
       "id": "sncf.reseau",
       "label": "SNCF Réseau — coûts LGV",
       "url": "https://www.sncf-reseau.com/fr",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     {
       "id": "ush",
       "label": "Union sociale pour l'habitat — coûts logement",
       "url": "https://www.union-habitat.org/",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     {
       "id": "dga",
       "label": "Direction générale de l'armement — Rafale",
       "url": "https://www.defense.gouv.fr/dga",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     {
       "id": "cnsa",
       "label": "CNSA — coût EHPAD",
       "url": "https://www.cnsa.fr/",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     {
       "id": "rte",
       "label": "RTE — coûts énergies renouvelables",
       "url": "https://www.rte-france.com/",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     },
     {
       "id": "bdf.chronologie",
       "label": "Banque de France — Chronologie",
       "url": "https://www.banque-france.fr/fr/publications-et-statistiques/chronologie",
-      "fetchedAt": "2026-04-25T08:02:37.443Z",
+      "fetchedAt": "2026-04-25T17:55:12.736Z",
       "status": "fallback"
     }
   ]

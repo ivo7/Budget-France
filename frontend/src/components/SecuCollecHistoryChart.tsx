@@ -135,6 +135,46 @@ export function SecuCollecHistoryChart({ data }: Props) {
         Avant 1990, valeurs reconstituées depuis les comptes de la Sécu historiques et les
         annuaires DGCL. Inclut UNEDIC pour la Sécu.
       </div>
+
+      {/* Explication pédagogique : pourquoi recettes ≈ dépenses (étape 8) */}
+      <div className="mt-4 p-4 rounded-xl bg-brand-soft/30 border border-brand/15">
+        <div className="text-xs uppercase tracking-widest text-brand mb-1">
+          Pourquoi les courbes recettes et dépenses se collent ?
+        </div>
+        <div className="text-sm text-slate-700 leading-relaxed space-y-2">
+          <p>
+            Tu remarques que pour la Sécu et les collectivités, les courbes recettes et
+            dépenses se suivent presque à l'euro près. Ce n'est <strong>pas une
+            coïncidence</strong>, c'est une contrainte légale propre à ces deux sphères :
+          </p>
+          <ul className="list-disc list-inside space-y-1 ml-1">
+            <li>
+              <strong>Sécurité sociale :</strong> les LFSS (Lois de Financement de la
+              Sécurité Sociale, votées chaque automne) sont calibrées pour atteindre
+              l'équilibre. Quand la Sécu déficit, les pouvoirs publics ajustent
+              cotisations, CSG ou prestations <em>à la hausse comme à la baisse</em>.
+              Les déficits non financés sont absorbés par la <strong>CADES</strong>
+              (Caisse d'Amortissement de la Dette Sociale) qui les rembourse via une
+              taxe dédiée — la CRDS — sur ~25 ans.
+            </li>
+            <li>
+              <strong>Collectivités territoriales :</strong> la <strong>règle d'or</strong>
+              (article L. 1612-4 CGCT) leur interdit de présenter un budget de
+              fonctionnement en déséquilibre. Elles peuvent emprunter, mais
+              <em> uniquement</em> pour financer l'investissement (écoles, transports, …)
+              — jamais pour financer le fonctionnement courant. Conséquence : leurs
+              recettes doivent toujours suivre leurs dépenses de fonctionnement.
+            </li>
+          </ul>
+          <p className="text-xs text-slate-600">
+            <strong>L'État central</strong> n'a pas cette contrainte (cf. l'écart
+            permanent entre recettes et dépenses sur le graphique « Recettes vs dépenses
+            de l'État »), ce qui explique l'essentiel de la dette publique française :
+            ~78 % vient de l'État, le reste de la CADES (Sécu) et de quelques
+            collectivités.
+          </p>
+        </div>
+      </div>
     </DownloadableCard>
   );
 }

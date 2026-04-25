@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useBudgetData } from "./hooks/useBudgetData";
 import { useHashRoute } from "./hooks/useHashRoute";
+import { usePageAnalytics } from "./hooks/useAnalytics";
 import { LiveDebtCounter } from "./components/LiveDebtCounter";
 import { LiveSpendingCounter } from "./components/LiveSpendingCounter";
 import { KPICard } from "./components/KPICard";
@@ -12,7 +13,10 @@ import { SubscribeForm } from "./components/SubscribeForm";
 import { HistoricalCurves } from "./components/HistoricalCurves";
 import { RecettesDepensesHistory } from "./components/RecettesDepensesHistory";
 import { HistoricalComposition } from "./components/HistoricalComposition";
-import { RevenueForecastChart } from "./components/RevenueForecastChart";
+// RevenueForecastChart retiré du dashboard (étape 7) — fichier conservé.
+// import { RevenueForecastChart } from "./components/RevenueForecastChart";
+import { DefautSouverainExplainer } from "./components/DefautSouverainExplainer";
+import { GlossaryTerm } from "./components/GlossaryTerm";
 import { BudgetBreakdown } from "./components/BudgetBreakdown";
 import { Glossary } from "./components/Glossary";
 import { DownloadableCard } from "./components/DownloadableCard";
@@ -76,6 +80,10 @@ export default function App() {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
   }, [page]);
+
+  // Tracking analytics minimaliste (fréquentation par page, anonyme).
+  // Ne s'enclenche pas sur la page admin pour ne pas polluer les stats.
+  usePageAnalytics(page === "admin" ? "__admin" : page);
 
   return (
     <div className="min-h-full">
@@ -157,17 +165,17 @@ function DashboardPage({ data }: { data: BudgetSnapshot }) {
       </section>
 
       <div className="mt-2 text-xs text-slate-500">
-        Ratio dette / PIB :{" "}
+        <GlossaryTerm slug="Ratio dette / PIB">Ratio dette / PIB</GlossaryTerm> :{" "}
         <span className="text-slate-800 font-semibold tabular-nums">
           {formatPercent(data.ratioDettePib.value)}
         </span>{" "}
-        — PIB de référence : {(data.pib.value / 1e9).toFixed(0)} Md€
+        — <GlossaryTerm slug="PIB">PIB</GlossaryTerm> de référence : {(data.pib.value / 1e9).toFixed(0)} Md€
       </div>
 
       {/* 4 KPIs */}
       <section className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard
-          title="Budget prévisionnel"
+          title={<><GlossaryTerm slug="Loi de finances initiale">Budget prévisionnel</GlossaryTerm></>}
           metric={data.budgetPrevisionnel}
           accent="blue"
           hint={`LFI ${data.annee} — dépenses totales de l'État`}
@@ -179,16 +187,16 @@ function DashboardPage({ data }: { data: BudgetSnapshot }) {
           hint="Estimation cumulée depuis le 1er janvier"
         />
         <KPICard
-          title="Dette publique"
+          title={<><GlossaryTerm slug="Dette publique">Dette publique</GlossaryTerm></>}
           metric={data.dettePublique}
           accent="red"
           hint="Au sens Maastricht — toutes administrations publiques"
         />
         <KPICard
-          title="Taux OAT 10 ans"
+          title={<>Taux <GlossaryTerm slug="OAT">OAT</GlossaryTerm> 10 ans</>}
           metric={data.tauxOat10ans}
           accent="blue"
-          hint={`Taux directeur BCE : ${data.tauxDirecteurBce.value.toFixed(2)} %`}
+          hint={<>Taux directeur <GlossaryTerm slug="BCE">BCE</GlossaryTerm> : {data.tauxDirecteurBce.value.toFixed(2)} %</>}
         />
       </section>
 
@@ -237,24 +245,17 @@ function DashboardPage({ data }: { data: BudgetSnapshot }) {
         </section>
       )}
 
-      {/* Exécution mensuelle : prévu vs réel */}
-      {data.executionCourante && (
-        <section className="mt-4">
-          <DownloadableCard
-            filename={`budget-france-execution-${data.executionCourante.annee}`}
-            getCsvData={() => objectsToCsv([
-              ...data.executionCourante!.recettes.map((r) => ({ side: "recettes", ...r })),
-              ...data.executionCourante!.depenses.map((r) => ({ side: "depenses", ...r })),
-            ])}
-          >
-            <RevenueForecastChart
-              annee={data.executionCourante.annee}
-              recettes={data.executionCourante.recettes}
-              depenses={data.executionCourante.depenses}
-            />
-          </DownloadableCard>
-        </section>
-      )}
+      {/* Section "Exécution mensuelle prévu vs réel" retirée du dashboard :
+          les données simulées prêtaient à confusion. La DGFiP publie déjà
+          l'exécution réelle dans la SMB avec 1-2 mois de décalage —
+          ceux qui veulent suivre l'exécution iront directement à la source.
+          Le composant RevenueForecastChart reste dans le code au cas où on
+          voudrait le réintroduire avec des données réelles importées du SMB. */}
+
+      {/* Explication pédagogique du défaut souverain (étape 1) */}
+      <section className="mt-4">
+        <DefautSouverainExplainer />
+      </section>
 
       {/* La dette récente (Eurostat trimestriel) a été déplacée sur la page
           Historique pour éviter la redondance avec le compteur live. */}
@@ -598,6 +599,89 @@ function SourcesOnlyPage({ data }: { data: BudgetSnapshot }) {
           (Eurostat → INSEE → Banque de France → data.gouv.fr → seed) et la première qui
           répond fournit la valeur.
         </p>
+
+        {/* Explication pédagogique de l'ordre de priorité des sources */}
+        <div className="card p-5 md:p-6 mt-4 bg-brand-soft/20 border-brand/15">
+          <div className="text-xs uppercase tracking-widest text-brand">Pourquoi cet ordre ?</div>
+          <h2 className="font-display text-lg font-semibold text-slate-900 mt-1">
+            Comment on choisit la source d'un chiffre
+          </h2>
+          <p className="text-sm text-slate-700 mt-3 leading-relaxed">
+            L'ordre n'est pas politique : il privilégie la <strong>norme la plus large
+            applicable au chiffre</strong>, puis recule vers les sources nationales si la
+            norme européenne ne couvre pas l'indicateur.
+          </p>
+          <ol className="mt-4 space-y-3 text-sm">
+            <li className="flex gap-3">
+              <span className="font-display font-bold text-brand text-xl shrink-0 w-6 text-right">1</span>
+              <div>
+                <div className="font-semibold text-slate-900">Eurostat</div>
+                <div className="text-slate-600 text-xs leading-relaxed mt-0.5">
+                  Norme <strong>SEC 2010 Maastricht</strong> harmonisée pour les 27 États
+                  membres. C'est la seule base permettant des comparaisons internationales
+                  honnêtes (dette publique, déficit, dépenses APU). Si l'indicateur existe
+                  chez Eurostat, on s'arrête là.
+                </div>
+              </div>
+            </li>
+            <li className="flex gap-3">
+              <span className="font-display font-bold text-brand text-xl shrink-0 w-6 text-right">2</span>
+              <div>
+                <div className="font-semibold text-slate-900">INSEE</div>
+                <div className="text-slate-600 text-xs leading-relaxed mt-0.5">
+                  Comptes nationaux français. Source la plus fine pour les détails que
+                  Eurostat ne propose pas (PIB trimestriel détaillé, IPC, démographie,
+                  comptes APUL/APUC). C'est l'INSEE qui produit les chiffres
+                  <em> avant</em> qu'ils soient retransmis à Eurostat.
+                </div>
+              </div>
+            </li>
+            <li className="flex gap-3">
+              <span className="font-display font-bold text-brand text-xl shrink-0 w-6 text-right">3</span>
+              <div>
+                <div className="font-semibold text-slate-900">BCE / Banque de France</div>
+                <div className="text-slate-600 text-xs leading-relaxed mt-0.5">
+                  Source de référence pour <strong>tout ce qui est monétaire</strong> :
+                  taux directeurs, OAT, Bund, spreads, masse monétaire. Données
+                  rafraîchies chaque jour ouvré, alors qu'Eurostat met à jour
+                  trimestriellement.
+                </div>
+              </div>
+            </li>
+            <li className="flex gap-3">
+              <span className="font-display font-bold text-brand text-xl shrink-0 w-6 text-right">4</span>
+              <div>
+                <div className="font-semibold text-slate-900">data.gouv.fr / DGFiP / AFT</div>
+                <div className="text-slate-600 text-xs leading-relaxed mt-0.5">
+                  Sources spécifiques à la France : exécution budgétaire mensuelle (DGFiP
+                  SMB), détenteurs de la dette publique (AFT), missions LFI, fraude
+                  fiscale (Cour des comptes). Utilisées quand l'indicateur n'existe que
+                  sous l'angle national.
+                </div>
+              </div>
+            </li>
+            <li className="flex gap-3">
+              <span className="font-display font-bold text-brand text-xl shrink-0 w-6 text-right">5</span>
+              <div>
+                <div className="font-semibold text-slate-900">Seed local (secours)</div>
+                <div className="text-slate-600 text-xs leading-relaxed mt-0.5">
+                  Valeurs statiques de référence stockées dans le code, utilisées si
+                  toutes les API ci-dessus ne répondent pas. Permet de ne pas afficher
+                  une page blanche en cas de panne. <strong>Toujours datées et sourcées</strong> :
+                  les valeurs proviennent du dernier rapport public disponible (LFI,
+                  Cour des comptes, INSEE bilan annuel).
+                </div>
+              </div>
+            </li>
+          </ol>
+          <div className="mt-4 p-3 rounded-lg bg-amber-50/60 border border-amber-200/60 text-xs text-slate-700">
+            <strong>Important :</strong> chaque chiffre affiché précise sa source.
+            Un badge <span className="text-money font-semibold">live</span> indique que la
+            valeur vient d'être chargée depuis la source officielle. Un badge
+            <span className="text-amber-700 font-semibold"> secours</span> indique qu'on
+            utilise temporairement la valeur seed.
+          </div>
+        </div>
       </section>
 
       <section className="mt-6">

@@ -2,10 +2,12 @@ import type { Metric } from "../types";
 import { formatDate, formatEurCompact, formatPerCapita, formatPercent, formatPctPoints } from "../lib/format";
 
 interface Props {
-  title: string;
+  /** Titre de la card. Accepte un ReactNode pour permettre d'embarquer
+   *  des termes <GlossaryTerm /> cliquables (ex: « Taux OAT 10 ans »). */
+  title: React.ReactNode;
   metric: Metric;
   accent?: "default" | "red" | "green" | "blue";
-  hint?: string;
+  hint?: React.ReactNode;
 }
 
 const accentClass: Record<NonNullable<Props["accent"]>, string> = {

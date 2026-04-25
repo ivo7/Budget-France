@@ -31,7 +31,7 @@ import { downloadCsv, objectsToCsv, toCsv } from "../lib/csvExport";
 const TOKEN_KEY = "bf_admin_token";
 const TOKEN_EXP_KEY = "bf_admin_token_exp";
 
-type Tab = "stats" | "subscribers" | "sources" | "emails";
+type Tab = "stats" | "subscribers" | "analytics" | "sources" | "emails";
 
 interface Subscriber {
   id: string;
@@ -87,6 +87,20 @@ interface SourcesPayload {
     fallback?: boolean;
   }[];
   error?: string;
+}
+
+interface CheckSourcesPayload {
+  generatedAt: string | null;
+  counts: { total: number; ok: number; ko: number; noUrl: number };
+  results: {
+    id: string;
+    label: string;
+    url: string | null;
+    ok: boolean;
+    httpStatus: number | null;
+    error: string | null;
+    durationMs: number;
+  }[];
 }
 
 interface EmailLog {
@@ -288,6 +302,7 @@ function DashboardScreen({ onLogout }: { onLogout: () => void }) {
         <div className="inline-flex rounded-full bg-slate-100 p-1 border border-slate-200 flex-wrap">
           <TabBtn active={tab === "stats"} onClick={() => setTab("stats")}>📊 Stats</TabBtn>
           <TabBtn active={tab === "subscribers"} onClick={() => setTab("subscribers")}>👥 Inscrits</TabBtn>
+          <TabBtn active={tab === "analytics"} onClick={() => setTab("analytics")}>📈 Analytics</TabBtn>
           <TabBtn active={tab === "sources"} onClick={() => setTab("sources")}>🗂️ Sources</TabBtn>
           <TabBtn active={tab === "emails"} onClick={() => setTab("emails")}>✉️ Emails</TabBtn>
         </div>
@@ -296,6 +311,7 @@ function DashboardScreen({ onLogout }: { onLogout: () => void }) {
       <section className="mt-4">
         {tab === "stats" && <StatsTab />}
         {tab === "subscribers" && <SubscribersTab />}
+        {tab === "analytics" && <AnalyticsTab />}
         {tab === "sources" && <SourcesTab />}
         {tab === "emails" && <EmailsTab />}
       </section>
@@ -559,10 +575,29 @@ function SubscribersTab() {
 function SourcesTab() {
   const [data, setData] = useState<SourcesPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [checkData, setCheckData] = useState<CheckSourcesPayload | null>(null);
+  const [checking, setChecking] = useState(false);
+  const [checkError, setCheckError] = useState<string | null>(null);
 
   useEffect(() => {
     adminFetch<SourcesPayload>("/api/admin/sources").then(setData).catch((e) => setError(String(e.message ?? e)));
   }, []);
+
+  async function runCheck() {
+    setChecking(true);
+    setCheckError(null);
+    try {
+      const r = await adminFetch<CheckSourcesPayload>("/api/admin/check-sources");
+      setCheckData(r);
+    } catch (e) {
+      setCheckError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setChecking(false);
+    }
+  }
+
+  // Map id → résultat de vérification
+  const checkById = new Map(checkData?.results.map((r) => [r.id, r] as const) ?? []);
 
   if (error) return <ErrorBox message={error} />;
   if (!data) return <Loading />;
@@ -576,17 +611,35 @@ function SourcesTab() {
         <StatCard label="Erreurs" value={data.counts.error} color="text-flag-red" />
       </div>
 
-      <div className="card p-5">
-        <div className="text-xs uppercase tracking-widest text-muted mb-2">
-          Dernier snapshot
+      <div className="card p-5 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="text-xs uppercase tracking-widest text-muted mb-2">
+            Dernier snapshot
+          </div>
+          <div className="font-mono text-sm text-slate-700">
+            {data.generatedAt ? new Date(data.generatedAt).toLocaleString("fr-FR") : "indisponible"}
+          </div>
+          <div className="text-[11px] text-slate-500 mt-1">
+            Fichier : <code className="bg-slate-100 px-1.5 py-0.5 rounded">{data.snapshotPath}</code>
+          </div>
+          {data.error && <div className="text-flag-red text-sm mt-2">{data.error}</div>}
         </div>
-        <div className="font-mono text-sm text-slate-700">
-          {data.generatedAt ? new Date(data.generatedAt).toLocaleString("fr-FR") : "indisponible"}
+        <div className="text-right">
+          <button
+            type="button"
+            onClick={runCheck}
+            disabled={checking}
+            className="inline-flex items-center gap-2 bg-brand hover:bg-brand-dark disabled:opacity-50 text-white font-semibold rounded-xl px-4 py-2 text-sm transition-colors"
+          >
+            {checking ? "Vérification…" : "🔗 Vérifier les liens"}
+          </button>
+          {checkData && (
+            <div className="text-[11px] text-slate-600 mt-2 leading-tight">
+              {checkData.counts.ok} OK · {checkData.counts.ko} KO · {checkData.counts.noUrl} sans URL
+            </div>
+          )}
+          {checkError && <div className="text-flag-red text-xs mt-2">{checkError}</div>}
         </div>
-        <div className="text-[11px] text-slate-500 mt-1">
-          Fichier : <code className="bg-slate-100 px-1.5 py-0.5 rounded">{data.snapshotPath}</code>
-        </div>
-        {data.error && <div className="text-flag-red text-sm mt-2">{data.error}</div>}
       </div>
 
       <div className="card overflow-hidden">
@@ -594,19 +647,21 @@ function SourcesTab() {
           <thead className="bg-slate-50 text-xs uppercase tracking-widest text-muted">
             <tr>
               <th className="text-left p-3">Source</th>
-              <th className="text-left p-3">Statut</th>
+              <th className="text-left p-3">Statut snapshot</th>
+              <th className="text-left p-3">Lien (vérifié)</th>
               <th className="text-left p-3">URL</th>
             </tr>
           </thead>
           <tbody>
             {data.sources.length === 0 ? (
               <tr>
-                <td colSpan={3} className="p-6 text-center text-slate-500">Aucune source dans le snapshot.</td>
+                <td colSpan={4} className="p-6 text-center text-slate-500">Aucune source dans le snapshot.</td>
               </tr>
             ) : (
               data.sources.map((s) => {
                 const isFallback = s.fallback || s.status === "fallback";
                 const isError = s.status === "error";
+                const check = checkById.get(s.id);
                 return (
                   <tr key={s.id} className="border-t border-slate-100">
                     <td className="p-3">
@@ -620,6 +675,25 @@ function SourcesTab() {
                         <Badge color="amber">secours</Badge>
                       ) : (
                         <Badge color="green">live</Badge>
+                      )}
+                    </td>
+                    <td className="p-3">
+                      {!check ? (
+                        <span className="text-slate-300 text-xs">—</span>
+                      ) : check.ok ? (
+                        <span className="inline-flex items-center gap-2">
+                          <Badge color="green">✓ {check.httpStatus}</Badge>
+                          <span className="text-[10px] text-slate-400">{check.durationMs}ms</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-2">
+                          <Badge color="red">✗ {check.httpStatus ?? "err"}</Badge>
+                          {check.error && (
+                            <span className="text-[10px] text-flag-red font-mono truncate max-w-[180px]" title={check.error}>
+                              {check.error}
+                            </span>
+                          )}
+                        </span>
                       )}
                     </td>
                     <td className="p-3">
@@ -642,6 +716,208 @@ function SourcesTab() {
             )}
           </tbody>
         </table>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// AnalyticsTab — fréquentation et téléchargements
+// ============================================================================
+
+interface AnalyticsPayload {
+  windows: {
+    today: { views: number; sessions: number; downloads: number };
+    week: { views: number; sessions: number; downloads: number };
+    month: { views: number; sessions: number; downloads: number };
+    allTime: { views: number; downloads: number };
+  };
+  topPages: { page: string; views: number }[];
+  downloadsByFormat: { format: "png" | "jpeg" | "csv"; count: number }[];
+  topFiles: { filename: string; format: "png" | "jpeg" | "csv"; count: number }[];
+  evolution: { date: string; views: number; sessions: number; downloads: number }[];
+}
+
+const PAGE_LABELS: Record<string, string> = {
+  dashboard: "Tableau de bord",
+  europe: "Europe",
+  historique: "Historique",
+  fraudes: "Fraudes",
+  "mes-impots": "Mes impôts",
+  pedagogie: "Comprendre",
+  "secu-collec": "Sécu & Collectivités",
+  sources: "Sources",
+  glossaire: "Fiches pédagogiques",
+  tarifs: "Premium",
+  compte: "Mon compte",
+  "paiement-reussi": "Paiement réussi",
+  __admin: "Admin (interne)",
+};
+
+function AnalyticsTab() {
+  const [data, setData] = useState<AnalyticsPayload | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    adminFetch<AnalyticsPayload>("/api/admin/analytics")
+      .then(setData)
+      .catch((e) => setError(String(e.message ?? e)));
+  }, []);
+
+  if (error) return <ErrorBox message={error} />;
+  if (!data) return <Loading />;
+
+  const w = data.windows;
+  const totalDl = data.downloadsByFormat.reduce((a, b) => a + b.count, 0);
+
+  return (
+    <div className="space-y-4">
+      {/* KPIs par fenêtre */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <StatCard label="Vues 24h" value={w.today.views} color="text-brand" sub={`${w.today.sessions} visiteurs uniques`} />
+        <StatCard label="Vues 7j" value={w.week.views} color="text-brand" sub={`${w.week.sessions} visiteurs uniques`} />
+        <StatCard label="Vues 30j" value={w.month.views} color="text-brand" sub={`${w.month.sessions} visiteurs uniques`} />
+        <StatCard label="Vues totales" value={w.allTime.views} color="text-slate-900" sub={`depuis le lancement`} />
+        <StatCard label="Téléchargements 24h" value={w.today.downloads} color="text-money" />
+        <StatCard label="Téléchargements 7j" value={w.week.downloads} color="text-money" />
+        <StatCard label="Téléchargements 30j" value={data.evolution.reduce((a, b) => a + b.downloads, 0)} color="text-money" />
+        <StatCard label="Téléchargements totaux" value={w.allTime.downloads} color="text-money" />
+      </div>
+
+      {/* Évolution sur 30 jours */}
+      <div className="card p-5 md:p-6">
+        <h3 className="font-display text-lg font-semibold text-slate-900 mb-3">
+          Évolution sur 30 jours
+        </h3>
+        {data.evolution.length === 0 ? (
+          <p className="text-sm text-slate-500">Pas encore de fréquentation enregistrée.</p>
+        ) : (
+          <div className="h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={data.evolution} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <CartesianGrid stroke="#e2e8f0" vertical={false} />
+                <XAxis dataKey="date" stroke="#64748b" tick={{ fill: "#64748b", fontSize: 11 }} tickLine={false} axisLine={false} minTickGap={20} tickFormatter={(d) => String(d).slice(5)} />
+                <YAxis stroke="#64748b" tick={{ fill: "#64748b", fontSize: 11 }} tickLine={false} axisLine={false} width={30} />
+                <Tooltip contentStyle={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 12, fontSize: 12 }} labelFormatter={(d) => `Jour ${d}`} />
+                <Legend wrapperStyle={{ fontSize: 11, paddingTop: 4 }} iconType="square" />
+                <Bar dataKey="views" name="Vues" fill="#0055A4" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="sessions" name="Visiteurs uniques" fill="#16a34a" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="downloads" name="Téléchargements" fill="#d97706" radius={[3, 3, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
+
+      {/* Top pages + Téléchargements par format */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="card p-5 md:p-6">
+          <h3 className="font-display text-lg font-semibold text-slate-900 mb-3">
+            Pages les plus consultées (30 jours)
+          </h3>
+          {data.topPages.length === 0 ? (
+            <p className="text-sm text-slate-500">Aucune donnée pour l'instant.</p>
+          ) : (
+            <ul className="space-y-2 text-sm">
+              {data.topPages.map((p) => {
+                const max = data.topPages[0]?.views || 1;
+                const pct = (p.views / max) * 100;
+                return (
+                  <li key={p.page}>
+                    <div className="flex items-center justify-between gap-3 text-sm mb-1">
+                      <span className="font-medium text-slate-800">
+                        {PAGE_LABELS[p.page] ?? p.page}
+                      </span>
+                      <span className="tabular-nums font-semibold text-brand shrink-0">
+                        {p.views} vues
+                      </span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                      <div className="h-full rounded-full bg-brand transition-all duration-500" style={{ width: `${Math.max(3, pct)}%` }} />
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+
+        <div className="card p-5 md:p-6">
+          <h3 className="font-display text-lg font-semibold text-slate-900 mb-3">
+            Téléchargements par format
+          </h3>
+          {totalDl === 0 ? (
+            <p className="text-sm text-slate-500">Aucun téléchargement pour l'instant.</p>
+          ) : (
+            <ul className="space-y-3">
+              {(["png", "jpeg", "csv"] as const).map((fmt) => {
+                const found = data.downloadsByFormat.find((d) => d.format === fmt);
+                const count = found?.count ?? 0;
+                const pct = totalDl > 0 ? (count / totalDl) * 100 : 0;
+                const color = fmt === "csv" ? "#16a34a" : fmt === "png" ? "#0055A4" : "#7c3aed";
+                return (
+                  <li key={fmt}>
+                    <div className="flex items-center justify-between text-sm mb-1">
+                      <span className="font-mono uppercase text-slate-700">{fmt}</span>
+                      <span className="tabular-nums font-semibold text-slate-900">
+                        {count} <span className="text-xs text-slate-500 font-normal">({pct.toFixed(0)} %)</span>
+                      </span>
+                    </div>
+                    <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                      <div className="h-full rounded-full transition-all duration-500" style={{ width: `${Math.max(3, pct)}%`, background: color }} />
+                    </div>
+                  </li>
+                );
+              })}
+              <li className="border-t border-slate-100 pt-2 text-xs text-slate-500">
+                Total : <strong>{totalDl}</strong> téléchargements
+              </li>
+            </ul>
+          )}
+        </div>
+      </div>
+
+      {/* Top fichiers téléchargés */}
+      <div className="card p-5 md:p-6">
+        <h3 className="font-display text-lg font-semibold text-slate-900 mb-3">
+          Graphes les plus téléchargés (top 25)
+        </h3>
+        {data.topFiles.length === 0 ? (
+          <p className="text-sm text-slate-500">Aucun téléchargement pour l'instant.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 text-xs uppercase tracking-widest text-muted">
+                <tr>
+                  <th className="text-left p-2">Fichier</th>
+                  <th className="text-left p-2">Format</th>
+                  <th className="text-right p-2">Téléchargements</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.topFiles.map((f, i) => (
+                  <tr key={`${f.filename}-${f.format}-${i}`} className="border-t border-slate-100">
+                    <td className="p-2 font-mono text-xs text-slate-800">{f.filename}</td>
+                    <td className="p-2">
+                      <Badge color={f.format === "csv" ? "green" : f.format === "png" ? "blue" : "purple"}>
+                        {f.format}
+                      </Badge>
+                    </td>
+                    <td className="p-2 text-right tabular-nums font-semibold">{f.count}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <div className="card p-4 bg-brand-soft/20 border-brand/20 text-xs text-slate-600 leading-relaxed">
+        <strong className="text-brand">Confidentialité :</strong> ces statistiques sont
+        anonymes. On stocke uniquement un identifiant aléatoire (sessionId) côté
+        navigateur pour distinguer les visiteurs ; aucune IP, aucun User-Agent
+        identifiant, aucune donnée personnelle. Conforme RGPD sans bandeau
+        cookies (article 6.1.f, intérêt légitime).
       </div>
     </div>
   );
