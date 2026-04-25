@@ -17,10 +17,12 @@ import { HistoricalComposition } from "./components/HistoricalComposition";
 // import { RevenueForecastChart } from "./components/RevenueForecastChart";
 import { DefautSouverainExplainer } from "./components/DefautSouverainExplainer";
 import { GlossaryTerm } from "./components/GlossaryTerm";
+import { Linkify } from "./components/Linkify";
 import { BudgetBreakdown } from "./components/BudgetBreakdown";
 import { Glossary } from "./components/Glossary";
 import { DownloadableCard } from "./components/DownloadableCard";
 import { FraudesChart } from "./components/FraudesChart";
+import { FraudesEuropeChart } from "./components/FraudesEuropeChart";
 import { EuropeanComparison } from "./components/EuropeanComparison";
 import { SpreadChart } from "./components/SpreadChart";
 import { ChargeRatioChart } from "./components/ChargeRatioChart";
@@ -92,19 +94,27 @@ export default function App() {
         {loading && <LoadingBanner />}
         {error && <ErrorBanner message={error} />}
 
+        {/* Linkify : auto-wrap des termes du glossaire (PIB, OAT, dette publique,
+            BCE…) dans tout le contenu pédagogique. Ne touche pas aux pages
+            Glossary (déjà reliée), Admin (back-office) ni au footer. */}
+        <Linkify>
+          {data && page === "dashboard" && <DashboardPage data={data} />}
+          {data && page === "europe" && <EuropePage data={data} />}
+          {data && page === "historique" && <HistoriquePage data={data} />}
+          {data && page === "fraudes" && <FraudesPage data={data} />}
+          {data && page === "mes-impots" && <MesImpotsPage data={data} />}
+          {data && page === "pedagogie" && <PedagogyPage data={data} />}
+          {data && page === "secu-collec" && <SecuCollectivitesPage data={data} />}
+          {data && page === "sources" && <SourcesOnlyPage data={data} />}
+          {/* Les pages Premium ne s'affichent que si le flag est activé */}
+          {PREMIUM_ENABLED && page === "tarifs" && <PricingPage />}
+          {PREMIUM_ENABLED && page === "paiement-reussi" && <PaymentSuccessPage />}
+          {PREMIUM_ENABLED && page === "compte" && <AccountPage />}
+        </Linkify>
+
+        {/* Glossary : NE PAS linkifier (la page elle-même décrit les termes,
+            le wrapper créerait des popovers à chaque mot et casserait l'UX). */}
         {page === "glossaire" && <Glossary />}
-        {data && page === "dashboard" && <DashboardPage data={data} />}
-        {data && page === "europe" && <EuropePage data={data} />}
-        {data && page === "historique" && <HistoriquePage data={data} />}
-        {data && page === "fraudes" && <FraudesPage data={data} />}
-        {data && page === "mes-impots" && <MesImpotsPage data={data} />}
-        {data && page === "pedagogie" && <PedagogyPage data={data} />}
-        {data && page === "secu-collec" && <SecuCollectivitesPage data={data} />}
-        {data && page === "sources" && <SourcesOnlyPage data={data} />}
-        {/* Les pages Premium ne s'affichent que si le flag est activé */}
-        {PREMIUM_ENABLED && page === "tarifs" && <PricingPage />}
-        {PREMIUM_ENABLED && page === "paiement-reussi" && <PaymentSuccessPage />}
-        {PREMIUM_ENABLED && page === "compte" && <AccountPage />}
 
         {/* Back-office (login requis) — pas de lien public, on y accède
             via l'URL #/admin (ou le lien discret dans le footer). */}
@@ -252,10 +262,8 @@ function DashboardPage({ data }: { data: BudgetSnapshot }) {
           Le composant RevenueForecastChart reste dans le code au cas où on
           voudrait le réintroduire avec des données réelles importées du SMB. */}
 
-      {/* Explication pédagogique du défaut souverain (étape 1) */}
-      <section className="mt-4">
-        <DefautSouverainExplainer />
-      </section>
+      {/* La soutenabilité de la dette / défaut souverain a été déplacée
+          dans l'onglet « Comprendre » (PedagogyPage). */}
 
       {/* La dette récente (Eurostat trimestriel) a été déplacée sur la page
           Historique pour éviter la redondance avec le compteur live. */}
@@ -410,6 +418,13 @@ function PedagogyPage({ data }: { data: BudgetSnapshot }) {
       <section className="mt-4">
         <DebtCostProjection data={data} />
       </section>
+
+      {/* 5. Soutenabilité de la dette / défaut souverain :
+          placée APRÈS la projection 5 ans pour enchaîner naturellement
+          (« et si les taux montent vraiment haut, jusqu'où peut-on aller ? »). */}
+      <section className="mt-4">
+        <DefautSouverainExplainer />
+      </section>
     </>
   );
 }
@@ -455,6 +470,11 @@ function FraudesPage({ data }: { data: BudgetSnapshot }) {
       <section className="mt-6">
         <FraudesChart data={data} />
       </section>
+
+      {/* Comparaison européenne (étape 3) — la France n'est pas seule. */}
+      <section className="mt-4">
+        <FraudesEuropeChart />
+      </section>
     </>
   );
 }
@@ -496,17 +516,6 @@ function HistoriquePage({ data }: { data: BudgetSnapshot }) {
         </DownloadableCard>
       </section>
 
-      {/* Dette publique trimestrielle (Eurostat depuis 2000) — déplacée
-          du Dashboard ici pour rassembler tous les graphiques de dette */}
-      <section className="mt-4">
-        <DownloadableCard
-          filename="budget-france-dette-trimestrielle"
-          getCsvData={() => timeseriesToCsv(filtered.series.detteHistorique.points, "dette_eur")}
-        >
-          <DebtEvolutionChart series={filtered.series.detteHistorique} />
-        </DownloadableCard>
-      </section>
-
       {/* Sécurité sociale + Collectivités — évolution 1945-2025 */}
       {filtered.historiqueDetaille && (
         <section className="mt-4">
@@ -542,6 +551,48 @@ function HistoriquePage({ data }: { data: BudgetSnapshot }) {
           </DownloadableCard>
         </section>
       )}
+
+      {/* Dette publique trimestrielle (Eurostat depuis 2005) —
+          DÉPLACÉE après la composition des recettes (étape 1 user). */}
+      <section className="mt-4">
+        <DownloadableCard
+          filename="budget-france-dette-trimestrielle"
+          getCsvData={() => timeseriesToCsv(filtered.series.detteHistorique.points, "dette_eur")}
+        >
+          <DebtEvolutionChart series={filtered.series.detteHistorique} />
+        </DownloadableCard>
+
+        {/* Note explicative : la courbe ci-dessus diffère légèrement de celle
+            de « Dette / PIB / dépenses / recettes / OAT » (juste en dessous).
+            Pourquoi : valeurs absolues Eurostat ici, vs PIB × ratio ailleurs. */}
+        <div className="mt-3 p-4 rounded-xl bg-amber-50/50 border border-amber-200/60 text-xs text-slate-700 leading-relaxed">
+          <div className="font-semibold text-amber-800 mb-1">
+            Pourquoi cette courbe diffère-t-elle de celle du graphe « Dette,
+            dépenses, recettes et taux » plus bas ?
+          </div>
+          <p>
+            Les deux séries mesurent la même chose (dette publique au sens
+            Maastricht) mais sont calculées différemment :
+          </p>
+          <ul className="list-disc list-inside mt-1 space-y-1">
+            <li>
+              <strong>Ce graphe</strong> utilise les <strong>valeurs absolues
+              Eurostat</strong> directement (ex. fin 2025 : 3 350 Md€).
+            </li>
+            <li>
+              <strong>Le graphe long 1945+</strong> reconstruit la dette via{" "}
+              <strong>PIB × ratio dette/PIB</strong> année par année (ex. fin 2025 :
+              2 900 Md€ × 115 % = 3 335 Md€).
+            </li>
+          </ul>
+          <p className="mt-1.5">
+            L'écart est de ~0,5 % (~15 Md€ pour 2025), dû à l'arrondi du ratio
+            stocké en pourcentage entier. Pour les comparaisons internationales
+            harmonisées, on utilise toujours la première série (Eurostat). Pour
+            la longue période 1945, on n'a que la reconstruction.
+          </p>
+        </div>
+      </section>
 
       {/* Dette + PIB + taux longue période */}
       {filtered.series.detteLongue && filtered.series.detteLongue.points.length > 0 ? (

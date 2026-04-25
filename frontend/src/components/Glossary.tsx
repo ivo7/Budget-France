@@ -673,8 +673,12 @@ export function Glossary() {
   const [query, setQuery] = useState("");
   const [highlightedSlug, setHighlightedSlug] = useState<string | null>(null);
 
-  // Lit le paramètre ?term=xxx dans l'URL (#/glossaire?term=oat) pour pré-remplir
-  // la recherche et scroller vers la fiche correspondante.
+  // Lit le paramètre ?term=xxx dans l'URL (#/glossaire?term=oat) pour scroller
+  // automatiquement vers la fiche correspondante et la mettre en surbrillance.
+  // ⚠ ne JAMAIS pré-remplir le champ de recherche avec le slug : un slug
+  // comme "obligation-assimilable-du-tresor" ne matche pas la chaîne complète
+  // "Obligation Assimilable du Trésor" car le filtre lit termes/définitions
+  // sans normaliser les tirets ↔ espaces. Résultat : page vide. Bug corrigé.
   useEffect(() => {
     function readTermFromHash() {
       const hash = window.location.hash;
@@ -683,7 +687,9 @@ export function Glossary() {
       const params = new URLSearchParams(hash.slice(idx + 1));
       const term = params.get("term");
       if (term) {
-        setQuery(term);
+        // On garde la recherche vide pour afficher le glossaire complet,
+        // et on flag le terme à mettre en surbrillance + scroller.
+        setQuery("");
         setHighlightedSlug(term);
       }
     }
