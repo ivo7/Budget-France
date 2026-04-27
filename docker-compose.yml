@@ -95,6 +95,8 @@ services:
 
   # -----------------------------------------------------------------
   # Frontend : dashboard + proxy /api vers backend (nginx)
+  # En dev local, port 4280 mappé sur 80. En prod, on désactive ce mapping
+  # et on passe par Caddy (TLS) — voir le profile "prod" plus bas.
   # -----------------------------------------------------------------
   frontend:
     build:
@@ -107,6 +109,27 @@ services:
       - ./data:/usr/share/nginx/html/data:ro
     depends_on:
       - backend
+    restart: unless-stopped
+
+  # -----------------------------------------------------------------
+  # Caddy : reverse proxy HTTPS automatique (Let's Encrypt) — PROD UNIQUEMENT
+  # À lancer avec : docker compose --profile prod up -d
+  # En dev local, ne pas activer ce profile (utiliser http://localhost:4280).
+  # -----------------------------------------------------------------
+  caddy:
+    profiles: ["prod"]
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"   # HTTP/3 (QUIC)
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+      - caddy-logs:/var/log/caddy
+    depends_on:
+      - frontend
     restart: unless-stopped
 
   # -----------------------------------------------------------------
@@ -166,3 +189,6 @@ services:
 
 volumes:
   postgres-data:
+  caddy-data:
+  caddy-config:
+  caddy-logs:

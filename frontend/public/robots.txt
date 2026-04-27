@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+# Crawl-delay raisonnable pour ne pas surcharger le backend
+Crawl-delay: 1
+
+Sitemap: https://budgetfrance.org/sitemap.xml

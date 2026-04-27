@@ -1,0 +1,70 @@
+# ============================================================================
+# Caddyfile — reverse proxy HTTPS automatique pour Budget France
+# ============================================================================
+#
+# Caddy gère :
+#   - Génération + renouvellement automatique des certificats Let's Encrypt
+#   - Redirection HTTP → HTTPS automatique
+#   - HTTP/2 et HTTP/3 (QUIC) automatiques
+#   - Compression gzip + zstd
+#
+# Pour la 1re mise en prod :
+#   1. Vérifier que les enregistrements DNS A pointent vers l'IP du VPS
+#   2. Ouvrir les ports 80 et 443 dans le firewall
+#   3. Lancer : docker compose --profile prod up -d
+#   4. Caddy obtient automatiquement le certificat en ~30 secondes
+#
+# Pour le dev local : NE PAS lancer Caddy. Utiliser docker compose up -d
+# (sans le profile prod). Le frontend reste accessible sur http://localhost:4280
+# ============================================================================
+
+# Production : HTTPS avec certificat Let's Encrypt automatique
+budgetfrance.org, www.budgetfrance.org {
+    encode gzip zstd
+
+    # Reverse proxy vers le container frontend (nginx servant le SPA + /api)
+    reverse_proxy frontend:80 {
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+        header_up Host {host}
+    }
+
+    # En-têtes de sécurité (notes A+ sur SecurityHeaders.com)
+    header {
+        # HSTS : force HTTPS pendant 1 an pour ce domaine
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        # Pas de sniffing du Content-Type
+        X-Content-Type-Options nosniff
+        # Pas d'embedding dans une iframe (anti-clickjacking)
+        X-Frame-Options DENY
+        # Politique de referrer
+        Referrer-Policy strict-origin-when-cross-origin
+        # Désactive le cohort tracking (FLoC)
+        Permissions-Policy "interest-cohort=()"
+        # Cache les en-têtes serveur révélateurs
+        -Server
+    }
+
+    # Logs : 1 fichier par jour, 5 jours d'historique
+    log {
+        output file /var/log/caddy/access.log {
+            roll_size 10mb
+            roll_keep 5
+            roll_keep_for 720h
+        }
+        format json
+    }
+
+    # Si Caddy reçoit une 5xx du backend → lui sert une page sympa au lieu
+    # d'une 502 nue
+    handle_errors {
+        respond "Service temporairement indisponible — nous travaillons à le rétablir." 503
+    }
+}
+
+# Optionnel : redirection HTTP des autres sous-domaines vers le principal
+# (à activer plus tard si besoin)
+# *.budgetfrance.org {
+#     redir https://budgetfrance.org{uri} permanent
+# }

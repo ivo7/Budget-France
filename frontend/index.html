@@ -2,30 +2,130 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Budget de l'État français : dépenses, recettes, dette, taux d'intérêt. Sources officielles agrégées (Eurostat, BCE, INSEE, Cour des comptes)." />
-    <title>Budget France</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Identité de la page -->
+    <title>Budget France — Dette publique, dépenses, recettes et fiscalité expliquées</title>
+    <meta
+      name="description"
+      content="Suivi en temps réel de la dette publique française, des taux OAT, du budget de l'État, de la Sécu et des collectivités. Données officielles INSEE / Eurostat / BCE / Banque de France. Pédagogie et transparence pour comprendre les chiffres du débat public."
+    />
+    <meta
+      name="keywords"
+      content="dette publique france, budget état, OAT 10 ans, ratio dette PIB, déficit public, taux directeur BCE, INSEE, Eurostat, Maastricht, sécurité sociale, fraude fiscale, finances publiques, pédagogie, économie"
+    />
+    <meta name="author" content="Budget France" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="theme-color" content="#0055A4" />
+    <link rel="canonical" href="https://budgetfrance.org/" />
 
     <!-- Open Graph / Facebook / WhatsApp / LinkedIn -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Budget France" />
     <meta property="og:title" content="Budget France — finances publiques en un coup d'œil" />
-    <meta property="og:description" content="Dette, budget, recettes, taux, comparaison UE, historique 1945+. Données officielles agrégées." />
+    <meta
+      property="og:description"
+      content="Dette, budget, recettes, taux, comparaison Europe, historique 1945-2026. Données officielles agrégées, accessibles et pédagogiques."
+    />
+    <meta property="og:url" content="https://budgetfrance.org/" />
     <meta property="og:locale" content="fr_FR" />
-    <meta property="og:image" content="/og-preview.png" />
+    <meta property="og:image" content="https://budgetfrance.org/og-preview.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Budget France — vue d'ensemble dette et budget" />
 
     <!-- Twitter / X -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Budget France — finances publiques" />
-    <meta name="twitter:description" content="Dette, budget, recettes, taux, comparaison UE, historique 1945+." />
-    <meta name="twitter:image" content="/og-preview.png" />
+    <meta name="twitter:title" content="Budget France — finances publiques expliquées" />
+    <meta
+      name="twitter:description"
+      content="Dette, budget, recettes, taux, Europe, historique 1945-2026. Données officielles, transparence et pédagogie."
+    />
+    <meta name="twitter:image" content="https://budgetfrance.org/og-preview.png" />
+
+    <!-- Apple / iOS -->
+    <meta name="apple-mobile-web-app-title" content="Budget France" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+    <!-- JSON-LD Schema.org : WebSite + Organization pour le panneau Knowledge -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://budgetfrance.org/#org",
+          "name": "Budget France",
+          "url": "https://budgetfrance.org/",
+          "logo": "https://budgetfrance.org/favicon.svg",
+          "description": "Plateforme pédagogique indépendante de suivi des finances publiques françaises. Agrège des données officielles (INSEE, Eurostat, BCE, Banque de France, Cour des comptes) pour les rendre accessibles à tous.",
+          "email": "contact@budgetfrance.org",
+          "areaServed": "FR",
+          "knowsLanguage": "fr-FR"
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://budgetfrance.org/#website",
+          "url": "https://budgetfrance.org/",
+          "name": "Budget France",
+          "description": "Suivi de la dette publique, du budget de l'État, des taux et de la fiscalité française.",
+          "publisher": { "@id": "https://budgetfrance.org/#org" },
+          "inLanguage": "fr-FR",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://budgetfrance.org/#/glossaire?term={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "EducationalOrganization",
+          "@id": "https://budgetfrance.org/#edu",
+          "name": "Budget France — Pédagogie des finances publiques",
+          "url": "https://budgetfrance.org/#/pedagogie",
+          "audience": {
+            "@type": "EducationalAudience",
+            "educationalRole": "Lycéens SES, prépa HEC, Sciences Po, étudiants en économie/droit, citoyens"
+          }
+        }
+      ]
+    }
+    </script>
+
+    <!-- Polices Google -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Fallback noscript pour SEO et accessibilité -->
+    <noscript>
+      <div style="max-width: 600px; margin: 80px auto; padding: 24px; font-family: system-ui, sans-serif; color: #0f172a;">
+        <h1>Budget France</h1>
+        <p>
+          Suivi en temps réel de la dette publique, du budget de l'État, des
+          taux d'intérêt et de la fiscalité française. Sources officielles
+          INSEE, Eurostat, BCE, Banque de France, Cour des comptes.
+        </p>
+        <p>
+          Cette application nécessite JavaScript activé pour afficher les
+          graphiques interactifs. Activez JavaScript dans votre navigateur
+          pour accéder au contenu.
+        </p>
+        <p>
+          Contact : <a href="mailto:contact@budgetfrance.org">contact@budgetfrance.org</a>
+        </p>
+      </div>
+    </noscript>
   </body>
 </html>
