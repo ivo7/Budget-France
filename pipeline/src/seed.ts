@@ -16,7 +16,16 @@ import {
   depensesLfi2026,
 } from "./repartitionSeed.ts";
 import { recettesComposition, depensesComposition } from "./compositionSeed.ts";
-import { fraudeFiscalePoints, fraudeSocialePoints, fraudeSourceLabel, fraudeSourceUrl } from "./fraudeSeed.ts";
+import {
+  fraudeFiscalePoints,
+  fraudeSocialePoints,
+  fraudeFiscaleDetecteePoints,
+  fraudeSocialeDetecteePoints,
+  fraudeSourceLabel,
+  fraudeSourceUrl,
+  fraudeSourceDetecteeLabel,
+  fraudeSourceDetecteeUrl,
+} from "./fraudeSeed.ts";
 import { detteRatioPaysEurope, soldePaysEurope, europeSourceLabel, europeSourceUrl } from "./europeSeed.ts";
 import { oatFrancePoints, bundAllemagnePoints, spreadOatBundPoints, spreadSourceLabel, spreadSourceUrl } from "./spreadSeed.ts";
 import { agencies as ratingsAgencies, ratingsSource } from "./ratingsSeed.ts";
@@ -307,10 +316,19 @@ export function seedSnapshot(annee: number): BudgetSnapshot {
     fraudes: {
       fiscale: fraudeFiscalePoints,
       sociale: fraudeSocialePoints,
+      fiscaleDetectee: fraudeFiscaleDetecteePoints,
+      socialeDetectee: fraudeSocialeDetecteePoints,
       source: {
         id: "fraude.seed",
         label: fraudeSourceLabel,
         url: fraudeSourceUrl,
+        fetchedAt: now,
+        status: "fallback",
+      },
+      sourceDetectee: {
+        id: "fraude.detectee.seed",
+        label: fraudeSourceDetecteeLabel,
+        url: fraudeSourceDetecteeUrl,
         fetchedAt: now,
         status: "fallback",
       },

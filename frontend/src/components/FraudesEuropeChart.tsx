@@ -166,17 +166,24 @@ export function FraudesEuropeChart() {
     >
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
-          <div className="text-xs uppercase tracking-widest text-muted">
-            Comparaison européenne
+          <div className="flex items-center gap-2">
+            <span className="text-xs uppercase tracking-widest text-muted">
+              Comparaison européenne
+            </span>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 text-warn border border-amber-200 uppercase tracking-wider">
+              fraude estimée
+            </span>
           </div>
           <div className="font-display text-xl font-semibold text-slate-900 mt-1">
             La France face aux principales puissances européennes
           </div>
           <p className="text-xs text-slate-500 mt-1 max-w-2xl">
-            Estimations consolidées 2021-2023 (les ordres de grandeur évoluent
-            lentement). Pour comparer équitablement, on rapporte la fraude au PIB
-            de chaque pays. La fraude fiscale est par nature difficile à mesurer :
-            ces chiffres sont des fourchettes médianes officielles.
+            <strong>Fraude estimée</strong> (gap fiscal théorique), pas fraude
+            détectée. Estimations consolidées 2021-2023 — les ordres de grandeur
+            évoluent lentement. Pour comparer équitablement, on rapporte la fraude
+            au PIB de chaque pays. La fraude détectée (montants effectivement
+            redressés par chaque administration) n'est pas comparable d'un pays
+            à l'autre car les méthodologies diffèrent.
           </p>
         </div>
         <div className="inline-flex rounded-full bg-slate-100 p-1 border border-slate-200 text-xs shrink-0">

@@ -100,11 +100,22 @@ export interface BudgetSnapshot {
     depenses: { id: string; label: string; color: string; points: TimeseriesPoint[] }[];
   };
 
-  // Fraude fiscale et sociale — séries longues (ordres de grandeur).
+  // Fraude fiscale et sociale — 2 mesures différentes :
+  //   - estimée : fraude totale calculée par les économistes (Cour des comptes,
+  //     CPO, OFCE, Solidaires Finances publiques). Inclut le manque à gagner
+  //     que personne ne détecte. Chiffres en dizaines de Md€ (~80-100 fiscale).
+  //   - détectée : montants effectivement notifiés par DGFiP / URSSAF / Pôle
+  //     emploi / CNAF / CNAM (droits + pénalités). Chiffres en milliards
+  //     (~17 Md€ fiscale en 2024). Source ministère de l'Économie.
+  // Les deux sont complémentaires : la détectée mesure l'efficacité du
+  // contrôle, l'estimée mesure le « gap fiscal » réel.
   fraudes: {
     fiscale: TimeseriesPoint[];
     sociale: TimeseriesPoint[];
+    fiscaleDetectee?: TimeseriesPoint[];
+    socialeDetectee?: TimeseriesPoint[];
     source: SourceInfo;
+    sourceDetectee?: SourceInfo;
   };
 
   // Comparaisons européennes — dette / PIB et solde / PIB, annuel, par pays.

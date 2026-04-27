@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   Area,
   AreaChart,
@@ -20,43 +20,53 @@ interface Props {
   data: BudgetSnapshot;
 }
 
+type FraudeMode = "estimee" | "detectee";
+
 /**
- * Double vue sur la fraude :
+ * Triple vue sur la fraude :
+ *  0. Toggle Estimée / Détectée (comprendre la différence)
  *  1. Chart en aires empilées : fraude fiscale + fraude sociale 1945 → 2025
  *  2. Chart en ligne : ratio (fraude totale) / (recettes de l'État)
  */
 export function FraudesChart({ data }: Props) {
   const fraudes = data.fraudes;
+  const [mode, setMode] = useState<FraudeMode>("estimee");
   const recettesLongue = data.series.recettesLongue?.points ?? [];
+
+  // Sélectionne les bonnes séries selon le mode
+  const seriesFiscale =
+    mode === "detectee" ? (fraudes?.fiscaleDetectee ?? []) : (fraudes?.fiscale ?? []);
+  const seriesSociale =
+    mode === "detectee" ? (fraudes?.socialeDetectee ?? []) : (fraudes?.sociale ?? []);
 
   const absoluesData = useMemo(() => {
     if (!fraudes) return [];
     const byYear = new Map<number, { year: number; fiscale?: number; sociale?: number }>();
-    for (const p of fraudes.fiscale) {
+    for (const p of seriesFiscale) {
       const y = new Date(p.date).getUTCFullYear();
       const e = byYear.get(y) ?? { year: y };
       e.fiscale = p.value;
       byYear.set(y, e);
     }
-    for (const p of fraudes.sociale) {
+    for (const p of seriesSociale) {
       const y = new Date(p.date).getUTCFullYear();
       const e = byYear.get(y) ?? { year: y };
       e.sociale = p.value;
       byYear.set(y, e);
     }
     return Array.from(byYear.values()).sort((a, b) => a.year - b.year);
-  }, [fraudes]);
+  }, [fraudes, seriesFiscale, seriesSociale]);
 
   const ratioData = useMemo(() => {
     if (!fraudes) return [];
     const byYear = new Map<number, { year: number; total?: number; recettes?: number; ratio?: number }>();
-    for (const p of fraudes.fiscale) {
+    for (const p of seriesFiscale) {
       const y = new Date(p.date).getUTCFullYear();
       const e = byYear.get(y) ?? { year: y };
       e.total = (e.total ?? 0) + p.value;
       byYear.set(y, e);
     }
-    for (const p of fraudes.sociale) {
+    for (const p of seriesSociale) {
       const y = new Date(p.date).getUTCFullYear();
       const e = byYear.get(y) ?? { year: y };
       e.total = (e.total ?? 0) + p.value;
@@ -74,7 +84,7 @@ export function FraudesChart({ data }: Props) {
         ...r,
         ratio: r.total != null && r.recettes != null && r.recettes > 0 ? (r.total / r.recettes) * 100 : undefined,
       }));
-  }, [fraudes, recettesLongue]);
+  }, [fraudes, recettesLongue, seriesFiscale, seriesSociale]);
 
   if (!fraudes) {
     return (
@@ -93,12 +103,75 @@ export function FraudesChart({ data }: Props) {
 
   return (
     <div className="space-y-4">
+      {/* Encadré pédagogique : différence estimée vs détectée */}
+      <div className="card p-5 md:p-6 bg-brand-soft/20 border-brand/15">
+        <div className="text-xs uppercase tracking-widest text-brand mb-1">
+          Comprendre les chiffres de la fraude
+        </div>
+        <h3 className="font-display text-lg font-semibold text-slate-900 mb-2">
+          « Fraude estimée » vs « Fraude détectée » — deux mesures très différentes
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-slate-700 leading-relaxed">
+          <div className="rounded-lg border border-amber-200 bg-amber-50/50 p-3">
+            <div className="font-semibold text-amber-800 mb-1">⚠ Fraude estimée (~80-100 Md€)</div>
+            Évaluation théorique du <strong>« gap fiscal »</strong> par les économistes
+            (Cour des comptes, CPO, OFCE, Solidaires Finances publiques). Inclut
+            le manque à gagner que personne ne détecte (économie souterraine,
+            schémas d'évasion sophistiqués, optimisation hors-règles). Ces
+            chiffres sont des fourchettes larges, pas des montants encaissables.
+          </div>
+          <div className="rounded-lg border border-money/30 bg-green-50/40 p-3">
+            <div className="font-semibold text-money mb-1">✓ Fraude détectée (~20 Md€)</div>
+            Montants <strong>effectivement notifiés</strong> par DGFiP, URSSAF,
+            CNAF, CNAM et Pôle emploi suite aux contrôles : <strong>17,1 Md€</strong>{" "}
+            de droits et pénalités fiscaux + <strong>3 Md€</strong> de fraude sociale
+            redressée (chiffres ministère de l'Économie 2024). C'est ce que l'État
+            tente concrètement de recouvrer.
+          </div>
+        </div>
+        <p className="text-xs text-slate-600 mt-3">
+          La différence entre les deux ≈ ce que l'administration <em>ne voit pas</em>.
+          Choisis le mode ci-dessous pour basculer entre les deux mesures.
+        </p>
+      </div>
+
+      {/* Toggle Estimée / Détectée */}
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="text-xs uppercase tracking-widest text-muted">Mesure :</span>
+        <div className="inline-flex rounded-full bg-slate-100 p-1 border border-slate-200">
+          <button
+            type="button"
+            onClick={() => setMode("estimee")}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition ${
+              mode === "estimee" ? "bg-amber-600 text-white shadow-sm" : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            ⚠ Estimée (gap fiscal)
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("detectee")}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition ${
+              mode === "detectee" ? "bg-money text-white shadow-sm" : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            ✓ Détectée (DGFiP/URSSAF)
+          </button>
+        </div>
+        <span className="text-xs text-slate-500">
+          {mode === "estimee"
+            ? "Estimations Cour des comptes / CPO / Solidaires"
+            : "Montants notifiés (depuis 2008 — données systématiques)"}
+        </span>
+      </div>
+
       {/* Montants absolus */}
       <DownloadableCard
-        filename="budget-france-fraudes-montants"
+        filename={`budget-france-fraudes-${mode}`}
         className="card p-5 md:p-6"
         getCsvData={() => objectsToCsv(absoluesData.map((r) => ({
           annee: r.year,
+          mesure: mode === "estimee" ? "estimee" : "detectee",
           fraude_fiscale_milliards: r.fiscale ?? "",
           fraude_sociale_milliards: r.sociale ?? "",
           total_milliards: (r.fiscale ?? 0) + (r.sociale ?? 0),
@@ -107,13 +180,21 @@ export function FraudesChart({ data }: Props) {
         <div className="flex items-start justify-between flex-wrap gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs uppercase tracking-widest text-muted">Évolution 1945 → {derniere?.year}</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 text-warn border border-amber-200 uppercase tracking-wider">
-                estimations
+              <span className="text-xs uppercase tracking-widest text-muted">
+                Évolution {mode === "detectee" ? "2008" : "1945"} → {derniere?.year}
+              </span>
+              <span
+                className={`text-[10px] px-2 py-0.5 rounded-full border uppercase tracking-wider ${
+                  mode === "estimee"
+                    ? "bg-amber-50 text-warn border-amber-200"
+                    : "bg-green-50 text-money border-green-200"
+                }`}
+              >
+                {mode === "estimee" ? "estimations" : "officiel"}
               </span>
             </div>
             <div className="font-display text-xl font-semibold text-slate-900 mt-1">
-              Fraude fiscale et fraude sociale — en Md€ courants
+              Fraude {mode === "estimee" ? "estimée" : "détectée"} — fiscale et sociale en Md€ courants
             </div>
           </div>
           <div className="text-right">

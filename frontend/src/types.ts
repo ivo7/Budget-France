@@ -72,9 +72,12 @@ export interface BudgetSnapshot {
     depenses: { id: string; label: string; color: string; points: TimeseriesPoint[] }[];
   };
   fraudes?: {
-    fiscale: TimeseriesPoint[];
-    sociale: TimeseriesPoint[];
+    fiscale: TimeseriesPoint[];        // estimée — gap fiscal théorique
+    sociale: TimeseriesPoint[];        // estimée
+    fiscaleDetectee?: TimeseriesPoint[];   // détectée — DGFiP, droits + pénalités notifiés (depuis 2008)
+    socialeDetectee?: TimeseriesPoint[];   // détectée — URSSAF/CNAF/CNAM
     source: SourceInfo;
+    sourceDetectee?: SourceInfo;
   };
   comparaisonsEuropeennes?: {
     detteRatio: { pays: string; label: string; colorHex: string; points: TimeseriesPoint[] }[];
