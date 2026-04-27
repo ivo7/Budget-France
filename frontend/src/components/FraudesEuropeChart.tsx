@@ -37,9 +37,16 @@ interface CountryRow {
   paysCode: string;
   flag: string;
   pibMd: number;
-  fraudeFiscaleMd: number;
-  fraudeSocialeMd: number;
+  fraudeFiscaleMd: number;          // ESTIMÉE (gap fiscal)
+  fraudeSocialeMd: number;          // ESTIMÉE
   sources: string;
+  // Fraude DÉTECTÉE — montants officiels publiés par l'administration.
+  // Optionnel : laissé undefined quand pas de bilan annuel public unifié
+  // disponible (mieux que d'inventer un chiffre).
+  fraudeDetecteeMd?: number;
+  fraudeDetecteeAnnee?: number;
+  fraudeDetecteeSource?: string;
+  fraudeDetecteeNote?: string;       // précision méthodologique si scope ≠ FR
 }
 
 // Ordres de grandeur 2021-2023 (en Md€), agrégés depuis les rapports officiels.
@@ -54,6 +61,10 @@ const COUNTRIES: CountryRow[] = [
     fraudeFiscaleMd: 90, // Cour des comptes 2023 : fourchette 80-100 Md€
     fraudeSocialeMd: 8, // CNAM/CNAF/MSA 2024 : estimation ~7-10 Md€
     sources: "Cour des comptes 2023 ; HCFP 2024",
+    fraudeDetecteeMd: 20.1,
+    fraudeDetecteeAnnee: 2024,
+    fraudeDetecteeSource: "DGFiP + URSSAF/CNAF/CNAM",
+    fraudeDetecteeNote: "17,1 Md€ fiscale (droits + pénalités notifiés) + 3 Md€ sociale",
   },
   {
     pays: "Allemagne",
@@ -63,6 +74,11 @@ const COUNTRIES: CountryRow[] = [
     fraudeFiscaleMd: 125, // Bundesrechnungshof estimation TVA gap + impôt sociétés
     fraudeSocialeMd: 11, // Sozialgesetzbuch — estimation Bundesagentur Arbeit
     sources: "Bundesrechnungshof 2023 ; EU Tax Gap Report",
+    fraudeDetecteeMd: 5,
+    fraudeDetecteeAnnee: 2023,
+    fraudeDetecteeSource: "BMF + Bundesrechnungshof",
+    fraudeDetecteeNote:
+      "Agrégat approximatif (compétences réparties Bund + 16 Länder ; pas de bilan unifié)",
   },
   {
     pays: "Italie",
@@ -72,6 +88,10 @@ const COUNTRIES: CountryRow[] = [
     fraudeFiscaleMd: 190, // ISTAT/MEF — la plus haute d'Europe en valeur absolue
     fraudeSocialeMd: 15,
     sources: "ISTAT/MEF Rapporto Evasione 2023",
+    fraudeDetecteeMd: 24.7,
+    fraudeDetecteeAnnee: 2023,
+    fraudeDetecteeSource: "Agenzia delle Entrate-Riscossione",
+    fraudeDetecteeNote: "Incassi da contrasto all'evasione (sommes effectivement recouvrées)",
   },
   {
     pays: "Espagne",
@@ -81,6 +101,10 @@ const COUNTRIES: CountryRow[] = [
     fraudeFiscaleMd: 70, // AEAT — estimation dans la fourchette officielle
     fraudeSocialeMd: 5,
     sources: "AEAT/Sindicato GESTHA 2023",
+    fraudeDetecteeMd: 16.5,
+    fraudeDetecteeAnnee: 2023,
+    fraudeDetecteeSource: "AEAT (Agencia Tributaria) — Memoria anual",
+    fraudeDetecteeNote: "Resultados de actuaciones de control",
   },
   {
     pays: "Royaume-Uni",
@@ -90,6 +114,11 @@ const COUNTRIES: CountryRow[] = [
     fraudeFiscaleMd: 42, // HMRC Tax Gap Report 2023 : £35 Bn ~= 42 Md€
     fraudeSocialeMd: 7, // DWP Fraud and Error stats 2023
     sources: "HMRC 2023 ; DWP Fraud Stats",
+    fraudeDetecteeMd: 41.8,
+    fraudeDetecteeAnnee: 2023,
+    fraudeDetecteeSource: "HMRC — Annual Report 2022-23 (compliance yield)",
+    fraudeDetecteeNote:
+      "⚠ « Compliance yield » : scope plus large (inclut conformité volontaire et prévention) — pas strictement comparable à FR/IT/ES",
   },
   {
     pays: "Pologne",
@@ -99,6 +128,7 @@ const COUNTRIES: CountryRow[] = [
     fraudeFiscaleMd: 22,
     fraudeSocialeMd: 2,
     sources: "EU Tax Gap Report 2023",
+    // Pas de bilan annuel public unifié comparable disponible
   },
   {
     pays: "Pays-Bas",
@@ -108,6 +138,8 @@ const COUNTRIES: CountryRow[] = [
     fraudeFiscaleMd: 12, // l'un des plus bas en % du PIB d'Europe
     fraudeSocialeMd: 1.5,
     sources: "Algemene Rekenkamer 2023 ; EU Tax Gap",
+    // Belastingdienst publie des chiffres partiels mais pas un agrégat
+    // équivalent « droits notifiés » comparable.
   },
 ];
 
@@ -255,12 +287,19 @@ export function FraudesEuropeChart() {
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-xs uppercase tracking-widest text-muted">
             <tr>
-              <th className="text-left p-2.5">Pays</th>
-              <th className="text-right p-2.5">PIB (Md€)</th>
-              <th className="text-right p-2.5">Fraude fiscale</th>
-              <th className="text-right p-2.5">Fraude sociale</th>
-              <th className="text-right p-2.5">Total</th>
-              <th className="text-right p-2.5">% du PIB</th>
+              <th rowSpan={2} className="text-left p-2.5 align-bottom">Pays</th>
+              <th rowSpan={2} className="text-right p-2.5 align-bottom">PIB (Md€)</th>
+              <th colSpan={3} className="text-center p-2.5 border-l border-amber-200/50 bg-amber-50/40 text-warn">
+                ⚠ Fraude estimée (gap fiscal)
+              </th>
+              <th rowSpan={2} className="text-right p-2.5 align-bottom border-l border-money/30 bg-green-50/40 text-money">
+                ✓ Détectée<br /><span className="normal-case font-normal text-[10px]">(officielle, Md€)</span>
+              </th>
+            </tr>
+            <tr>
+              <th className="text-right p-2.5 border-l border-amber-200/50 bg-amber-50/40">Fiscale</th>
+              <th className="text-right p-2.5 bg-amber-50/40">Sociale</th>
+              <th className="text-right p-2.5 bg-amber-50/40">% PIB</th>
             </tr>
           </thead>
           <tbody>
@@ -282,16 +321,13 @@ export function FraudesEuropeChart() {
                   <td className="p-2.5 text-right tabular-nums text-slate-600">
                     {r.pibMd.toLocaleString("fr-FR")}
                   </td>
-                  <td className="p-2.5 text-right tabular-nums text-flag-red">
+                  <td className="p-2.5 text-right tabular-nums text-flag-red border-l border-amber-200/50 bg-amber-50/20">
                     {r.fraudeFiscaleMd.toLocaleString("fr-FR")}
                   </td>
-                  <td className="p-2.5 text-right tabular-nums text-amber-700">
+                  <td className="p-2.5 text-right tabular-nums text-amber-700 bg-amber-50/20">
                     {r.fraudeSocialeMd.toLocaleString("fr-FR")}
                   </td>
-                  <td className="p-2.5 text-right tabular-nums font-semibold text-slate-900">
-                    {r.total.toLocaleString("fr-FR")}
-                  </td>
-                  <td className="p-2.5 text-right tabular-nums">
+                  <td className="p-2.5 text-right tabular-nums bg-amber-50/20">
                     <span
                       className={
                         r.ratioTotal > 5
@@ -304,11 +340,51 @@ export function FraudesEuropeChart() {
                       {r.ratioTotal.toFixed(1)} %
                     </span>
                   </td>
+                  <td className="p-2.5 text-right tabular-nums border-l border-money/30 bg-green-50/20">
+                    {r.fraudeDetecteeMd != null ? (
+                      <span
+                        className="text-money font-semibold cursor-help"
+                        title={
+                          [
+                            r.fraudeDetecteeSource,
+                            r.fraudeDetecteeAnnee ? `année ${r.fraudeDetecteeAnnee}` : "",
+                            r.fraudeDetecteeNote,
+                          ]
+                            .filter(Boolean)
+                            .join(" · ")
+                        }
+                      >
+                        {r.fraudeDetecteeMd.toLocaleString("fr-FR")}
+                      </span>
+                    ) : (
+                      <span className="text-slate-400 text-xs" title="Pas de bilan annuel public unifié comparable">n.d.</span>
+                    )}
+                  </td>
                 </tr>
               );
             })}
           </tbody>
         </table>
+      </div>
+
+      {/* Encadré méthodologie pour la fraude détectée */}
+      <div className="mt-4 p-3 rounded-lg bg-green-50/40 border border-money/20 text-xs text-slate-700 leading-relaxed">
+        <div className="font-semibold text-money mb-1">
+          ✓ Sources de la fraude détectée (colonne verte)
+        </div>
+        <ul className="list-disc list-inside space-y-0.5">
+          <li><strong>🇫🇷 France</strong> : DGFiP (17,1 Md€ fiscale) + URSSAF/CNAF/CNAM (3 Md€ sociale) — 2024</li>
+          <li><strong>🇮🇹 Italie</strong> : Agenzia delle Entrate-Riscossione, « incassi da contrasto all'evasione » 2023</li>
+          <li><strong>🇪🇸 Espagne</strong> : AEAT, Memoria anual 2023 — résultats du contrôle</li>
+          <li><strong>🇬🇧 UK</strong> : HMRC compliance yield 2022-23. ⚠ Scope plus large (inclut conformité volontaire) — pas strictement comparable.</li>
+          <li><strong>🇩🇪 Allemagne</strong> : agrégat approximatif Bund + Länder (compétences réparties)</li>
+          <li><strong>🇵🇱 Pologne / 🇳🇱 Pays-Bas</strong> : pas de bilan annuel public unifié comparable — non affiché.</li>
+        </ul>
+        <p className="mt-2">
+          <strong>Au survol des chiffres en vert</strong>, tu vois la source précise et l'année de référence.
+          Comme chaque administration mesure « ce qui est détecté » selon une définition légèrement différente,
+          ces chiffres se comparent à <em>ordres de grandeur</em>, pas au point de pourcentage près.
+        </p>
       </div>
 
       {/* Lecture clé */}
