@@ -1187,7 +1187,16 @@ function StatCard({
   );
 }
 
-function Badge({ color, children }: { color: "green" | "red" | "amber" | "blue" | "purple" | "slate"; children: React.ReactNode }) {
+function Badge({
+  color,
+  children,
+  title,
+}: {
+  color: "green" | "red" | "amber" | "blue" | "purple" | "slate";
+  children: React.ReactNode;
+  /** Tooltip natif HTML : utile pour expliquer un statut ambigu au survol. */
+  title?: string;
+}) {
   const styles: Record<string, string> = {
     green: "bg-green-50 text-money border-green-200",
     red: "bg-red-50 text-flag-red border-red-200",
@@ -1197,7 +1206,12 @@ function Badge({ color, children }: { color: "green" | "red" | "amber" | "blue" 
     slate: "bg-slate-100 text-slate-600 border-slate-200",
   };
   return (
-    <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full border uppercase tracking-wider font-medium ${styles[color]}`}>
+    <span
+      title={title}
+      className={`inline-block text-[10px] px-2 py-0.5 rounded-full border uppercase tracking-wider font-medium ${styles[color]}${
+        title ? " cursor-help" : ""
+      }`}
+    >
       {children}
     </span>
   );
