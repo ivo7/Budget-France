@@ -134,6 +134,11 @@ export function Linkify({ children, deep = true }: LinkifyProps): React.ReactEle
   return <>{processed}</>;
 }
 
+// displayName explicite : Vite minifie les `name` de fonctions en prod, mais
+// conserve `displayName`. Sans ça, le check « est-ce un Linkify imbriqué » ci-dessous
+// ne fonctionnait pas en prod et pouvait causer des wrappings doublés.
+Linkify.displayName = "Linkify";
+
 function process(
   node: React.ReactNode,
   keyPrefix: string,
@@ -164,11 +169,14 @@ function process(
     return node;
   }
 
-  // Skip GlossaryTerm pour éviter le double-wrapping
+  // Skip GlossaryTerm pour éviter le double-wrapping.
+  // En prod, Vite minifie les `name` mais garde `displayName` s'il est défini
+  // explicitement sur le composant — donc on lit displayName en premier.
   if (typeof type === "function") {
-    const fnName = (type as { displayName?: string; name?: string }).displayName
-      ?? (type as { name?: string }).name;
-    if (fnName === "GlossaryTerm" || fnName === "Linkify") {
+    const fnDisplayName = (type as { displayName?: string }).displayName;
+    const fnName = (type as { name?: string }).name;
+    const id = fnDisplayName ?? fnName ?? "";
+    if (id === "GlossaryTerm" || id === "Linkify") {
       return node;
     }
   }

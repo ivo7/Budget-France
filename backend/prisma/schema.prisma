@@ -368,10 +368,12 @@ model PageView {
   page        String                                   // ex: "dashboard", "europe", "secu-collec"
   ts          DateTime  @default(now())
   referrer    String?                                  // referer simplifié (host uniquement)
+  country     String?                                  // code pays ISO 2 lettres (FR, DE, US…), résolu via GeoIP
 
   @@index([ts])
   @@index([page])
   @@index([sessionId])
+  @@index([country])
 }
 
 enum DownloadFormat {

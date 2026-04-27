@@ -50,9 +50,20 @@ export function SubscribeForm() {
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
+        // Cas spécifique : l'email est déjà inscrit (HTTP 409). On affiche
+        // un message dédié, plus utile qu'un simple "Erreur".
+        let userMessage: string;
+        if (res.status === 409 && body?.error === "already_subscribed") {
+          userMessage = body?.message
+            ?? "Cette adresse est déjà inscrite. Vérifie ta boîte mail.";
+        } else if (body?.error === "validation") {
+          userMessage = "Vérifie les champs en rouge.";
+        } else {
+          userMessage = "Une erreur est survenue. Réessaie dans un instant.";
+        }
         setState({
           status: "error",
-          message: body?.error === "validation" ? "Vérifie les champs en rouge." : "Une erreur est survenue. Réessaie dans un instant.",
+          message: userMessage,
           fieldErrors: body?.issues,
         });
         setModalOpen(true);
@@ -282,6 +293,10 @@ function ResultModal({
   onClose: () => void;
 }) {
   const isSuccess = status === "success";
+  // Détecte le cas « déjà inscrit » via le contenu du message — affiche une
+  // icône info plutôt que rouge erreur, c'est une situation normale.
+  const isAlreadySubscribed =
+    !isSuccess && (message?.toLowerCase().includes("déjà inscrite") ?? false);
 
   return (
     <div
@@ -299,15 +314,25 @@ function ResultModal({
 
       {/* Boîte */}
       <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 md:p-8 border border-slate-200">
-        {/* Icône d'état */}
+        {/* Icône d'état (✓ succès, ℹ déjà inscrit, ⚠ erreur) */}
         <div
           className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 ${
-            isSuccess ? "bg-green-50 text-money" : "bg-red-50 text-flag-red"
+            isSuccess
+              ? "bg-green-50 text-money"
+              : isAlreadySubscribed
+                ? "bg-brand-soft text-brand"
+                : "bg-red-50 text-flag-red"
           }`}
         >
           {isSuccess ? (
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12" />
+            </svg>
+          ) : isAlreadySubscribed ? (
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="16" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12.01" y2="8" />
             </svg>
           ) : (
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -321,10 +346,18 @@ function ResultModal({
         <h2
           id="subscribe-result-title"
           className={`font-display text-xl font-bold text-center ${
-            isSuccess ? "text-money" : "text-flag-red"
+            isSuccess
+              ? "text-money"
+              : isAlreadySubscribed
+                ? "text-brand"
+                : "text-flag-red"
           }`}
         >
-          {isSuccess ? "Inscription enregistrée !" : "Une erreur est survenue"}
+          {isSuccess
+            ? "Inscription enregistrée !"
+            : isAlreadySubscribed
+              ? "Tu es déjà inscrit·e"
+              : "Une erreur est survenue"}
         </h2>
 
         <p className="text-sm text-slate-700 text-center mt-3 leading-relaxed">

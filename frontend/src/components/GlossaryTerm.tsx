@@ -123,3 +123,7 @@ export function GlossaryTerm({ slug, children, asLink = false }: Props) {
     </span>
   );
 }
+
+// displayName explicite pour que <Linkify> puisse identifier ce composant
+// en build production (Vite/esbuild minifie les noms de fonctions).
+GlossaryTerm.displayName = "GlossaryTerm";

@@ -406,7 +406,7 @@ function StatsTab() {
                   {s.confirmedAt ? (
                     <Badge color="green">confirmé</Badge>
                   ) : (
-                    <Badge color="amber">en attente</Badge>
+                    <Badge color="amber" title="L'utilisateur n'a pas encore cliqué sur le lien de confirmation reçu par email">en attente d'email</Badge>
                   )}
                 </span>
               </li>
@@ -427,12 +427,56 @@ function SubscribersTab() {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "confirmed" | "pending" | "unsubscribed">("all");
   const [search, setSearch] = useState("");
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
-  useEffect(() => {
+  function reload() {
     adminFetch<{ subscribers: Subscriber[] }>("/api/admin/subscribers")
       .then((d) => setSubs(d.subscribers))
       .catch((e) => setError(String(e.message ?? e)));
+  }
+
+  useEffect(() => {
+    reload();
   }, []);
+
+  async function suspend(id: string, email: string) {
+    if (!window.confirm(`Suspendre ${email} ?\n\nL'abonné ne recevra plus aucun email mais reste en base. Action réversible.`)) return;
+    setActionLoadingId(id);
+    try {
+      await adminFetch(`/api/admin/subscribers/${id}/suspend`, { method: "POST" });
+      reload();
+    } catch (e) {
+      window.alert(`Erreur : ${(e as Error).message}`);
+    } finally {
+      setActionLoadingId(null);
+    }
+  }
+
+  async function reactivate(id: string, email: string) {
+    if (!window.confirm(`Réactiver ${email} ?\n\nL'abonné recommencera à recevoir les emails.`)) return;
+    setActionLoadingId(id);
+    try {
+      await adminFetch(`/api/admin/subscribers/${id}/reactivate`, { method: "POST" });
+      reload();
+    } catch (e) {
+      window.alert(`Erreur : ${(e as Error).message}`);
+    } finally {
+      setActionLoadingId(null);
+    }
+  }
+
+  async function remove(id: string, email: string) {
+    if (!window.confirm(`SUPPRESSION DÉFINITIVE\n\nSupprimer ${email} de la base ?\n\nCette action est irréversible et efface aussi tous ses logs d'envoi. À utiliser uniquement pour les demandes RGPD ("droit à l'effacement").`)) return;
+    setActionLoadingId(id);
+    try {
+      await adminFetch(`/api/admin/subscribers/${id}`, { method: "DELETE" });
+      reload();
+    } catch (e) {
+      window.alert(`Erreur : ${(e as Error).message}`);
+    } finally {
+      setActionLoadingId(null);
+    }
+  }
 
   const filtered = useMemo(() => {
     if (!subs) return [];
@@ -480,7 +524,7 @@ function SubscribersTab() {
         <div className="inline-flex rounded-full bg-slate-100 p-1 border border-slate-200">
           <TabBtn active={filter === "all"} onClick={() => setFilter("all")}>Tous ({subs.length})</TabBtn>
           <TabBtn active={filter === "confirmed"} onClick={() => setFilter("confirmed")}>Confirmés</TabBtn>
-          <TabBtn active={filter === "pending"} onClick={() => setFilter("pending")}>En attente</TabBtn>
+          <TabBtn active={filter === "pending"} onClick={() => setFilter("pending")}>En attente d'email</TabBtn>
           <TabBtn active={filter === "unsubscribed"} onClick={() => setFilter("unsubscribed")}>Désinscrits</TabBtn>
         </div>
         <input
@@ -511,12 +555,13 @@ function SubscribersTab() {
                 <th className="text-left p-3">Inscrit le</th>
                 <th className="text-left p-3">Statut</th>
                 <th className="text-left p-3">Préfs</th>
+                <th className="text-left p-3">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-6 text-center text-slate-500">
+                  <td colSpan={7} className="p-6 text-center text-slate-500">
                     Aucun résultat.
                   </td>
                 </tr>
@@ -547,7 +592,7 @@ function SubscribersTab() {
                       ) : s.confirmedAt ? (
                         <Badge color="green">actif</Badge>
                       ) : (
-                        <Badge color="amber">en attente</Badge>
+                        <Badge color="amber" title="L'utilisateur n'a pas encore cliqué sur le lien de confirmation reçu par email">en attente d'email</Badge>
                       )}
                     </td>
                     <td className="p-3 align-top text-xs">
@@ -555,6 +600,40 @@ function SubscribersTab() {
                         {s.prefMonthly && <Badge color="slate">mensuel</Badge>}
                         {s.prefWeekly && <Badge color="slate">hebdo</Badge>}
                         {s.prefThreshold && <Badge color="slate">notif</Badge>}
+                      </div>
+                    </td>
+                    <td className="p-3 align-top">
+                      <div className="flex flex-col gap-1">
+                        {s.unsubscribedAt ? (
+                          <button
+                            type="button"
+                            disabled={actionLoadingId === s.id}
+                            onClick={() => reactivate(s.id, s.email)}
+                            className="text-[10px] px-2 py-1 rounded border border-money/40 text-money hover:bg-green-50 transition disabled:opacity-50 whitespace-nowrap"
+                            title="Réactiver l'abonné"
+                          >
+                            ↺ réactiver
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={actionLoadingId === s.id}
+                            onClick={() => suspend(s.id, s.email)}
+                            className="text-[10px] px-2 py-1 rounded border border-amber-300 text-amber-700 hover:bg-amber-50 transition disabled:opacity-50 whitespace-nowrap"
+                            title="Suspendre — l'abonné ne recevra plus d'emails (action réversible)"
+                          >
+                            ⏸ suspendre
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          disabled={actionLoadingId === s.id}
+                          onClick={() => remove(s.id, s.email)}
+                          className="text-[10px] px-2 py-1 rounded border border-flag-red/40 text-flag-red hover:bg-red-50 transition disabled:opacity-50 whitespace-nowrap"
+                          title="Suppression définitive (RGPD — droit à l'effacement)"
+                        >
+                          🗑 supprimer
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -736,6 +815,40 @@ interface AnalyticsPayload {
   downloadsByFormat: { format: "png" | "jpeg" | "csv"; count: number }[];
   topFiles: { filename: string; format: "png" | "jpeg" | "csv"; count: number }[];
   evolution: { date: string; views: number; sessions: number; downloads: number }[];
+  topCountries: { country: string; views: number; sessions: number }[];
+  unknownCountryViews: number;
+}
+
+const COUNTRY_NAMES: Record<string, string> = {
+  FR: "🇫🇷 France",
+  DE: "🇩🇪 Allemagne",
+  IT: "🇮🇹 Italie",
+  ES: "🇪🇸 Espagne",
+  GB: "🇬🇧 Royaume-Uni",
+  BE: "🇧🇪 Belgique",
+  LU: "🇱🇺 Luxembourg",
+  CH: "🇨🇭 Suisse",
+  NL: "🇳🇱 Pays-Bas",
+  PT: "🇵🇹 Portugal",
+  IE: "🇮🇪 Irlande",
+  PL: "🇵🇱 Pologne",
+  AT: "🇦🇹 Autriche",
+  US: "🇺🇸 États-Unis",
+  CA: "🇨🇦 Canada",
+  MA: "🇲🇦 Maroc",
+  TN: "🇹🇳 Tunisie",
+  DZ: "🇩🇿 Algérie",
+  SN: "🇸🇳 Sénégal",
+  CI: "🇨🇮 Côte d'Ivoire",
+  CM: "🇨🇲 Cameroun",
+  CN: "🇨🇳 Chine",
+  JP: "🇯🇵 Japon",
+  AU: "🇦🇺 Australie",
+  BR: "🇧🇷 Brésil",
+};
+
+function countryDisplay(code: string): string {
+  return COUNTRY_NAMES[code] ?? `🏳 ${code}`;
 }
 
 const PAGE_LABELS: Record<string, string> = {
@@ -807,6 +920,54 @@ function AnalyticsTab() {
             </ResponsiveContainer>
           </div>
         )}
+      </div>
+
+      {/* Top pays d'origine */}
+      <div className="card p-5 md:p-6">
+        <div className="flex items-baseline justify-between mb-3 flex-wrap gap-2">
+          <h3 className="font-display text-lg font-semibold text-slate-900">
+            🌍 Pays d'origine des visiteurs (30 jours)
+          </h3>
+          {data.unknownCountryViews > 0 && (
+            <span className="text-[11px] text-slate-500">
+              {data.unknownCountryViews} vues sans pays résolu
+            </span>
+          )}
+        </div>
+        {data.topCountries.length === 0 ? (
+          <p className="text-sm text-slate-500">
+            Pas encore de pays résolus. Les visiteurs depuis le VPS lui-même (debug) sont
+            ignorés. Les premiers visiteurs externes apparaîtront ici sous quelques minutes.
+          </p>
+        ) : (
+          <ul className="space-y-2 text-sm">
+            {data.topCountries.map((c) => {
+              const max = data.topCountries[0]?.views || 1;
+              const pct = (c.views / max) * 100;
+              return (
+                <li key={c.country}>
+                  <div className="flex items-center justify-between gap-3 mb-1">
+                    <span className="font-medium text-slate-800">
+                      {countryDisplay(c.country)}
+                    </span>
+                    <span className="tabular-nums text-slate-500 shrink-0 text-xs">
+                      <strong className="text-brand">{c.views} vues</strong>
+                      {" · "}
+                      <span className="text-money">{c.sessions} visiteurs uniques</span>
+                    </span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                    <div className="h-full rounded-full bg-brand transition-all duration-500" style={{ width: `${Math.max(3, pct)}%` }} />
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        <div className="mt-4 text-[11px] text-slate-500 leading-relaxed">
+          Géolocalisation par IP (service ip-api.com). L'IP n'est <strong>jamais
+          stockée</strong> en base — uniquement le code pays. Cache 24h en mémoire.
+        </div>
       </div>
 
       {/* Top pages + Téléchargements par format */}

@@ -65,7 +65,7 @@ import { oatFrancePoints as oatFrenchMonthly } from "./spreadSeed.ts";
 import * as eurostat from "./sources/eurostat.ts";
 import * as ecb from "./sources/ecb.ts";
 import * as insee from "./sources/insee.ts";
-import * as bdf from "./sources/banqueDeFrance.ts";
+// import * as bdf from "./sources/banqueDeFrance.ts"; // ping désactivé (URL morte)
 import * as dg from "./sources/dataGouv.ts";
 
 type MetricCandidate<T> = () => Promise<{ value: T; source: SourceInfo }>;
@@ -173,7 +173,11 @@ export async function buildSnapshot(annee: number, opts: { mock?: boolean } = {}
     : { ...seed.tauxDirecteurBce, alternates: bceRes.alternates };
 
   // --- Sources complémentaires (ping, pour traçabilité / redondance) ---
-  const [bdfPing, dgPing] = await Promise.all([bdf.pingWebstat(), dg.pingBudgetEtat()]);
+  // Note : le ping Banque de France Webstat (bdf.pingWebstat) a été retiré
+  // car la BdF a fait migrer ses URLs CSV publiques. Les taux OAT viennent
+  // déjà de la BCE qui est plus fiable. Ne réintroduire que quand la nouvelle
+  // URL Webstat sera stable côté BdF.
+  const [dgPing] = await Promise.all([dg.pingBudgetEtat()]);
 
   // --- Séries temporelles ---
   const detteHistorique = detteRes.value && detteRes.value.series.length > 0
@@ -286,7 +290,6 @@ export async function buildSnapshot(annee: number, opts: { mock?: boolean } = {}
     pib.source,
     tauxOat10ans.source,
     tauxDirecteurBce.source,
-    bdfPing,
     dgPing,
 
     // --- Sources seed (données statiques enrichies avec sources officielles) ---

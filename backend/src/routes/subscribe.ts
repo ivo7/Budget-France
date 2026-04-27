@@ -49,10 +49,22 @@ export function registerSubscribeRoutes(app: FastifyInstance) {
 
     const data = parsed.data;
 
-    // Upsert : si l'email existe déjà, on regénère un token de confirmation
-    // et on met à jour les préférences. On ne distingue pas le cas "déjà inscrit"
-    // pour éviter l'énumération d'emails (bonne pratique).
     const existing = await prisma.subscriber.findUnique({ where: { email: data.email } });
+
+    // Si l'utilisateur est déjà confirmé et actif, on lui dit clairement.
+    // (Compromis : permet l'énumération d'emails, mais l'UX civique
+    // « tu es déjà inscrit, va check ta boîte » prime ici.)
+    if (existing && existing.confirmedAt && !existing.unsubscribedAt) {
+      return reply.code(409).send({
+        error: "already_subscribed",
+        message:
+          "Cette adresse est déjà inscrite et confirmée. Vérifie ta boîte mail (et tes spams) — tu reçois déjà les notifications. Pour te désinscrire, clique sur le lien en bas du dernier email reçu.",
+      });
+    }
+
+    // Si en attente de confirmation : on regénère un token frais et renvoie
+    // l'email — message clair à l'utilisateur.
+    const isPendingResend = Boolean(existing && !existing.confirmedAt && !existing.unsubscribedAt);
 
     const confirmToken = newToken();
     const unsubscribeToken = existing?.unsubscribeToken ?? newToken();
@@ -117,7 +129,9 @@ export function registerSubscribeRoutes(app: FastifyInstance) {
 
     return reply.code(202).send({
       ok: true,
-      message: "Un email de confirmation vient de vous être envoyé. Cliquez sur le lien pour finaliser.",
+      message: isPendingResend
+        ? "Tu étais déjà pré-inscrit. Un nouvel email de confirmation vient d'être envoyé — clique dessus pour finaliser ton inscription."
+        : "Un email de confirmation vient d'être envoyé. Clique sur le lien pour finaliser.",
     });
   });
 }

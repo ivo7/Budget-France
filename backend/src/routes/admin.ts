@@ -168,6 +168,71 @@ export function registerAdminRoutes(app: FastifyInstance) {
   );
 
   // --------------------------------------------------------------------------
+  // POST /api/admin/subscribers/:id/suspend
+  // Marque un abonné comme désinscrit (soft delete : il ne reçoit plus rien
+  // mais reste en base pour traçabilité RGPD / audit).
+  // --------------------------------------------------------------------------
+  app.post(
+    "/api/admin/subscribers/:id/suspend",
+    { preHandler: requireAdmin },
+    async (req, reply) => {
+      const { id } = req.params as { id: string };
+      const sub = await prisma.subscriber.findUnique({ where: { id } });
+      if (!sub) {
+        return reply.code(404).send({ error: "not_found" });
+      }
+      if (sub.unsubscribedAt) {
+        return { ok: true, alreadySuspended: true };
+      }
+      await prisma.subscriber.update({
+        where: { id },
+        data: { unsubscribedAt: new Date() },
+      });
+      return { ok: true };
+    },
+  );
+
+  // --------------------------------------------------------------------------
+  // POST /api/admin/subscribers/:id/reactivate
+  // Réactive un abonné précédemment suspendu (lève unsubscribedAt).
+  // --------------------------------------------------------------------------
+  app.post(
+    "/api/admin/subscribers/:id/reactivate",
+    { preHandler: requireAdmin },
+    async (req, reply) => {
+      const { id } = req.params as { id: string };
+      const sub = await prisma.subscriber.findUnique({ where: { id } });
+      if (!sub) {
+        return reply.code(404).send({ error: "not_found" });
+      }
+      await prisma.subscriber.update({
+        where: { id },
+        data: { unsubscribedAt: null },
+      });
+      return { ok: true };
+    },
+  );
+
+  // --------------------------------------------------------------------------
+  // DELETE /api/admin/subscribers/:id
+  // Suppression définitive (hard delete) — efface l'abonné et ses logs
+  // (cascade Prisma sur NotificationLog). À utiliser pour les demandes RGPD.
+  // --------------------------------------------------------------------------
+  app.delete(
+    "/api/admin/subscribers/:id",
+    { preHandler: requireAdmin },
+    async (req, reply) => {
+      const { id } = req.params as { id: string };
+      const sub = await prisma.subscriber.findUnique({ where: { id } });
+      if (!sub) {
+        return reply.code(404).send({ error: "not_found" });
+      }
+      await prisma.subscriber.delete({ where: { id } });
+      return { ok: true, deletedEmail: sub.email };
+    },
+  );
+
+  // --------------------------------------------------------------------------
   // GET /api/admin/stats — KPIs globaux + évolution 30 j
   // --------------------------------------------------------------------------
   app.get("/api/admin/stats", { preHandler: requireAdmin }, async () => {
@@ -499,6 +564,30 @@ export function registerAdminRoutes(app: FastifyInstance) {
           downloads: e.downloads,
         }));
 
+      // Top pays sur 30 jours (ne compte que les visites avec country résolu)
+      const topCountries = await prisma.pageView.groupBy({
+        by: ["country"],
+        where: { ts: { gte: monthAgo }, country: { not: null } },
+        _count: { _all: true },
+        orderBy: { _count: { country: "desc" } },
+        take: 20,
+      });
+
+      // Visiteurs uniques par pays (pas vues, mais sessions distinctes)
+      const sessionsByCountry = await prisma.pageView.findMany({
+        where: { ts: { gte: monthAgo }, country: { not: null } },
+        select: { country: true, sessionId: true },
+        distinct: ["country", "sessionId"],
+      });
+      const sessionsCountByCountry = new Map<string, number>();
+      for (const v of sessionsByCountry) {
+        if (!v.country) continue;
+        sessionsCountByCountry.set(v.country, (sessionsCountByCountry.get(v.country) ?? 0) + 1);
+      }
+
+      const totalCountryViews = topCountries.reduce((a, b) => a + b._count._all, 0);
+      const unknownCountryViews = viewsMonth - totalCountryViews;
+
       return {
         windows: {
           today: { views: viewsDay, sessions: sessionsDay.length, downloads: downloadsDay },
@@ -518,6 +607,12 @@ export function registerAdminRoutes(app: FastifyInstance) {
           count: f._count._all,
         })),
         evolution,
+        topCountries: topCountries.map((c) => ({
+          country: c.country!,
+          views: c._count._all,
+          sessions: sessionsCountByCountry.get(c.country!) ?? 0,
+        })),
+        unknownCountryViews,
       };
     },
   );

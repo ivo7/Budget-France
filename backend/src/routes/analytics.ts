@@ -15,6 +15,7 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { prisma } from "../lib/db.ts";
+import { lookupCountry, clientIpFromRequest } from "../lib/geoip.ts";
 
 const pageSchema = z.object({
   sessionId: z.string().min(8).max(100),
@@ -53,8 +54,14 @@ export function registerAnalyticsRoutes(app: FastifyInstance) {
         }
       }
 
+      // Résolution country code via GeoIP (asynchrone, sans bloquer la
+      // réponse : on attend max 5 s, sinon on stocke sans country).
+      // L'IP n'est PAS stockée — uniquement le code pays.
+      const ip = clientIpFromRequest(req);
+      const country = ip ? await lookupCountry(ip) : null;
+
       await prisma.pageView.create({
-        data: { sessionId, page, referrer: cleanRef },
+        data: { sessionId, page, referrer: cleanRef, country },
       });
       return reply.code(204).send();
     },
