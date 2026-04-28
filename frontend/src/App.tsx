@@ -19,6 +19,7 @@ import { DefautSouverainExplainer } from "./components/DefautSouverainExplainer"
 import { GlossaryTerm } from "./components/GlossaryTerm";
 import { Linkify } from "./components/Linkify";
 import { ChartCitizenImpact } from "./components/ChartCitizenImpact";
+import { InstitutionsPage } from "./components/InstitutionsPage";
 import { BudgetBreakdown } from "./components/BudgetBreakdown";
 import { Glossary } from "./components/Glossary";
 import { DownloadableCard } from "./components/DownloadableCard";
@@ -55,7 +56,7 @@ import type { BudgetSnapshot } from "./types";
 // gratuite de lancement.
 const PREMIUM_ENABLED = false;
 
-type Page = "dashboard" | "europe" | "historique" | "fraudes" | "mes-impots" | "pedagogie" | "secu-collec" | "sources" | "glossaire" | "tarifs" | "paiement-reussi" | "compte" | "admin";
+type Page = "dashboard" | "europe" | "historique" | "fraudes" | "mes-impots" | "pedagogie" | "secu-collec" | "sources" | "glossaire" | "institutions" | "tarifs" | "paiement-reussi" | "compte" | "admin";
 
 function resolvePage(hash: string): Page {
   // Routes prioritaires (matches préfixe)
@@ -71,6 +72,7 @@ function resolvePage(hash: string): Page {
   if (hash.startsWith("pedagogie") || hash.startsWith("eleves") || hash.startsWith("comprendre")) return "pedagogie";
   if (hash.startsWith("sources")) return "sources";
   if (hash.startsWith("glossaire") || hash.startsWith("fiches")) return "glossaire";
+  if (hash.startsWith("institutions")) return "institutions";
   return "dashboard";
 }
 
@@ -107,6 +109,7 @@ export default function App() {
           {data && page === "pedagogie" && <PedagogyPage data={data} />}
           {data && page === "secu-collec" && <SecuCollectivitesPage data={data} />}
           {data && page === "sources" && <SourcesOnlyPage data={data} />}
+          {page === "institutions" && <InstitutionsPage />}
           {/* Les pages Premium ne s'affichent que si le flag est activé */}
           {PREMIUM_ENABLED && page === "tarifs" && <PricingPage />}
           {PREMIUM_ENABLED && page === "paiement-reussi" && <PaymentSuccessPage />}
@@ -1054,6 +1057,7 @@ function Header({ page }: { page: Page }) {
     { href: "#/europe",        label: "Europe",                   target: "europe",      description: "Comparaisons UE + ratings" },
     { href: "#/pedagogie",     label: "Comprendre",               target: "pedagogie",   description: "Parcours en 10 étapes" },
     { href: "#/glossaire",     label: "Fiches pédagogiques",      target: "glossaire",   description: "Glossaire complet" },
+    { href: "#/institutions",  label: "Institutions",             target: "institutions", description: "Qui décide, exécute, contrôle" },
     { href: "#/sources",       label: "Sources",                  target: "sources",     description: "Traçabilité des données" },
     // Items Premium masqués pendant la phase gratuite (toggle PREMIUM_ENABLED)
     ...(PREMIUM_ENABLED ? [
