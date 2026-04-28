@@ -279,7 +279,7 @@ export function DefautSouverainExplainer() {
             <li>
               <strong>Le filet BCE (TPI) protège la zone euro :</strong> en cas de
               hausse violente du spread français, la BCE peut acheter de la dette
-              française illimitément contre conditions.
+              française sans limite de montant, en échange de conditions.
             </li>
             <li>
               <strong>Risques principaux :</strong> dégradation des notations

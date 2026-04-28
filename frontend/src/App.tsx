@@ -18,6 +18,7 @@ import { HistoricalComposition } from "./components/HistoricalComposition";
 import { DefautSouverainExplainer } from "./components/DefautSouverainExplainer";
 import { GlossaryTerm } from "./components/GlossaryTerm";
 import { Linkify } from "./components/Linkify";
+import { ChartCitizenImpact } from "./components/ChartCitizenImpact";
 import { BudgetBreakdown } from "./components/BudgetBreakdown";
 import { Glossary } from "./components/Glossary";
 import { DownloadableCard } from "./components/DownloadableCard";
@@ -174,6 +175,19 @@ function DashboardPage({ data }: { data: BudgetSnapshot }) {
         />
       </section>
 
+      <ChartCitizenImpact
+        text={
+          <>
+            Chaque seconde, la France emprunte ~5 000 € de plus qu'elle n'encaisse.
+            Sur ta vie active (40 ans), ça représente <strong>près de 50 000 € de dette
+            par contribuable</strong> à rembourser via la fiscalité future ou
+            l'inflation. Le compteur de dépenses montre que l'État dépense ~18 000 € par
+            seconde — soit ~1,5 milliard d'euros par jour pour faire tourner les services
+            publics que tu utilises (école, santé, sécurité, retraites…).
+          </>
+        }
+      />
+
       <div className="mt-2 text-xs text-slate-500">
         <GlossaryTerm slug="Ratio dette / PIB">Ratio dette / PIB</GlossaryTerm> :{" "}
         <span className="text-slate-800 font-semibold tabular-nums">
@@ -210,6 +224,18 @@ function DashboardPage({ data }: { data: BudgetSnapshot }) {
         />
       </section>
 
+      <ChartCitizenImpact
+        text={
+          <>
+            Si l'OAT 10 ans monte d'1 point, la France paie à terme ~30 Md€ d'intérêts
+            en plus chaque année. Cette somme remplace mécaniquement d'autres dépenses :
+            ce sont <strong>les hôpitaux, l'éducation et les retraites qui se font rogner</strong>
+            pour payer les marchés. Plus la dette monte, plus tu finances des intérêts
+            au lieu de services publics.
+          </>
+        }
+      />
+
       {/* Flux budget + taux */}
       <section className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
         <DownloadableCard
@@ -235,6 +261,18 @@ function DashboardPage({ data }: { data: BudgetSnapshot }) {
         </DownloadableCard>
       </section>
 
+      <ChartCitizenImpact
+        text={
+          <>
+            <strong>Le déficit, c'est concrètement ta dette future</strong> : sur
+            chaque 100 € que l'État dépense, 25 € ne sont pas couverts par les impôts
+            de cette année — ils sont empruntés et s'ajoutent à la dette.
+            Tu rembourseras ces 25 € via la fiscalité dans les 10-30 prochaines années
+            (ou par l'inflation, qui rogne ton pouvoir d'achat).
+          </>
+        }
+      />
+
       {/* Répartition LFI : recettes + dépenses */}
       {data.repartition && (
         <section className="mt-4">
@@ -252,6 +290,17 @@ function DashboardPage({ data }: { data: BudgetSnapshot }) {
               sourceLabel={data.repartition.source.label}
             />
           </DownloadableCard>
+          <ChartCitizenImpact
+            text={
+              <>
+                <strong>Sur chaque 100 € d'impôts</strong> que tu paies (TVA + IR + tous
+                les autres) : ~22 € vont à l'éducation, ~17 € au paiement des intérêts
+                de la dette, ~14 € à la défense, ~10 € au transport et écologie. Le reste
+                se répartit entre justice, sécurité, recherche, culture, etc. Ce graphe
+                te dit où va vraiment ton argent.
+              </>
+            }
+          />
         </section>
       )}
 
@@ -344,31 +393,97 @@ function EuropePage({ data }: { data: BudgetSnapshot }) {
       {/* 1. Comparaison européenne */}
       <section className="mt-6">
         <EuropeanComparison data={data} />
+        <ChartCitizenImpact
+          text={
+            <>
+              <strong>La France a 3× plus de dette par habitant que l'Allemagne</strong>{" "}
+              (51 000 € vs 28 000 € par tête). Cette dette pèse sur les générations futures
+              (toi, tes enfants) qui devront la rembourser via la fiscalité ou l'inflation.
+              Les pays peu endettés (Allemagne, Pays-Bas) gardent des marges pour investir
+              dans la transition énergétique et leurs services publics.
+            </>
+          }
+        />
       </section>
 
       {/* 2. Spread OAT-Bund */}
       <section className="mt-4">
         <SpreadChart data={data} />
+        <ChartCitizenImpact
+          text={
+            <>
+              Le spread, c'est <strong>la prime que les marchés exigent</strong> pour
+              prêter à la France au lieu de l'Allemagne. À 60 pb (~0,60 % de plus), ça
+              coûte <strong>~20 Md€ supplémentaires par an</strong> aux contribuables —
+              soit le budget de la justice. Quand le spread monte, c'est un signal
+              d'alerte : les investisseurs doutent de la soutenabilité de notre dette.
+            </>
+          }
+        />
       </section>
 
       {/* 3. Charge de la dette / recettes */}
       <section className="mt-4">
         <ChargeRatioChart data={data} />
+        <ChartCitizenImpact
+          text={
+            <>
+              Sur <strong>chaque 100 € d'impôt</strong> que tu paies aujourd'hui, environ
+              5-7 € partent uniquement pour payer les <strong>intérêts</strong> de la dette
+              passée — pas pour rembourser le capital, juste pour rémunérer les prêteurs.
+              Dans les années 90, c'était plus de 15 €. Cette part va remonter avec la
+              hausse récente des taux.
+            </>
+          }
+        />
       </section>
 
       {/* 4. Notations souveraines — S&P / Moody's / Fitch */}
       <section className="mt-4">
         <RatingsTimeline data={data} />
+        <ChartCitizenImpact
+          text={
+            <>
+              <strong>La France a perdu son AAA en 2012</strong> (équivalent du « 20/20 »
+              chez les agences). Aujourd'hui notée AA-, on est encore parmi les meilleurs
+              élèves mais en pente glissante. À chaque dégradation, certains investisseurs
+              institutionnels (fonds de pension étrangers) ne peuvent plus acheter notre
+              dette → moins de demande → taux plus hauts → plus de coût pour le contribuable.
+            </>
+          }
+        />
       </section>
 
       {/* 5. Spread multi-pays (FR vs DE / IT / ES) */}
       <section className="mt-4">
         <SpreadMultiPaysChart data={data} />
+        <ChartCitizenImpact
+          text={
+            <>
+              <strong>L'Italie paie ~150 pb de plus que l'Allemagne</strong> pour emprunter,
+              soit 1,50 % en plus. Sur 2 800 Md€ de dette, ça représente +42 Md€/an d'intérêts
+              pour les Italiens. Pour la France, le spread est ~50 pb : on paie ~17 Md€
+              supplémentaires par an comparé à un pays avec une signature parfaite.
+            </>
+          }
+        />
       </section>
 
       {/* 6. Détenteurs de la dette française */}
       <section className="mt-4">
         <DetenteursDetteChart data={data} />
+        <ChartCitizenImpact
+          text={
+            <>
+              <strong>Contrairement à une idée reçue, ta dette n'est pas détenue par
+              « les Chinois »</strong> ou « la finance internationale ». 50 % par des
+              non-résidents (banques européennes, fonds de pension), 22 % par les banques
+              et assureurs français (qui placent ton épargne dessus), 18 % par la BCE,
+              et 1 % directement par les ménages français. Quand on parle de « rembourser
+              la dette », c'est en grande partie à toi-même via ton assurance-vie.
+            </>
+          }
+        />
       </section>
     </>
   );
@@ -397,6 +512,18 @@ function PedagogyPage({ data }: { data: BudgetSnapshot }) {
       {/* 2. Courbe dette avec annotations événements */}
       <section className="mt-4">
         <EventsAnnotated data={data} />
+        <ChartCitizenImpact
+          text={
+            <>
+              <strong>Toutes les hausses brutales de dette correspondent à une crise</strong>
+              : 1981 (relance Mitterrand), 1993 (récession), 2008 (subprimes), 2020 (Covid).
+              Pas de crise, pas de hausse spectaculaire. Mais entre les crises, la dette
+              continue de monter doucement parce que les déficits structurels ne sont
+              jamais résorbés. <strong>La prochaine crise pourrait être ingérable</strong>
+              si on n'a pas de marges fiscales.
+            </>
+          }
+        />
       </section>
 
       {/* 3. Calculatrices interactives */}
@@ -412,11 +539,34 @@ function PedagogyPage({ data }: { data: BudgetSnapshot }) {
           </p>
         </div>
         <Calculators data={data} />
+        <ChartCitizenImpact
+          text={
+            <>
+              Joue avec les sliders : tu verras qu'avec un déficit de 100 Md€/an et la
+              croissance actuelle, <strong>la dette ne se résorbera jamais toute seule</strong>.
+              Pour rembourser même partiellement, il faudrait soit forte croissance + faible
+              taux (peu probable), soit excédent budgétaire massif (impopulaire), soit forte
+              inflation (rogne ton pouvoir d'achat). Aucune option n'est indolore pour les
+              citoyens.
+            </>
+          }
+        />
       </section>
 
       {/* 4. Projection à 5 ans du coût de la dette selon scénarios de taux */}
       <section className="mt-4">
         <DebtCostProjection data={data} />
+        <ChartCitizenImpact
+          text={
+            <>
+              <strong>La charge de la dette va doubler en 5 ans</strong> : de ~70 Md€/an
+              aujourd'hui à ~120 Md€/an en 2030 dans le scénario central. Cette différence
+              (50 Md€) équivaut <strong>à tout le budget de l'éducation nationale</strong>.
+              Concrètement : sans coupes ailleurs ni hausse d'impôts, ces intérêts vont
+              forcer des choix douloureux dans tous les autres ministères.
+            </>
+          }
+        />
       </section>
 
       {/* 5. Soutenabilité de la dette / défaut souverain :
@@ -446,6 +596,18 @@ function MesImpotsPage({ data }: { data: BudgetSnapshot }) {
 
       <section className="mt-6">
         <MesImpotsSimulator data={data} />
+        <ChartCitizenImpact
+          text={
+            <>
+              <strong>Tu n'imagines pas combien tu donnes vraiment à l'État.</strong>{" "}
+              Au-delà de l'impôt sur le revenu, tu paies aussi : ~20 % de TVA sur tout ce
+              que tu achètes, des taxes carburant (TICPE), des cotisations sociales sur
+              ton salaire (~22 % salarial + ~42 % patronal). Cumulé, le « taux de
+              prélèvements obligatoires » français est de ~46 % du PIB — l'un des plus
+              élevés au monde. Ce graphe te montre où va concrètement chaque euro.
+            </>
+          }
+        />
       </section>
     </>
   );
@@ -469,11 +631,35 @@ function FraudesPage({ data }: { data: BudgetSnapshot }) {
 
       <section className="mt-6">
         <FraudesChart data={data} />
+        <ChartCitizenImpact
+          text={
+            <>
+              La fraude estimée (~100 Md€) représente <strong>presque le déficit annuel</strong>
+              de la France. Si on récupérait ne serait-ce que 30 % de cette fraude, on
+              aurait largement de quoi équilibrer les comptes sans hausser les impôts ni
+              couper dans les services publics. Mais en pratique, l'administration n'en
+              récupère que 17-20 Md€/an (fraude détectée). C'est <strong>toi qui paies
+              cet écart</strong> via tes impôts honnêtement déclarés.
+            </>
+          }
+        />
       </section>
 
       {/* Comparaison européenne (étape 3) — la France n'est pas seule. */}
       <section className="mt-4">
         <FraudesEuropeChart />
+        <ChartCitizenImpact
+          text={
+            <>
+              <strong>La France n'est ni la pire ni la meilleure</strong> en Europe sur la
+              fraude — elle est dans la moyenne haute (3,7 % du PIB). L'Italie en tête
+              (~10 % du PIB) reflète la culture du cash et du travail au noir. Les Pays-Bas
+              et le Royaume-Uni ont les plus bas ratios grâce à des administrations très
+              digitalisées. <strong>Plus tu acceptes de payer en virement et facture
+              électronique, moins l'évasion fiscale est facile.</strong>
+            </>
+          }
+        />
       </section>
     </>
   );
@@ -514,12 +700,33 @@ function HistoriquePage({ data }: { data: BudgetSnapshot }) {
         >
           <RecettesDepensesHistory data={filtered} />
         </DownloadableCard>
+        <ChartCitizenImpact
+          text={
+            <>
+              <strong>Depuis 1975, l'État dépense systématiquement plus qu'il ne reçoit.</strong>
+              {" "}Cet écart cumulé sur 50 ans, c'est exactement la dette publique d'aujourd'hui.
+              Aucun gouvernement, gauche comme droite, n'a fait d'excédent durable. Conséquence pour
+              toi : la fiscalité ne baissera pas tant qu'on n'aura pas réduit cet écart.
+            </>
+          }
+        />
       </section>
 
       {/* Sécurité sociale + Collectivités — évolution 1945-2025 */}
       {filtered.historiqueDetaille && (
         <section className="mt-4">
           <SecuCollecHistoryChart data={filtered} />
+          <ChartCitizenImpact
+            text={
+              <>
+                Sécu et Collectivités sont <strong>obligées par loi</strong> d'équilibrer
+                leurs comptes — c'est pour ça que recettes et dépenses se collent presque parfaitement.
+                Concrètement : quand le déficit Sécu monte, c'est <strong>toi qui paies plus</strong>{" "}
+                (hausse cotisations, CSG, ou baisse remboursements), ou la CADES emprunte pour
+                rembourser sur 25 ans via la CRDS sur ta fiche de paie.
+              </>
+            }
+          />
         </section>
       )}
 
@@ -527,6 +734,16 @@ function HistoriquePage({ data }: { data: BudgetSnapshot }) {
       {filtered.historiqueDetaille && filtered.historiqueDetaille.missions.length > 0 && (
         <section className="mt-4">
           <MissionSelector data={filtered} />
+          <ChartCitizenImpact
+            text={
+              <>
+                <strong>La défense baisse en pourcentage du budget</strong> depuis 1960
+                (de 25 % à 6 % aujourd'hui), tandis que l'éducation, la santé et les retraites
+                ont massivement augmenté en valeur absolue. Ce graphique te montre les choix
+                politiques cumulés sur 80 ans : où l'État met (et a mis) tes impôts.
+              </>
+            }
+          />
         </section>
       )}
 
@@ -549,6 +766,17 @@ function HistoriquePage({ data }: { data: BudgetSnapshot }) {
               depenses={filtered.compositionHistorique.depenses}
             />
           </DownloadableCard>
+          <ChartCitizenImpact
+            text={
+              <>
+                <strong>La TVA est devenue le 1er impôt</strong> de France (35 % des
+                recettes), bien avant l'impôt sur le revenu (~25 %). Or la TVA est
+                <strong> proportionnelle</strong> : elle pèse autant sur les revenus modestes
+                que sur les hauts revenus en pourcentage de la consommation. C'est ce qui
+                rend le système fiscal moins progressif qu'on le croit.
+              </>
+            }
+          />
         </section>
       )}
 
@@ -592,6 +820,17 @@ function HistoriquePage({ data }: { data: BudgetSnapshot }) {
             la longue période 1945, on n'a que la reconstruction.
           </p>
         </div>
+        <ChartCitizenImpact
+          text={
+            <>
+              La dette publique a doublé depuis 2008 (1 200 → 3 350 Md€). Elle a
+              pris {" "}<strong>2 100 Md€ de plus en 17 ans</strong> — soit ~31 000 €
+              de plus par contribuable. Cette dette servira à payer 3 ans de Covid,
+              les plans de relance, et le fait que les recettes n'ont jamais rattrapé
+              les dépenses.
+            </>
+          }
+        />
       </section>
 
       {/* Dette + PIB + taux longue période */}
@@ -609,6 +848,17 @@ function HistoriquePage({ data }: { data: BudgetSnapshot }) {
           >
             <HistoricalCurves data={filtered} />
           </DownloadableCard>
+          <ChartCitizenImpact
+            text={
+              <>
+                <strong>Le PIB augmente, la dette augmente plus vite</strong> — et les
+                taux d'intérêt sont remontés de 0 % (2020) à ~3,5 % aujourd'hui.
+                Conséquence concrète : la charge de la dette (intérêts) va doubler
+                d'ici 5 ans (~70 Md€ → ~120 Md€/an), équivalent au budget de l'Éducation
+                nationale.
+              </>
+            }
+          />
         </section>
       ) : null}
 
@@ -616,6 +866,17 @@ function HistoriquePage({ data }: { data: BudgetSnapshot }) {
       {filtered.inflation && filtered.series.oatLongue && (
         <section className="mt-4">
           <RealRateChart data={filtered} />
+          <ChartCitizenImpact
+            text={
+              <>
+                Quand le taux d'intérêt réel est <strong>négatif</strong>, c'est super
+                pour l'État (la dette s'allège toute seule) mais <strong>très mauvais
+                pour ton épargne</strong> : tes livrets et assurances-vie perdent
+                en pouvoir d'achat. C'est ce qu'on appelle la « répression financière » —
+                un transfert silencieux des épargnants vers l'État endetté.
+              </>
+            }
+          />
         </section>
       )}
 

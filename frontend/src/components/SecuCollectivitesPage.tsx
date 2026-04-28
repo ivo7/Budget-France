@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type { BudgetSnapshot } from "../types";
 import { DownloadableCard } from "./DownloadableCard";
 import { objectsToCsv } from "../lib/csvExport";
+import { ChartCitizenImpact } from "./ChartCitizenImpact";
 
 interface Props {
   data: BudgetSnapshot;
@@ -56,6 +57,18 @@ export function SecuCollectivitesPage({ data }: Props) {
           argent, et ce qu'elles te rapportent concrètement chaque mois.
         </p>
       </section>
+
+      <ChartCitizenImpact
+        text={
+          <>
+            <strong>Quand on parle de « dépense publique », l'État central ne pèse qu'un
+            tiers.</strong> Les deux autres tiers (Sécu + Collectivités) financent ta retraite,
+            ta santé, ta crèche, tes écoles, ton ramassage d'ordures, ta piscine municipale…
+            C'est concrètement <strong>tout ce que tu utilises chaque jour</strong> sans t'en
+            rendre compte. Cette page te montre comment c'est financé et où va l'argent.
+          </>
+        }
+      />
 
       {/* Vue d'ensemble 3 sphères */}
       <section className="mt-6">
@@ -140,11 +153,35 @@ export function SecuCollectivitesPage({ data }: Props) {
       {/* Simulateur fiche de paie */}
       <section className="mt-4">
         <FichePaieSimulator data={data} />
+        <ChartCitizenImpact
+          text={
+            <>
+              <strong>Sur ton salaire de 3 000 € brut, ton employeur dépense en réalité
+              ~4 200 €</strong> (super-brut), et tu touches ~2 350 € net. La différence
+              de ~1 850 € (44 % du super-brut) finance retraite, maladie, famille,
+              chômage, autonomie. Tu ne le perçois pas, mais c'est pour ça qu'à la
+              retraite tu as une pension, qu'à l'hôpital tu paies 0 € la majorité du
+              temps, et qu'au chômage tu reçois jusqu'à 75 % de ton ancien salaire.
+            </>
+          }
+        />
       </section>
 
       {/* Bénéfices concrets */}
       <section className="mt-4">
         <BenefitsPanel benefits={sc.beneficesCitoyens} />
+        <ChartCitizenImpact
+          text={
+            <>
+              <strong>Mis bout à bout sur une vie, ce que tu reçois de la Sécu et des
+              collectivités vaut ~600 000 à 1 000 000 €</strong> par citoyen (école,
+              santé, retraite, services publics locaux). Tes 1 850 € de cotisations
+              mensuelles ne sont pas perdus : ils financent ce que tu reçois en nature.
+              Mais c'est seulement durable si on continue à cotiser proportionnellement
+              à ce qu'on consomme — d'où le débat sur la réforme des retraites.
+            </>
+          }
+        />
       </section>
     </>
   );
