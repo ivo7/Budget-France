@@ -385,8 +385,21 @@ const ANCRAGES: VilleAncrage[] = [
 //   - On reconstruit ainsi 11 années (2014→2024) à partir de l'ancrage 2024
 // ----------------------------------------------------------------------------
 
-function generateAnnees(a: VilleAncrage) {
-  const annees: ReturnType<NonNullable<unknown>> = [];
+interface VilleAnnee {
+  annee: number;
+  budgetTotalEur: number;
+  recettesTotalesEur: number;
+  depensesTotalesEur: number;
+  soldeBudgetaireEur: number;
+  detteEncoursEur: number;
+  capaciteAutofinancementEur: number;
+  chargeDetteEur: number;
+  depensesInvestissementEur: number;
+  depensesPersonnelEur: number;
+}
+
+function generateAnnees(a: VilleAncrage): VilleAnnee[] {
+  const annees: VilleAnnee[] = [];
   for (let an = 2014; an <= 2024; an++) {
     // Coefficient inverse pour reculer dans le temps
     // Croissance ~+1,8 % par an → coef à l'année an = 1 / (1.018)^(2024-an)
