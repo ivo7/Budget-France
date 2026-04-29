@@ -26,6 +26,7 @@ import {
   fraudeSourceDetecteeLabel,
   fraudeSourceDetecteeUrl,
 } from "./fraudeSeed.ts";
+import { villesItems, villesSource } from "./villesSeed.ts";
 import { detteRatioPaysEurope, soldePaysEurope, europeSourceLabel, europeSourceUrl } from "./europeSeed.ts";
 import { oatFrancePoints, bundAllemagnePoints, spreadOatBundPoints, spreadSourceLabel, spreadSourceUrl } from "./spreadSeed.ts";
 import { agencies as ratingsAgencies, ratingsSource } from "./ratingsSeed.ts";
@@ -378,6 +379,10 @@ export function seedSnapshot(annee: number): BudgetSnapshot {
         fetchedAt: now,
         status: "fallback",
       },
+    },
+    villes: {
+      items: villesItems,
+      source: villesSource,
     },
     detenteursDette: {
       categories: detenteursDetteFrance,

@@ -45,6 +45,12 @@
   </url>
 
   <url>
+    <loc>https://budgetfrance.org/#/ma-ville</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
     <loc>https://budgetfrance.org/#/pedagogie</loc>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>

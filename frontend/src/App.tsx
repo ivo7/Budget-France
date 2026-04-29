@@ -20,6 +20,7 @@ import { GlossaryTerm } from "./components/GlossaryTerm";
 import { Linkify } from "./components/Linkify";
 import { ChartCitizenImpact } from "./components/ChartCitizenImpact";
 import { InstitutionsPage } from "./components/InstitutionsPage";
+import { MaVillePage } from "./components/MaVillePage";
 import { BudgetBreakdown } from "./components/BudgetBreakdown";
 import { Glossary } from "./components/Glossary";
 import { DownloadableCard } from "./components/DownloadableCard";
@@ -56,7 +57,7 @@ import type { BudgetSnapshot } from "./types";
 // gratuite de lancement.
 const PREMIUM_ENABLED = false;
 
-type Page = "dashboard" | "europe" | "historique" | "fraudes" | "mes-impots" | "pedagogie" | "secu-collec" | "sources" | "glossaire" | "institutions" | "tarifs" | "paiement-reussi" | "compte" | "admin";
+type Page = "dashboard" | "europe" | "historique" | "fraudes" | "mes-impots" | "ma-ville" | "pedagogie" | "secu-collec" | "sources" | "glossaire" | "institutions" | "tarifs" | "paiement-reussi" | "compte" | "admin";
 
 function resolvePage(hash: string): Page {
   // Routes prioritaires (matches préfixe)
@@ -69,6 +70,7 @@ function resolvePage(hash: string): Page {
   if (hash.startsWith("fraudes")) return "fraudes";
   if (hash.startsWith("secu") || hash.startsWith("collectivites") || hash.startsWith("secu-collec")) return "secu-collec";
   if (hash.startsWith("mes-impots") || hash.startsWith("impots")) return "mes-impots";
+  if (hash.startsWith("ma-ville") || hash.startsWith("commune")) return "ma-ville";
   if (hash.startsWith("pedagogie") || hash.startsWith("eleves") || hash.startsWith("comprendre")) return "pedagogie";
   if (hash.startsWith("sources")) return "sources";
   if (hash.startsWith("glossaire") || hash.startsWith("fiches")) return "glossaire";
@@ -106,6 +108,7 @@ export default function App() {
           {data && page === "historique" && <HistoriquePage data={data} />}
           {data && page === "fraudes" && <FraudesPage data={data} />}
           {data && page === "mes-impots" && <MesImpotsPage data={data} />}
+          {data && page === "ma-ville" && <MaVillePage data={data} />}
           {data && page === "pedagogie" && <PedagogyPage data={data} />}
           {data && page === "secu-collec" && <SecuCollectivitesPage data={data} />}
           {data && page === "sources" && <SourcesOnlyPage data={data} />}
@@ -1054,6 +1057,7 @@ function Header({ page }: { page: Page }) {
     { href: "#/secu-collec",   label: "Sécu et Collectivités",    target: "secu-collec", description: "Les 2 autres sphères publiques" },
     { href: "#/fraudes",       label: "Fraudes",                  target: "fraudes",     description: "Fiscale et sociale" },
     { href: "#/mes-impots",    label: "Mes impôts",               target: "mes-impots",  description: "Simulateur personnel" },
+    { href: "#/ma-ville",      label: "Ma ville",                 target: "ma-ville",    description: "Budget de ma commune" },
     { href: "#/europe",        label: "Europe",                   target: "europe",      description: "Comparaisons UE + ratings" },
     { href: "#/pedagogie",     label: "Comprendre",               target: "pedagogie",   description: "Parcours en 10 étapes" },
     { href: "#/glossaire",     label: "Fiches pédagogiques",      target: "glossaire",   description: "Glossaire complet" },

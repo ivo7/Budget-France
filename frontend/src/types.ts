@@ -153,6 +153,41 @@ export interface BudgetSnapshot {
     points: TimeseriesPoint[];
     source: SourceInfo;
   };
+  villes?: {
+    items: {
+      codeInsee: string;
+      nom: string;
+      departement: string;
+      population: number;
+      annees: {
+        annee: number;
+        budgetTotalEur: number;
+        recettesTotalesEur: number;
+        depensesTotalesEur: number;
+        soldeBudgetaireEur: number;
+        detteEncoursEur: number;
+        capaciteAutofinancementEur: number;
+        chargeDetteEur: number;
+        depensesInvestissementEur: number;
+        depensesPersonnelEur: number;
+      }[];
+      compositionRecettes: {
+        impotsLocauxPct: number;
+        dotationsEtatPct: number;
+        subventionsPct: number;
+        recettesServicesPct: number;
+        autresPct: number;
+      };
+      compositionDepenses: {
+        personnelPct: number;
+        chargesGeneralesPct: number;
+        subventionsVerseesPct: number;
+        chargesFinancieresPct: number;
+        investissementPct: number;
+      };
+    }[];
+    source: SourceInfo;
+  };
   detenteursDette?: {
     categories: {
       id: string;

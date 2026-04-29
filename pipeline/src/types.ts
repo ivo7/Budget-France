@@ -208,6 +208,47 @@ export interface BudgetSnapshot {
     source: SourceInfo;
   };
 
+  // Budgets des grandes villes françaises (Phase 1 : Top 15-20 plus grandes
+  // villes par population, données estimées 2020-2024 basées sur DGFiP/INSEE).
+  // Phase 2 prévue : connecteur automatisé vers data.gouv.fr pour 100+ villes.
+  villes?: {
+    items: {
+      codeInsee: string;            // ex: "75056" pour Paris
+      nom: string;                  // ex: "Paris"
+      departement: string;          // ex: "Paris" ou "Bouches-du-Rhône"
+      population: number;           // habitants (INSEE millésime récent)
+      // Évolution 2014-2024 (11 ans)
+      annees: {
+        annee: number;
+        budgetTotalEur: number;          // recettes ou dépenses, valeur la plus représentative
+        recettesTotalesEur: number;
+        depensesTotalesEur: number;
+        soldeBudgetaireEur: number;      // = recettes - dépenses
+        detteEncoursEur: number;
+        capaciteAutofinancementEur: number;
+        chargeDetteEur: number;          // intérêts versés
+        depensesInvestissementEur: number;
+        depensesPersonnelEur: number;
+      }[];
+      // Composition de la dernière année (ratios en pourcentage du total)
+      compositionRecettes: {
+        impotsLocauxPct: number;
+        dotationsEtatPct: number;
+        subventionsPct: number;
+        recettesServicesPct: number;
+        autresPct: number;
+      };
+      compositionDepenses: {
+        personnelPct: number;
+        chargesGeneralesPct: number;
+        subventionsVerseesPct: number;
+        chargesFinancieresPct: number;
+        investissementPct: number;
+      };
+    }[];
+    source: SourceInfo;
+  };
+
   // Détenteurs de la dette publique française (à qui doit-on l'argent ?)
   detenteursDette: {
     categories: {
