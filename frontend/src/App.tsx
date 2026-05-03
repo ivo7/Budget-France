@@ -1543,6 +1543,27 @@ const VILLE_COLORS: Record<string, string> = {
   angers: "#003DA5",
   "clermont-ferrand": "#7B0828",
   brest: "#000000",
+  // Extension villes 21-40
+  nimes: "#A50034",
+  "aix-en-provence": "#0055A4",
+  tours: "#003DA5",
+  limoges: "#7B0828",
+  amiens: "#0033A0",
+  villeurbanne: "#A6192E",
+  metz: "#FFD700",
+  besancon: "#0033A0",
+  perpignan: "#A50034",
+  "boulogne-billancourt": "#0055A4",
+  orleans: "#A50034",
+  rouen: "#A50034",
+  mulhouse: "#0033A0",
+  caen: "#7B0828",
+  nancy: "#A50034",
+  "saint-denis": "#0055A4",
+  argenteuil: "#003DA5",
+  "le-mans": "#A50034",
+  roubaix: "#A50034",
+  tourcoing: "#0033A0",
 };
 
 function villeColorFor(nom: string): string {

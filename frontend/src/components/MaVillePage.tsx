@@ -118,7 +118,7 @@ export function MaVillePage({ data, subPage, villeSlug }: Props) {
     case "ville-historique":
       return <SubHistorique ville={ville} sourceLabel={data.villes.source.label} />;
     case "ville-comparaison":
-      return <SubComparaison ville={ville} villes={villes} moyennes={moyennes} />;
+      return <SubComparaison ville={ville} villes={villes} />;
     case "ville-sources":
       return <SubSources ville={ville} sourceLabel={data.villes.source.label} />;
     case "ville-synthese":
@@ -549,120 +549,371 @@ function SubHistorique({
 // SubComparaison
 // ============================================================================
 
+// ----------------------------------------------------------------------------
+// Définition des indicateurs de comparaison
+// Les indicateurs marqués "isManagement" sont les indicateurs de bonne gestion
+// suivis par l'OFGL et la Cour des comptes.
+// ----------------------------------------------------------------------------
+
+interface RankingDef {
+  id: string;
+  label: string;
+  shortLabel: string;
+  unit: string;
+  /** Vrai si c'est un indicateur clé de bonne gestion (OFGL/Cour des comptes). */
+  isManagement: boolean;
+  /** Vrai si une valeur élevée = défavorable (ex: dette, charges fin.). */
+  higherIsBad: boolean;
+  /** Description courte pour le citoyen. */
+  description: string;
+  /** Lecture par seuils (ex: "< 8 ans = sain"). */
+  thresholds?: string;
+  /** Calcul de la valeur pour une ville donnée (en unité affichée). */
+  compute: (v: Ville) => number;
+  /** Format d'affichage de la valeur. */
+  format: (n: number) => string;
+}
+
+function lastYearOf(v: Ville) {
+  return v.annees[v.annees.length - 1]!;
+}
+
+const RANKINGS: RankingDef[] = [
+  // ── Indicateurs de bonne gestion (OFGL / Cour des comptes) ──────────────
+  {
+    id: "capacite-desendettement",
+    label: "Capacité de désendettement",
+    shortLabel: "Désendettement",
+    unit: "années",
+    isManagement: true,
+    higherIsBad: true,
+    description:
+      "Nombre d'années théoriques pour rembourser la dette en consacrant la totalité de la CAF (capacité d'autofinancement). Indicateur N°1 des Chambres régionales des comptes.",
+    thresholds: "< 8 ans = sain · 8-12 ans = vigilance · > 12 ans = critique",
+    compute: (v) => {
+      const last = lastYearOf(v);
+      if (last.capaciteAutofinancementEur <= 0) return 999;
+      return last.detteEncoursEur / last.capaciteAutofinancementEur;
+    },
+    format: (n) => (n >= 999 ? "∞" : `${n.toFixed(1)} ans`),
+  },
+  {
+    id: "taux-epargne-brute",
+    label: "Taux d'épargne brute",
+    shortLabel: "Taux épargne",
+    unit: "%",
+    isManagement: true,
+    higherIsBad: false,
+    description:
+      "Part des recettes que la commune épargne avant remboursement de dette. Mesure la marge financière disponible pour investir ou rembourser.",
+    thresholds: "> 12 % = bon · 8-12 % = moyen · < 8 % = fragile",
+    compute: (v) => {
+      const last = lastYearOf(v);
+      if (last.recettesTotalesEur <= 0) return 0;
+      return (last.capaciteAutofinancementEur / last.recettesTotalesEur) * 100;
+    },
+    format: (n) => `${n.toFixed(1)} %`,
+  },
+  {
+    id: "charges-personnel-pct",
+    label: "Charges de personnel / dépenses",
+    shortLabel: "Personnel %",
+    unit: "%",
+    isManagement: true,
+    higherIsBad: true,
+    description:
+      "Part des dépenses consacrée aux salaires des fonctionnaires municipaux. Trop élevée = peu de marge pour investir ou faire face à des coups durs.",
+    thresholds: "< 50 % = marge · 50-60 % = OK · > 60 % = peu de marge",
+    compute: (v) => v.compositionDepenses.personnelPct,
+    format: (n) => `${n.toFixed(1)} %`,
+  },
+  {
+    id: "charges-financieres-pct",
+    label: "Charges financières / dépenses",
+    shortLabel: "Intérêts %",
+    unit: "%",
+    isManagement: true,
+    higherIsBad: true,
+    description:
+      "Part des dépenses qui sert uniquement à payer les intérêts de la dette. Cet argent ne finance aucun service public — plus c'est bas, mieux c'est.",
+    thresholds: "< 3 % = bon · > 5 % = poids notable",
+    compute: (v) => v.compositionDepenses.chargesFinancieresPct,
+    format: (n) => `${n.toFixed(1)} %`,
+  },
+  // ── Indicateurs absolus par habitant ────────────────────────────────────
+  {
+    id: "budget-hab",
+    label: "Budget par habitant",
+    shortLabel: "Budget/hab",
+    unit: "€",
+    isManagement: false,
+    higherIsBad: false,
+    description: "Total dépensé par la commune divisé par sa population.",
+    compute: (v) => lastYearOf(v).budgetTotalEur / v.population,
+    format: (n) => `${Math.round(n).toLocaleString("fr-FR")} €`,
+  },
+  {
+    id: "dette-hab",
+    label: "Dette par habitant",
+    shortLabel: "Dette/hab",
+    unit: "€",
+    isManagement: false,
+    higherIsBad: true,
+    description: "Encours de dette divisé par la population. Les enfants en font partie — ce sont eux qui rembourseront.",
+    compute: (v) => lastYearOf(v).detteEncoursEur / v.population,
+    format: (n) => `${Math.round(n).toLocaleString("fr-FR")} €`,
+  },
+  {
+    id: "investissement-hab",
+    label: "Investissement par habitant",
+    shortLabel: "Invest/hab",
+    unit: "€",
+    isManagement: false,
+    higherIsBad: false,
+    description:
+      "Effort d'équipement (écoles, voirie, équipements sportifs, énergie). Une ville qui investit beaucoup prépare l'avenir mais peut s'endetter.",
+    compute: (v) => lastYearOf(v).depensesInvestissementEur / v.population,
+    format: (n) => `${Math.round(n).toLocaleString("fr-FR")} €`,
+  },
+  {
+    id: "personnel-hab",
+    label: "Charges de personnel par habitant",
+    shortLabel: "Personnel/hab",
+    unit: "€",
+    isManagement: false,
+    higherIsBad: false,
+    description:
+      "Coût du personnel municipal par habitant. Mesure le service public local rendu (mais aussi son coût).",
+    compute: (v) => lastYearOf(v).depensesPersonnelEur / v.population,
+    format: (n) => `${Math.round(n).toLocaleString("fr-FR")} €`,
+  },
+  {
+    id: "caf-hab",
+    label: "Capacité d'autofinancement / hab",
+    shortLabel: "CAF/hab",
+    unit: "€",
+    isManagement: false,
+    higherIsBad: false,
+    description: "Marge disponible chaque année pour investir ou rembourser, par habitant.",
+    compute: (v) => lastYearOf(v).capaciteAutofinancementEur / v.population,
+    format: (n) => `${Math.round(n).toLocaleString("fr-FR")} €`,
+  },
+];
+
 function SubComparaison({
   ville,
   villes,
-  moyennes,
 }: {
   ville: Ville;
   villes: Ville[];
-  moyennes: Moyennes;
 }) {
   const lastYear = ville.annees[ville.annees.length - 1]!;
-  const budgetParHab = lastYear.budgetTotalEur / ville.population;
+  const villeSlug = slugify(ville.nom);
 
-  // Top 5 villes les plus chères / les moins chères en budget/hab
-  const allWithBudget = villes
-    .map((v) => {
-      const last = v.annees[v.annees.length - 1]!;
-      return {
-        nom: v.nom,
+  // Pour chaque ranking, calcule la valeur de chaque ville et trie.
+  const rankings = RANKINGS.map((r) => {
+    const rows = villes
+      .map((v) => ({
         slug: slugify(v.nom),
-        budgetParHab: last.budgetTotalEur / v.population,
-        detteParHab: last.detteEncoursEur / v.population,
-      };
-    })
-    .sort((a, b) => b.budgetParHab - a.budgetParHab);
-
-  const myRank = allWithBudget.findIndex((v) => v.slug === slugify(ville.nom)) + 1;
+        nom: v.nom,
+        value: r.compute(v),
+      }))
+      // Si "higherIsBad" : on trie ascending (le meilleur en premier = plus faible)
+      // Sinon : on trie descending (le meilleur en premier = plus élevé)
+      .sort((a, b) => (r.higherIsBad ? a.value - b.value : b.value - a.value));
+    const myRank = rows.findIndex((row) => row.slug === villeSlug) + 1;
+    const myValue = rows.find((row) => row.slug === villeSlug)?.value ?? 0;
+    const median = computeMedian(rows.map((row) => row.value));
+    return { def: r, rows, myRank, myValue, median };
+  });
 
   return (
     <>
-      <VilleHero ville={ville} lastYear={lastYear} subtitle="Comparaison — vs autres villes" />
+      <VilleHero ville={ville} lastYear={lastYear} subtitle="Comparaison — classements toutes villes" />
       <section className="mt-6">
-        <SubPageLinks villeSlug={slugify(ville.nom)} active="comparaison" />
+        <SubPageLinks villeSlug={villeSlug} active="comparaison" />
       </section>
 
+      {/* ───── Encadré pédagogique : indicateurs de bonne gestion ───── */}
       <section className="mt-4">
-        <div className="card p-5 md:p-6">
-          <div className="text-xs uppercase tracking-widest text-muted">Position</div>
-          <h2 className="font-display text-2xl font-bold text-slate-900 mt-1">
-            {ville.nom} se classe {myRank}<sup>e</sup> sur {allWithBudget.length} villes
+        <div className="card p-5 md:p-6 bg-amber-50/40 border-amber-200/60">
+          <div className="text-xs uppercase tracking-widest text-amber-700 font-semibold">
+            🏛️ Indicateurs officiels de bonne gestion
+          </div>
+          <h2 className="font-display text-xl font-semibold text-slate-900 mt-1">
+            Comment mesurer si une commune est bien gérée ?
           </h2>
-          <p className="text-sm text-slate-600 mt-2">
-            Pour le <strong>budget par habitant</strong> ({Math.round(budgetParHab).toLocaleString("fr-FR")} €/hab),
-            soit {Math.abs(Math.round(budgetParHab - moyennes.budgetParHabitant)).toLocaleString("fr-FR")} €
-            {budgetParHab > moyennes.budgetParHabitant ? " au-dessus" : " en dessous"} de la moyenne
-            des {villes.length} plus grandes villes ({Math.round(moyennes.budgetParHabitant).toLocaleString("fr-FR")} €/hab).
+          <p className="text-sm text-slate-700 mt-2 leading-relaxed">
+            L'<strong>OFGL</strong> (Observatoire des Finances Locales, adossé à la Cour des
+            comptes) suit 4 indicateurs principaux pour évaluer la santé financière d'une
+            commune : la <strong>capacité de désendettement</strong>, le <strong>taux
+            d'épargne brute</strong>, les <strong>charges de personnel</strong> et les{" "}
+            <strong>charges financières</strong>. Ces 4 indicateurs sont regroupés en haut
+            du tableau ci-dessous (badge 🏛️).
+          </p>
+          <p className="text-xs text-slate-600 mt-2">
+            Source :{" "}
+            <a
+              href="https://www.collectivites-locales.gouv.fr/finances-locales"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-brand hover:underline"
+            >
+              Observatoire des Finances et de la Gestion publique Locales
+            </a>{" "}
+            · Référentiel des comptes communaux DGCL · Cour des comptes — rapports CRC.
           </p>
         </div>
       </section>
 
+      {/* ───── Synthèse position ──────────────────────────────────── */}
       <section className="mt-4">
-        <DownloadableCard
-          filename={`classement-budget-${slugify(ville.nom)}`}
-          className="card p-5 md:p-6"
-          getCsvData={() => objectsToCsv(allWithBudget.map((v, i) => ({
-            rang: i + 1,
-            ville: v.nom,
-            budget_par_habitant_eur: Math.round(v.budgetParHab),
-            dette_par_habitant_eur: Math.round(v.detteParHab),
-          })))}
-        >
-          <h3 className="font-display text-lg font-semibold text-slate-900 mb-3">
-            Classement budget par habitant
-          </h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-xs uppercase tracking-widest text-muted">
-                <tr>
-                  <th className="text-left p-2">Rang</th>
-                  <th className="text-left p-2">Ville</th>
-                  <th className="text-right p-2">Budget/hab</th>
-                  <th className="text-right p-2">Dette/hab</th>
-                </tr>
-              </thead>
-              <tbody>
-                {allWithBudget.map((v, i) => {
-                  const isCurrent = v.slug === slugify(ville.nom);
-                  return (
-                    <tr
-                      key={v.slug}
-                      className={`border-t border-slate-100 ${
-                        isCurrent ? "bg-brand-soft/30 font-semibold" : ""
-                      }`}
-                    >
-                      <td className="p-2 tabular-nums">
-                        <span className={isCurrent ? "text-brand" : "text-slate-500"}>
-                          {i + 1}
-                        </span>
-                      </td>
-                      <td className="p-2">
-                        {isCurrent ? (
-                          <span className="text-brand">{v.nom} ← votre ville</span>
-                        ) : (
-                          <a
-                            href={`#/villes/${v.slug}`}
-                            className="text-slate-800 hover:text-brand hover:underline"
-                          >
-                            {v.nom}
-                          </a>
-                        )}
-                      </td>
-                      <td className="p-2 text-right tabular-nums">
-                        {Math.round(v.budgetParHab).toLocaleString("fr-FR")} €
-                      </td>
-                      <td className="p-2 text-right tabular-nums text-slate-600">
-                        {Math.round(v.detteParHab).toLocaleString("fr-FR")} €
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+        <div className="card p-5 md:p-6">
+          <div className="text-xs uppercase tracking-widest text-muted">
+            Synthèse {ville.nom} — résumé sur {villes.length} villes
           </div>
-        </DownloadableCard>
+          <h2 className="font-display text-xl font-semibold text-slate-900 mt-1">
+            Position de {ville.nom} dans les classements
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mt-4">
+            {rankings.map((r) => (
+              <div
+                key={r.def.id}
+                className={`p-3 rounded-lg border ${
+                  r.def.isManagement
+                    ? "border-amber-300 bg-amber-50/40"
+                    : "border-slate-200 bg-white"
+                }`}
+              >
+                <div className="flex items-center gap-1.5 mb-1">
+                  {r.def.isManagement && <span className="text-xs">🏛️</span>}
+                  <span className="text-[10px] uppercase tracking-widest text-muted leading-tight">
+                    {r.def.shortLabel}
+                  </span>
+                </div>
+                <div className="font-display text-lg font-bold tabular-nums text-slate-900">
+                  {r.def.format(r.myValue)}
+                </div>
+                <div className="text-[11px] text-slate-500 mt-0.5">
+                  rang {r.myRank} / {villes.length}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
+
+      {/* ───── Classements détaillés (un par indicateur) ──────────── */}
+      {rankings.map((r) => (
+        <section key={r.def.id} className="mt-4">
+          <DownloadableCard
+            filename={`classement-${r.def.id}-${villeSlug}`}
+            className={`card p-5 md:p-6 ${
+              r.def.isManagement ? "border-amber-200 bg-amber-50/20" : ""
+            }`}
+            getCsvData={() =>
+              objectsToCsv(
+                r.rows.map((row, i) => ({
+                  rang: i + 1,
+                  ville: row.nom,
+                  [r.def.id]: r.def.format(row.value),
+                })),
+              )
+            }
+          >
+            <div className="flex items-baseline gap-2 flex-wrap mb-1">
+              {r.def.isManagement && (
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 uppercase tracking-wider font-medium">
+                  🏛️ Indicateur de bonne gestion
+                </span>
+              )}
+              <span className="text-xs uppercase tracking-widest text-muted">
+                {r.def.unit}
+              </span>
+            </div>
+            <h3 className="font-display text-lg font-semibold text-slate-900">
+              {r.def.label}
+            </h3>
+            <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
+              {r.def.description}
+            </p>
+            {r.def.thresholds && (
+              <p className="text-xs text-amber-800 mt-1 font-mono bg-amber-50 inline-block px-2 py-0.5 rounded">
+                {r.def.thresholds}
+              </p>
+            )}
+
+            {/* Position en bandeau */}
+            <div className="mt-3 p-3 rounded-lg bg-brand-soft/30 border border-brand/15">
+              <div className="text-sm">
+                <strong>{ville.nom}</strong> :{" "}
+                <span className="font-semibold text-brand">{r.def.format(r.myValue)}</span>
+                {" — rang "}
+                <strong>{r.myRank}<sup>e</sup></strong> sur {villes.length}.
+                {" Médiane : "}
+                <span className="text-slate-700">{r.def.format(r.median)}</span>.
+                {r.def.higherIsBad
+                  ? r.myValue < r.median
+                    ? <span className="text-money"> ✓ Mieux que la médiane</span>
+                    : <span className="text-flag-red"> ✗ Plus élevé que la médiane</span>
+                  : r.myValue > r.median
+                    ? <span className="text-money"> ✓ Mieux que la médiane</span>
+                    : <span className="text-flag-red"> ✗ Plus faible que la médiane</span>
+                }
+              </div>
+            </div>
+
+            {/* Tableau classement */}
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 text-xs uppercase tracking-widest text-muted">
+                  <tr>
+                    <th className="text-left p-2 w-12">#</th>
+                    <th className="text-left p-2">Ville</th>
+                    <th className="text-right p-2">Valeur</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {r.rows.map((row, i) => {
+                    const isCurrent = row.slug === villeSlug;
+                    return (
+                      <tr
+                        key={row.slug}
+                        className={`border-t border-slate-100 ${
+                          isCurrent ? "bg-brand-soft/30 font-semibold" : ""
+                        }`}
+                      >
+                        <td className="p-2 tabular-nums">
+                          <span className={isCurrent ? "text-brand" : "text-slate-500"}>
+                            {i + 1}
+                          </span>
+                        </td>
+                        <td className="p-2">
+                          {isCurrent ? (
+                            <span className="text-brand">
+                              {row.nom} ← votre ville
+                            </span>
+                          ) : (
+                            <a
+                              href={`#/villes/${row.slug}`}
+                              className="text-slate-800 hover:text-brand hover:underline"
+                            >
+                              {row.nom}
+                            </a>
+                          )}
+                        </td>
+                        <td className="p-2 text-right tabular-nums">
+                          {r.def.format(row.value)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </DownloadableCard>
+        </section>
+      ))}
 
       <ChartCitizenImpact
         text={
@@ -670,13 +921,22 @@ function SubComparaison({
             <strong>Comparer entre villes a ses limites.</strong> Une ville touristique
             (Paris, Nice) a plus de recettes mais aussi plus de charges (sécurité, propreté,
             transports). Une ville étudiante (Montpellier, Toulouse) investit plus dans
-            l'enseignement supérieur. Le « bon » niveau de dépenses dépend du contexte local.
-            Mais des écarts importants à services équivalents méritent toujours d'être questionnés.
+            l'enseignement supérieur. Cependant, les <strong>4 indicateurs de bonne
+            gestion</strong> (capacité de désendettement, taux d'épargne, charges de
+            personnel et financières) sont calculés selon les normes officielles OFGL et
+            <strong> sont comparables d'une ville à l'autre</strong> à structure équivalente.
           </>
         }
       />
     </>
   );
+}
+
+function computeMedian(values: number[]): number {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0 ? (sorted[mid - 1]! + sorted[mid]!) / 2 : sorted[mid]!;
 }
 
 // ============================================================================
