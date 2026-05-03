@@ -1,18 +1,25 @@
 // ============================================================================
-// importDgfip.ts — pipeline d'import des comptes individuels DGFiP
+// importDgfip.ts — pipeline d'import des comptes individuels des communes
 // ============================================================================
 //
-// Télécharge le CSV "Comptes individuels des collectivités" depuis le portail
-// open data du ministère de l'Économie (OFGL) et upsert ~35 000 communes
-// françaises dans la table CommuneFinanciere.
+// Source réelle : OFGL (Observatoire des Finances et de la Gestion publique
+// Locales — organisme officiel rattaché au CFL/DGCL).
+// La donnée est strictement la même que les comptes individuels DGFiP, mais
+// déjà nettoyée, structurée et exposée via une API ouverte propre.
 //
-// Source officielle :
-//   https://www.data.economie.gouv.fr/explore/dataset/comptes-individuels-des-collectivites/
+// Pourquoi pas data.economie.gouv.fr ?
+// → Le dataset y est vide ("has_records":false, "fields":[]) — il ne contient
+//   plus qu'un fichier "Lien.xlsx" qui pointe ailleurs. La donnée a été
+//   migrée vers OFGL.
 //
 // API d'export CSV (OpenDataSoft) :
-//   https://www.data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/
-//     comptes-individuels-des-collectivites/exports/csv
-//   ?refine=categorie:Commune&refine=exer:<année>
+//   https://data.ofgl.fr/api/explore/v2.1/catalog/datasets/
+//     ofgl-base-communes-consolidee/exports/csv
+//   ?refine=categ:Commune&refine=exer:<année>
+//
+// Format : 1 ligne = 1 commune × 1 année × 1 agrégat.
+// On reçoit ~1.7 millions de lignes pour une année (35 062 communes ×
+// ~50 agrégats). On pivote long→wide en mémoire avant l'UPSERT.
 //
 // Usage :
 //   docker compose exec backend npx tsx src/seed/importDgfip.ts <année>
@@ -24,9 +31,9 @@
 // Le script est idempotent : on peut le re-lancer à volonté, il fait des
 // UPSERT donc les données existantes sont juste mises à jour.
 //
-// ⚠ Performance : ~30 min pour parser et insérer 35 000 lignes.
-// La fonction est exposée comme runDgfipImport() pour être appelée depuis
-// l'API admin sans bloquer le serveur (lance-la dans un worker / setTimeout).
+// ⚠ Performance : ~10-20 min pour télécharger (~200 Mo) + parser + insérer
+// 35 000 communes. La fonction est exposée comme runDgfipImport() pour être
+// appelée depuis l'API admin sans bloquer le serveur (setImmediate).
 // ============================================================================
 
 import { prisma } from "../lib/db.ts";
@@ -37,20 +44,21 @@ import { existsSync } from "node:fs";
 // Configuration
 // ----------------------------------------------------------------------------
 
-const API_BASE = "https://www.data.economie.gouv.fr/api/explore/v2.1/catalog/datasets";
-const DATASET_ID = "comptes-individuels-des-collectivites";
+const API_BASE = "https://data.ofgl.fr/api/explore/v2.1/catalog/datasets";
+const DATASET_ID = "ofgl-base-communes-consolidee";
 
-// Année par défaut : la plus récente publiée typiquement N-2 (publication juin N+1)
+// Année par défaut : la plus récente disponible (couverture OFGL : 2017-2024).
 const DEFAULT_YEAR = 2023;
 
 // Chemin de cache du CSV téléchargé
-const CACHE_PATH = "/tmp/dgfip-comptes.csv";
+const CACHE_PATH = "/tmp/ofgl-comptes.csv";
 
 // Taille des batches d'UPSERT pour ne pas saturer Postgres
 const BATCH_SIZE = 100;
 
 // ----------------------------------------------------------------------------
 // Mapping département → région (96 départements métropole + 5 DROM)
+// Conservé en fallback si OFGL ne renvoie pas reg_name.
 // ----------------------------------------------------------------------------
 
 const DEPT_TO_REGION: Record<string, string> = {
@@ -85,7 +93,7 @@ const DEPT_TO_REGION: Record<string, string> = {
   "04": "Provence-Alpes-Côte d'Azur", "05": "Provence-Alpes-Côte d'Azur",
   "06": "Provence-Alpes-Côte d'Azur", "13": "Provence-Alpes-Côte d'Azur",
   "83": "Provence-Alpes-Côte d'Azur", "84": "Provence-Alpes-Côte d'Azur",
-  // DROM (Départements et Régions d'Outre-Mer)
+  // DROM
   "971": "Guadeloupe", "972": "Martinique", "973": "Guyane",
   "974": "La Réunion", "976": "Mayotte",
 };
@@ -116,6 +124,66 @@ const METROPOLES_STATUTAIRES: Record<string, string> = {
 };
 
 // ----------------------------------------------------------------------------
+// Mapping des agrégats OFGL → notre structure interne (long → wide)
+// ----------------------------------------------------------------------------
+//
+// Les agrégats sont en français (libellés OFGL). Pour chacun, on retient un
+// nom court de propriété qui sera ensuite mappé aux champs du schema Prisma.
+
+type AgregatField =
+  | "recettesTotales"
+  | "recettesFonctionnement"
+  | "recettesInvestissement"
+  | "depensesTotales"
+  | "depensesFonctionnement"
+  | "depensesInvestissement"
+  | "depensesEquipement"
+  | "fraisPersonnel"
+  | "achatsChargesExternes"
+  | "subventionsVersees"
+  | "chargesFinancieres"        // intérêts seuls
+  | "encoursDette"              // stock
+  | "annuiteDette"              // service total = intérêts + capital
+  | "remboursementCapital"      // capital seul
+  | "epargneBrute"              // CAF
+  | "epargneNette"
+  | "capaciteFinancement"
+  | "impotsLocaux"
+  | "impotsTaxes"
+  | "dgf"
+  | "fctva"
+  | "concoursEtat"
+  | "subventionsRecues"
+  | "fiscaliteReversee";
+
+const AGREGAT_FIELD: Record<string, AgregatField> = {
+  "Recettes totales": "recettesTotales",
+  "Recettes de fonctionnement": "recettesFonctionnement",
+  "Recettes d'investissement": "recettesInvestissement",
+  "Dépenses totales": "depensesTotales",
+  "Dépenses de fonctionnement": "depensesFonctionnement",
+  "Dépenses d'investissement": "depensesInvestissement",
+  "Dépenses d'équipement": "depensesEquipement",
+  "Frais de personnel": "fraisPersonnel",
+  "Achats et charges externes": "achatsChargesExternes",
+  "Subventions d'équipement versées": "subventionsVersees",
+  "Charges financières": "chargesFinancieres",
+  "Encours de dette": "encoursDette",
+  "Annuité de la dette": "annuiteDette",
+  "Remboursements d'emprunts hors GAD": "remboursementCapital",
+  "Epargne brute": "epargneBrute",
+  "Epargne nette": "epargneNette",
+  "Capacité ou besoin de financement": "capaciteFinancement",
+  "Impôts locaux": "impotsLocaux",
+  "Impôts et taxes": "impotsTaxes",
+  "Dotation globale de fonctionnement": "dgf",
+  "FCTVA": "fctva",
+  "Concours de l'Etat": "concoursEtat",
+  "Subventions reçues et participations": "subventionsRecues",
+  "Fiscalité reversée": "fiscaliteReversee",
+};
+
+// ----------------------------------------------------------------------------
 // Helpers
 // ----------------------------------------------------------------------------
 
@@ -142,7 +210,7 @@ function classifyVille(population: number): string {
 
 function parseEur(s: string | undefined): number {
   if (!s) return 0;
-  const normalized = s.replace(/\s/g, "").replace(",", ".").replace(/[^\d.-]/g, "");
+  const normalized = s.replace(/\s/g, "").replace(",", ".").replace(/[^\d.eE+-]/g, "");
   const n = Number(normalized);
   return Number.isFinite(n) ? n : 0;
 }
@@ -177,7 +245,6 @@ function parseCsvLine(line: string, sep: string): string[] {
   return out;
 }
 
-// Détecte le séparateur (DGFiP / OpenDataSoft : souvent ; mais parfois ,)
 function detectSeparator(headerLine: string): string {
   const semicolons = (headerLine.match(/;/g) ?? []).length;
   const commas = (headerLine.match(/,/g) ?? []).length;
@@ -185,138 +252,98 @@ function detectSeparator(headerLine: string): string {
 }
 
 // ----------------------------------------------------------------------------
-// Téléchargement du CSV
+// Téléchargement du CSV depuis OFGL
 // ----------------------------------------------------------------------------
 
 async function downloadCsv(year: number): Promise<string> {
-  // Si un cache existe déjà et que --force n'est pas passé, on l'utilise
   if (existsSync(CACHE_PATH) && !process.argv.includes("--force")) {
-    console.log(`[dgfip] cache trouvé : ${CACHE_PATH} (utiliser --force pour re-télécharger)`);
+    console.log(`[ofgl] cache trouvé : ${CACHE_PATH} (utiliser --force pour re-télécharger)`);
     return CACHE_PATH;
   }
 
-  // L'API OpenDataSoft permet d'exporter en CSV avec filtre.
-  // Le filtre exact de catégorie peut varier — on essaie plusieurs noms.
-  const candidates = [
-    `${API_BASE}/${DATASET_ID}/exports/csv?refine=categorie%3ACommune&refine=exer%3A${year}`,
-    `${API_BASE}/${DATASET_ID}/exports/csv?refine=agregat%3ACommune&refine=exer%3A${year}`,
-    `${API_BASE}/${DATASET_ID}/exports/csv?refine=cat%3ASCOM&refine=exer%3A${year}`,
-    // Sans filtre (gros fichier ~500 Mo, dernier recours) :
-    `${API_BASE}/${DATASET_ID}/exports/csv?refine=exer%3A${year}`,
-  ];
+  // OFGL : on filtre sur categ=Commune ET exer=<year> pour ramener ~1.7M lignes
+  // (35 062 communes × ~50 agrégats) au lieu de 13M+ tous millésimes confondus.
+  const url = `${API_BASE}/${DATASET_ID}/exports/csv?refine=categ%3ACommune&refine=exer%3A${year}`;
 
-  for (const url of candidates) {
-    console.log(`[dgfip] tentative téléchargement : ${url}`);
-    try {
-      const res = await fetch(url, {
-        headers: { "User-Agent": "BudgetFrance/1.0 (https://budgetfrance.org)" },
-      });
-      if (!res.ok) {
-        console.warn(`[dgfip]   → HTTP ${res.status}, essai suivant…`);
-        continue;
-      }
-      const buf = Buffer.from(await res.arrayBuffer());
-      if (buf.length < 1000) {
-        console.warn(`[dgfip]   → fichier suspect (${buf.length} octets), essai suivant…`);
-        continue;
-      }
-      await writeFile(CACHE_PATH, buf);
-      console.log(`[dgfip] OK : ${(buf.length / 1e6).toFixed(1)} Mo → ${CACHE_PATH}`);
-      return CACHE_PATH;
-    } catch (e) {
-      console.warn(`[dgfip]   → erreur : ${(e as Error).message}`);
-    }
+  console.log(`[ofgl] téléchargement : ${url}`);
+  const t0 = Date.now();
+  const res = await fetch(url, {
+    headers: { "User-Agent": "BudgetFrance/1.0 (https://budgetfrance.org)" },
+  });
+  if (!res.ok) {
+    throw new Error(`[ofgl] HTTP ${res.status} ${res.statusText}`);
   }
-  throw new Error(`[dgfip] échec : aucune URL ne fonctionne pour l'année ${year}.`);
+  const buf = Buffer.from(await res.arrayBuffer());
+  if (buf.length < 10_000) {
+    // Probablement un message d'erreur JSON
+    const head = buf.subarray(0, 500).toString("utf-8");
+    throw new Error(`[ofgl] fichier suspect (${buf.length} octets) :\n${head}`);
+  }
+  await writeFile(CACHE_PATH, buf);
+  const sec = ((Date.now() - t0) / 1000).toFixed(0);
+  console.log(`[ofgl] OK : ${(buf.length / 1e6).toFixed(1)} Mo en ${sec}s → ${CACHE_PATH}`);
+  return CACHE_PATH;
 }
 
 // ----------------------------------------------------------------------------
-// Parsing + import
+// Parsing + pivot long→wide
 // ----------------------------------------------------------------------------
 
-interface ParsedRow {
+interface PivotedCommune {
   insee: string;
   nom: string;
-  departement: string;
+  depCode: string;
+  depName: string;
+  regName: string;
+  epciName: string | null;
   population: number;
-  recettesFct: number;
-  depensesFct: number;
-  recettesInvest: number;
-  depensesInvest: number;
-  personnel: number;
-  chargesGen: number;
-  subvVersees: number;
-  charFin: number;
-  amortCapital: number;
-  dotationsEtat: number;
-  impotsLocaux: number;
-  dette: number;
-  caf: number;
+  trancheOfgl: string;
   annee: number;
+  recettesTotales: number;
+  recettesFonctionnement: number;
+  recettesInvestissement: number;
+  depensesTotales: number;
+  depensesFonctionnement: number;
+  depensesInvestissement: number;
+  depensesEquipement: number;
+  fraisPersonnel: number;
+  achatsChargesExternes: number;
+  subventionsVersees: number;
+  chargesFinancieres: number;
+  encoursDette: number;
+  annuiteDette: number;
+  remboursementCapital: number;
+  epargneBrute: number;
+  epargneNette: number;
+  capaciteFinancement: number;
+  impotsLocaux: number;
+  impotsTaxes: number;
+  dgf: number;
+  fctva: number;
+  concoursEtat: number;
+  subventionsRecues: number;
+  fiscaliteReversee: number;
 }
 
-/**
- * Mappe une ligne CSV (objet clé/valeur) vers notre structure ParsedRow.
- * Tolérant aux changements de noms de colonnes entre millésimes DGFiP.
- */
-function mapRow(row: Record<string, string>, fallbackYear: number): ParsedRow | null {
-  // Helper pour chercher une valeur parmi plusieurs noms de colonnes possibles
-  const v = (...keys: string[]): string => {
-    for (const k of keys) {
-      const lower = k.toLowerCase();
-      if (row[k] !== undefined) return row[k];
-      if (row[lower] !== undefined) return row[lower];
-    }
-    return "";
-  };
-
-  const insee = v("insee", "com", "code_insee", "codgeo").padStart(5, "0");
-  if (!insee || insee.length !== 5) return null;
-
-  const nom = v("lbudg", "lib_com", "nom_com", "lib_collectivite", "libellecourt") || `Commune ${insee}`;
-  const dep = v("dep", "code_dep", "codedep").padStart(2, "0").slice(0, 3);
-  const annee = parseInt(v("exer", "an", "annee", "year"), 10) || fallbackYear;
-  const population = parseEur(v("pop1", "popdgf", "pop_dgf", "pop", "population"));
-  const recettesFct = parseEur(v("rrf", "rrf1", "recettes_reelles_fonctionnement"));
-  const depensesFct = parseEur(v("drf", "drf1", "depenses_reelles_fonctionnement"));
-  const recettesInvest = parseEur(v("rri", "rri1", "recettes_reelles_investissement"));
-  const depensesInvest = parseEur(v("dri", "dri1", "depenses_reelles_investissement"));
-  const personnel = parseEur(v("pers", "fper", "fpers", "charges_personnel"));
-  const chargesGen = parseEur(v("fcg", "charges_generales"));
-  const subvVersees = parseEur(v("fsubv", "subv_versees"));
-  const charFin = parseEur(v("ifin", "char_fin", "interets_dette"));
-  const amortCapital = parseEur(v("ramo", "amor", "rembours_capital"));
-  const dotationsEtat = parseEur(v("dgff", "fdgf", "dotation_globale")) + parseEur(v("fdfa", "autres_dotations"));
-  const impotsLocaux = parseEur(v("ftloc", "impots_locaux", "fiscalite_locale"));
-  const dette = parseEur(v("enc", "encours_dette"));
-  const caf = parseEur(v("caf", "cafg", "capacite_autofinancement"));
-
+function emptyPivot(insee: string, annee: number): PivotedCommune {
   return {
-    insee,
-    nom,
-    departement: `${nom.split("(")[0]?.trim() ?? nom} (${dep})`,
-    population: Math.round(population),
-    recettesFct,
-    depensesFct,
-    recettesInvest,
-    depensesInvest,
-    personnel,
-    chargesGen,
-    subvVersees,
-    charFin,
-    amortCapital: amortCapital || dette / 15, // fallback : 1/15 si non fourni
-    dotationsEtat,
-    impotsLocaux,
-    dette,
-    caf,
-    annee,
+    insee, annee,
+    nom: `Commune ${insee}`,
+    depCode: "00", depName: "", regName: "",
+    epciName: null,
+    population: 0, trancheOfgl: "",
+    recettesTotales: 0, recettesFonctionnement: 0, recettesInvestissement: 0,
+    depensesTotales: 0, depensesFonctionnement: 0, depensesInvestissement: 0,
+    depensesEquipement: 0, fraisPersonnel: 0, achatsChargesExternes: 0,
+    subventionsVersees: 0, chargesFinancieres: 0, encoursDette: 0,
+    annuiteDette: 0, remboursementCapital: 0,
+    epargneBrute: 0, epargneNette: 0, capaciteFinancement: 0,
+    impotsLocaux: 0, impotsTaxes: 0, dgf: 0, fctva: 0,
+    concoursEtat: 0, subventionsRecues: 0, fiscaliteReversee: 0,
   };
 }
 
-/**
- * Parse le CSV complet en chunks (plus rapide que ligne-par-ligne).
- */
-function parseCsv(content: string, fallbackYear: number): ParsedRow[] {
+function parseAndPivot(content: string, fallbackYear: number): PivotedCommune[] {
   const lines = content.split(/\r?\n/);
   if (lines.length < 2) return [];
   const sep = detectSeparator(lines[0]!);
@@ -324,34 +351,111 @@ function parseCsv(content: string, fallbackYear: number): ParsedRow[] {
     h.trim().toLowerCase().replace(/^"|"$/g, ""),
   );
 
-  const out: ParsedRow[] = [];
+  const idx = (name: string) => headers.indexOf(name);
+  const I = {
+    com_code: idx("com_code"),
+    com_name: idx("com_name"),
+    dep_code: idx("dep_code"),
+    dep_name: idx("dep_name"),
+    reg_name: idx("reg_name"),
+    epci_name: idx("epci_name"),
+    ptot: idx("ptot"),
+    tranche: idx("tranche_population"),
+    exer: idx("exer"),
+    agregat: idx("agregat"),
+    montant: idx("montant"),
+  };
+
+  const missing = (Object.entries(I) as [string, number][])
+    .filter(([_, v]) => v === -1)
+    .map(([k]) => k);
+  if (missing.length > 0) {
+    throw new Error(
+      `[ofgl] colonnes manquantes dans le CSV : ${missing.join(", ")}\n` +
+        `Headers reçus : ${headers.slice(0, 20).join(", ")}…`,
+    );
+  }
+
+  const accumulator = new Map<string, PivotedCommune>();
+  let processed = 0;
+
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i]!;
     if (!line.trim()) continue;
     const cols = parseCsvLine(line, sep);
-    const row: Record<string, string> = {};
-    headers.forEach((h, idx) => {
-      row[h] = (cols[idx] ?? "").trim().replace(/^"|"$/g, "");
-    });
-    const parsed = mapRow(row, fallbackYear);
-    if (parsed) out.push(parsed);
+
+    const insee = (cols[I.com_code] ?? "").trim().padStart(5, "0");
+    if (!insee || insee.length !== 5) continue;
+
+    const annee = parseInt(cols[I.exer] ?? "", 10) || fallbackYear;
+    const key = `${insee}_${annee}`;
+
+    let entry = accumulator.get(key);
+    if (!entry) {
+      entry = emptyPivot(insee, annee);
+      entry.nom = (cols[I.com_name] ?? "").trim() || `Commune ${insee}`;
+      entry.depCode = (cols[I.dep_code] ?? "").trim().padStart(2, "0").slice(0, 3);
+      entry.depName = (cols[I.dep_name] ?? "").trim();
+      entry.regName = (cols[I.reg_name] ?? "").trim();
+      entry.epciName = (cols[I.epci_name] ?? "").trim() || null;
+      entry.population = Math.round(parseEur(cols[I.ptot]));
+      entry.trancheOfgl = (cols[I.tranche] ?? "").trim();
+      accumulator.set(key, entry);
+    }
+
+    const agregat = (cols[I.agregat] ?? "").trim();
+    const field = AGREGAT_FIELD[agregat];
+    if (field) {
+      const montant = parseEur(cols[I.montant]);
+      // OFGL : la dette et le personnel peuvent être en valeurs négatives
+      // résiduelles (ex : ajustements). On garde le signe brut, la conversion
+      // BigInt côté upsert arrondit. On force >=0 uniquement pour l'encours.
+      (entry as Record<AgregatField, number>)[field] = montant;
+    }
+
+    processed++;
+    if (processed % 200_000 === 0) {
+      console.log(`[ofgl] parsing : ${processed} lignes traitées, ${accumulator.size} communes accumulées`);
+    }
   }
-  return out;
+
+  console.log(
+    `[ofgl] parsing terminé : ${processed} lignes → ${accumulator.size} communes uniques`,
+  );
+  return Array.from(accumulator.values());
 }
 
 // ----------------------------------------------------------------------------
-// Insert dans Postgres
+// UPSERT dans Postgres
 // ----------------------------------------------------------------------------
 
-async function upsertCommune(r: ParsedRow): Promise<void> {
-  const region = DEPT_TO_REGION[r.departement.match(/\((\d{2,3}[AB]?)\)/)?.[1] ?? ""] ?? "Autre";
-  const departementCode = r.departement.match(/\((\d{2,3}[AB]?)\)/)?.[1] ?? "00";
+async function upsertCommune(r: PivotedCommune): Promise<void> {
+  const region = r.regName || DEPT_TO_REGION[r.depCode] || "Autre";
+  const departement = r.depName ? `${r.depName} (${r.depCode})` : `(${r.depCode})`;
 
-  const recettesTot = r.recettesFct + r.recettesInvest;
-  const depensesTot = r.depensesFct + r.depensesInvest;
+  // Si OFGL ne renvoie pas explicitement Recettes totales, on agrège fct + invest
+  const recettesTot =
+    r.recettesTotales > 0
+      ? r.recettesTotales
+      : r.recettesFonctionnement + r.recettesInvestissement;
+  const depensesTot =
+    r.depensesTotales > 0
+      ? r.depensesTotales
+      : r.depensesFonctionnement + r.depensesInvestissement;
   const budget = Math.max(recettesTot, depensesTot);
   const solde = recettesTot - depensesTot;
-  const subventions = Math.max(0, recettesTot - r.impotsLocaux - r.dotationsEtat);
+
+  // Décomposition recettes
+  const dotationsTot = r.dgf + r.concoursEtat; // OFGL : "Concours de l'Etat" inclut DGF + autres concours
+  // Pour éviter les doubles comptes : on prend max(dgf, concoursEtat) si l'un est inclus dans l'autre
+  const dotationsEtatNet = r.concoursEtat > 0 ? r.concoursEtat : r.dgf;
+  const subventionsRec =
+    r.subventionsRecues ||
+    Math.max(0, recettesTot - r.impotsTaxes - dotationsEtatNet);
+  const services = Math.max(
+    0,
+    recettesTot - r.impotsTaxes - dotationsEtatNet - subventionsRec - r.fiscaliteReversee,
+  );
 
   await prisma.commune.upsert({
     where: { codeInsee: r.insee },
@@ -359,8 +463,8 @@ async function upsertCommune(r: ParsedRow): Promise<void> {
       codeInsee: r.insee,
       nom: r.nom,
       slug: slugify(r.nom),
-      departement: r.departement,
-      departementCode,
+      departement,
+      departementCode: r.depCode,
       region,
       population: r.population,
       classification: classifyVille(r.population),
@@ -369,8 +473,8 @@ async function upsertCommune(r: ParsedRow): Promise<void> {
     update: {
       nom: r.nom,
       slug: slugify(r.nom),
-      departement: r.departement,
-      departementCode,
+      departement,
+      departementCode: r.depCode,
       region,
       population: r.population,
       classification: classifyVille(r.population),
@@ -378,75 +482,58 @@ async function upsertCommune(r: ParsedRow): Promise<void> {
     },
   });
 
+  const data = {
+    recettesTotalesEur: BigInt(Math.round(recettesTot)),
+    recettesFonctionnementEur: BigInt(Math.round(r.recettesFonctionnement)),
+    recettesInvestEur: BigInt(Math.round(r.recettesInvestissement)),
+    depensesTotalesEur: BigInt(Math.round(depensesTot)),
+    depensesFonctionnementEur: BigInt(Math.round(r.depensesFonctionnement)),
+    depensesInvestEur: BigInt(Math.round(r.depensesInvestissement)),
+    soldeBudgetaireEur: BigInt(Math.round(solde)),
+    budgetTotalEur: BigInt(Math.round(budget)),
+
+    // Trois métriques de dette distinctes (3 colonnes natives OFGL)
+    detteEncoursEur: BigInt(Math.round(Math.max(0, r.encoursDette))),
+    chargeDetteEur: BigInt(Math.round(Math.max(0, r.chargesFinancieres))), // intérêts seuls
+    amortissementCapitalEur: BigInt(Math.round(Math.max(0, r.remboursementCapital))),
+
+    // Marge / autofinancement
+    capaciteAutofinancementEur: BigInt(Math.round(r.epargneBrute)),
+
+    // Composantes principales des dépenses
+    depensesPersonnelEur: BigInt(Math.round(Math.max(0, r.fraisPersonnel))),
+    depensesChargesGeneralesEur: BigInt(Math.round(Math.max(0, r.achatsChargesExternes))),
+    depensesSubventionsEur: BigInt(Math.round(Math.max(0, r.subventionsVersees))),
+
+    // Composantes principales des recettes
+    recettesImpotsLocauxEur: BigInt(Math.round(Math.max(0, r.impotsLocaux))),
+    recettesDotationsEtatEur: BigInt(Math.round(Math.max(0, dotationsTot))),
+    recettesSubventionsEur: BigInt(Math.round(Math.max(0, subventionsRec))),
+    recettesServicesEur: BigInt(Math.round(Math.max(0, services))),
+
+    // Composition en pourcentage
+    compoRecettesImpotsPct: pct(r.impotsLocaux, recettesTot),
+    compoRecettesDotationsPct: pct(dotationsEtatNet, recettesTot),
+    compoRecettesSubvPct: pct(subventionsRec, recettesTot),
+    compoRecettesServicesPct: pct(services, recettesTot),
+    compoRecettesAutresPct: Math.max(
+      0,
+      100 -
+        pct(r.impotsLocaux + dotationsEtatNet + subventionsRec + services, recettesTot),
+    ),
+    compoDepensesPersonnelPct: pct(r.fraisPersonnel, depensesTot),
+    compoDepensesGeneralesPct: pct(r.achatsChargesExternes, depensesTot),
+    compoDepensesSubvPct: pct(r.subventionsVersees, depensesTot),
+    compoDepensesFinancieresPct: pct(r.chargesFinancieres, depensesTot),
+    compoDepensesInvestPct: pct(r.depensesInvestissement, depensesTot),
+
+    source: `OFGL base communes consolidée ${r.annee}`,
+  };
+
   await prisma.communeFinanciere.upsert({
     where: { codeInsee_annee: { codeInsee: r.insee, annee: r.annee } },
-    create: {
-      codeInsee: r.insee,
-      annee: r.annee,
-      recettesTotalesEur: BigInt(Math.round(recettesTot)),
-      recettesFonctionnementEur: BigInt(Math.round(r.recettesFct)),
-      recettesInvestEur: BigInt(Math.round(r.recettesInvest)),
-      depensesTotalesEur: BigInt(Math.round(depensesTot)),
-      depensesFonctionnementEur: BigInt(Math.round(r.depensesFct)),
-      depensesInvestEur: BigInt(Math.round(r.depensesInvest)),
-      soldeBudgetaireEur: BigInt(Math.round(solde)),
-      budgetTotalEur: BigInt(Math.round(budget)),
-      detteEncoursEur: BigInt(Math.round(r.dette)),
-      chargeDetteEur: BigInt(Math.round(r.charFin)),
-      amortissementCapitalEur: BigInt(Math.round(r.amortCapital)),
-      capaciteAutofinancementEur: BigInt(Math.round(r.caf)),
-      depensesPersonnelEur: BigInt(Math.round(r.personnel)),
-      depensesChargesGeneralesEur: BigInt(Math.round(r.chargesGen)),
-      depensesSubventionsEur: BigInt(Math.round(r.subvVersees)),
-      recettesImpotsLocauxEur: BigInt(Math.round(r.impotsLocaux)),
-      recettesDotationsEtatEur: BigInt(Math.round(r.dotationsEtat)),
-      recettesSubventionsEur: BigInt(Math.round(subventions)),
-      recettesServicesEur: BigInt(0),
-      compoRecettesImpotsPct: pct(r.impotsLocaux, recettesTot),
-      compoRecettesDotationsPct: pct(r.dotationsEtat, recettesTot),
-      compoRecettesSubvPct: pct(subventions, recettesTot),
-      compoRecettesServicesPct: 0,
-      compoRecettesAutresPct: Math.max(0, 100 - pct(r.impotsLocaux + r.dotationsEtat + subventions, recettesTot)),
-      compoDepensesPersonnelPct: pct(r.personnel, depensesTot),
-      compoDepensesGeneralesPct: pct(r.chargesGen, depensesTot),
-      compoDepensesSubvPct: pct(r.subvVersees, depensesTot),
-      compoDepensesFinancieresPct: pct(r.charFin, depensesTot),
-      compoDepensesInvestPct: pct(r.depensesInvest, depensesTot),
-      source: `DGFiP comptes individuels ${r.annee}`,
-    },
-    update: {
-      // Mêmes champs que create (UPSERT idempotent)
-      recettesTotalesEur: BigInt(Math.round(recettesTot)),
-      recettesFonctionnementEur: BigInt(Math.round(r.recettesFct)),
-      recettesInvestEur: BigInt(Math.round(r.recettesInvest)),
-      depensesTotalesEur: BigInt(Math.round(depensesTot)),
-      depensesFonctionnementEur: BigInt(Math.round(r.depensesFct)),
-      depensesInvestEur: BigInt(Math.round(r.depensesInvest)),
-      soldeBudgetaireEur: BigInt(Math.round(solde)),
-      budgetTotalEur: BigInt(Math.round(budget)),
-      detteEncoursEur: BigInt(Math.round(r.dette)),
-      chargeDetteEur: BigInt(Math.round(r.charFin)),
-      amortissementCapitalEur: BigInt(Math.round(r.amortCapital)),
-      capaciteAutofinancementEur: BigInt(Math.round(r.caf)),
-      depensesPersonnelEur: BigInt(Math.round(r.personnel)),
-      depensesChargesGeneralesEur: BigInt(Math.round(r.chargesGen)),
-      depensesSubventionsEur: BigInt(Math.round(r.subvVersees)),
-      recettesImpotsLocauxEur: BigInt(Math.round(r.impotsLocaux)),
-      recettesDotationsEtatEur: BigInt(Math.round(r.dotationsEtat)),
-      recettesSubventionsEur: BigInt(Math.round(subventions)),
-      recettesServicesEur: BigInt(0),
-      compoRecettesImpotsPct: pct(r.impotsLocaux, recettesTot),
-      compoRecettesDotationsPct: pct(r.dotationsEtat, recettesTot),
-      compoRecettesSubvPct: pct(subventions, recettesTot),
-      compoRecettesServicesPct: 0,
-      compoRecettesAutresPct: Math.max(0, 100 - pct(r.impotsLocaux + r.dotationsEtat + subventions, recettesTot)),
-      compoDepensesPersonnelPct: pct(r.personnel, depensesTot),
-      compoDepensesGeneralesPct: pct(r.chargesGen, depensesTot),
-      compoDepensesSubvPct: pct(r.subvVersees, depensesTot),
-      compoDepensesFinancieresPct: pct(r.charFin, depensesTot),
-      compoDepensesInvestPct: pct(r.depensesInvest, depensesTot),
-      source: `DGFiP comptes individuels ${r.annee}`,
-    },
+    create: { codeInsee: r.insee, annee: r.annee, ...data },
+    update: data,
   });
 }
 
@@ -461,16 +548,17 @@ export async function runDgfipImport(year: number = DEFAULT_YEAR): Promise<{
   durationSec: number;
 }> {
   const start = Date.now();
-  console.log(`[dgfip] début de l'import pour l'année ${year}…`);
+  console.log(`[ofgl] début de l'import pour l'année ${year}…`);
 
-  // 1. Télécharger
+  // 1. Télécharger le CSV (1 fichier ~150-300 Mo)
   const csvPath = await downloadCsv(year);
+  console.log(`[ofgl] lecture du fichier en mémoire…`);
   const csvContent = await readFile(csvPath, "utf-8");
 
-  // 2. Parser
-  console.log("[dgfip] parsing du CSV…");
-  const rows = parseCsv(csvContent, year);
-  console.log(`[dgfip] ${rows.length} lignes valides après parsing.`);
+  // 2. Parser + pivoter long → wide
+  console.log(`[ofgl] parsing + pivot…`);
+  const rows = parseAndPivot(csvContent, year);
+  console.log(`[ofgl] ${rows.length} communes à upserter.`);
 
   // 3. Upsert par batches
   let inserted = 0;
@@ -483,12 +571,14 @@ export async function runDgfipImport(year: number = DEFAULT_YEAR): Promise<{
 
     if ((i + BATCH_SIZE) % 1000 === 0 || i + BATCH_SIZE >= rows.length) {
       const elapsed = ((Date.now() - start) / 1000).toFixed(0);
-      console.log(`[dgfip] ${Math.min(i + BATCH_SIZE, rows.length)} / ${rows.length} (${elapsed}s)`);
+      console.log(
+        `[ofgl] ${Math.min(i + BATCH_SIZE, rows.length)} / ${rows.length} (${elapsed}s, ${errors} erreurs)`,
+      );
     }
   }
 
   const durationSec = (Date.now() - start) / 1000;
-  console.log(`[dgfip] terminé : ${inserted} insérées, ${errors} erreurs en ${durationSec.toFixed(0)}s`);
+  console.log(`[ofgl] terminé : ${inserted} insérées, ${errors} erreurs en ${durationSec.toFixed(0)}s`);
   return { totalRows: rows.length, inserted, errors, durationSec };
 }
 
@@ -503,11 +593,11 @@ if (isCli) {
   const year = yearArg ? parseInt(yearArg, 10) : DEFAULT_YEAR;
   runDgfipImport(year)
     .then((res) => {
-      console.log(`[dgfip] OK : ${res.inserted}/${res.totalRows} lignes en ${res.durationSec.toFixed(0)}s`);
+      console.log(`[ofgl] OK : ${res.inserted}/${res.totalRows} lignes en ${res.durationSec.toFixed(0)}s`);
       process.exit(0);
     })
     .catch((e) => {
-      console.error("[dgfip] FATAL :", e);
+      console.error("[ofgl] FATAL :", e);
       process.exit(1);
     })
     .finally(() => prisma.$disconnect());
