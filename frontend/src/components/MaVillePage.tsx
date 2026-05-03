@@ -1063,6 +1063,87 @@ function SubSources({
 // Helpers UI
 // ============================================================================
 
+// ----------------------------------------------------------------------------
+// Classification officielle des communes
+// Sources :
+//   - OFGL (Observatoire des Finances Locales) — strates démographiques
+//     utilisées pour comparer les budgets
+//   - Loi MAPTAM 2014 + Loi NOTRe 2015 — statuts administratifs (métropoles)
+// ----------------------------------------------------------------------------
+
+interface Classification {
+  /** Strate démographique OFGL (taille). */
+  strate: string;
+  strateColor: string;
+  /** Statut administratif si applicable (métropole, etc.). */
+  statut?: string;
+}
+
+// 22 métropoles statutaires françaises (loi MAPTAM 2014 / NOTRe 2015).
+// Code INSEE de la commune-centre.
+const METROPOLES_STATUTAIRES: Record<string, string> = {
+  "75056": "Métropole du Grand Paris",
+  "13055": "Métropole d'Aix-Marseille-Provence",
+  "69123": "Métropole de Lyon",
+  "31555": "Métropole de Toulouse",
+  "59350": "Métropole Européenne de Lille",
+  "33063": "Métropole de Bordeaux",
+  "06088": "Métropole Nice Côte d'Azur",
+  "44109": "Nantes Métropole",
+  "67482": "Eurométropole de Strasbourg",
+  "34172": "Montpellier Méditerranée Métropole",
+  "35238": "Rennes Métropole",
+  "76540": "Métropole Rouen Normandie",
+  "38185": "Grenoble-Alpes Métropole",
+  "83137": "Métropole Toulon-Provence-Méditerranée",
+  "29019": "Brest Métropole",
+  "63113": "Clermont Auvergne Métropole",
+  "21231": "Dijon Métropole",
+  "42218": "Saint-Étienne Métropole",
+  "37261": "Tours Métropole Val de Loire",
+  "45234": "Orléans Métropole",
+  "57463": "Metz Métropole",
+  "54395": "Métropole du Grand Nancy",
+};
+
+function classifyVille(codeInsee: string, population: number): Classification {
+  // Strate démographique (OFGL — utilisée pour comparer les budgets entre villes)
+  let strate: string;
+  let strateColor: string;
+  if (population < 500) {
+    strate = "Très petite commune";
+    strateColor = "bg-slate-100 text-slate-700 border-slate-200";
+  } else if (population < 2_000) {
+    strate = "Petite commune";
+    strateColor = "bg-slate-100 text-slate-700 border-slate-200";
+  } else if (population < 10_000) {
+    strate = "Commune moyenne";
+    strateColor = "bg-slate-100 text-slate-700 border-slate-200";
+  } else if (population < 20_000) {
+    strate = "Grande commune";
+    strateColor = "bg-blue-50 text-brand border-blue-200";
+  } else if (population < 50_000) {
+    strate = "Très grande commune";
+    strateColor = "bg-blue-50 text-brand border-blue-200";
+  } else if (population < 100_000) {
+    strate = "Petite ville";
+    strateColor = "bg-blue-50 text-brand border-blue-200";
+  } else if (population < 200_000) {
+    strate = "Grande ville";
+    strateColor = "bg-amber-50 text-amber-700 border-amber-300";
+  } else if (population < 500_000) {
+    strate = "Très grande ville";
+    strateColor = "bg-amber-50 text-amber-800 border-amber-400";
+  } else {
+    strate = "Métropole démographique";
+    strateColor = "bg-red-50 text-flag-red border-red-300";
+  }
+
+  const statut = METROPOLES_STATUTAIRES[codeInsee];
+
+  return { strate, strateColor, statut };
+}
+
 function VilleHero({
   ville,
   lastYear,
@@ -1072,6 +1153,7 @@ function VilleHero({
   lastYear: Ville["annees"][number];
   subtitle: string;
 }) {
+  const classif = classifyVille(ville.codeInsee, ville.population);
   return (
     <section className="mt-6">
       <div className="card p-5 md:p-6 bg-brand-soft/30 border-brand/20">
@@ -1088,6 +1170,24 @@ function VilleHero({
           {ville.departement} · <strong>{ville.population.toLocaleString("fr-FR")}</strong> habitants ·
           Budget {(lastYear.budgetTotalEur / 1e6).toFixed(0)} M€ ({lastYear.annee})
         </p>
+
+        {/* Classification officielle (strate démographique + statut métropole) */}
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <span
+            className={`text-[11px] px-2.5 py-1 rounded-full border uppercase tracking-wider font-medium ${classif.strateColor}`}
+            title="Strate démographique OFGL — utilisée pour comparer les budgets entre villes de taille équivalente"
+          >
+            🏛️ {classif.strate}
+          </span>
+          {classif.statut && (
+            <span
+              className="text-[11px] px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-300 uppercase tracking-wider font-medium"
+              title="Statut administratif — Loi MAPTAM 2014 / NOTRe 2015"
+            >
+              ⭐ {classif.statut}
+            </span>
+          )}
+        </div>
       </div>
     </section>
   );
