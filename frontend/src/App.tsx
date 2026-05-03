@@ -447,14 +447,18 @@ function FindMyCityHero({ data }: { data: BudgetSnapshot }) {
   const villes = data.villes?.items ?? [];
   const [query, setQuery] = useState("");
 
-  if (villes.length === 0) return null;
-
-  const top = [...villes].sort((a, b) => b.population - a.population);
+  // Hooks AVANT early return (rules of hooks).
+  const top = useMemo(
+    () => [...villes].sort((a, b) => b.population - a.population),
+    [villes],
+  );
   const filtered = useMemo(() => {
     if (!query.trim()) return top.slice(0, 6);
     const q = query.toLowerCase().trim();
     return top.filter((v) => v.nom.toLowerCase().includes(q)).slice(0, 12);
   }, [top, query]);
+
+  if (villes.length === 0) return null;
 
   function go(slug: string) {
     window.location.hash = `#/villes/${slug}`;

@@ -70,10 +70,13 @@ function slugify(s: string): string {
 export function MaVillePage({ data, subPage, villeSlug }: Props) {
   const villes = data.villes?.items ?? [];
 
+  // Tous les hooks DOIVENT être appelés avant les early returns (rules of hooks).
   const ville = useMemo(() => {
     if (!villeSlug) return null;
     return villes.find((v) => slugify(v.nom) === villeSlug) ?? null;
   }, [villes, villeSlug]);
+
+  const moyennes = useMemo(() => calcMoyennes(villes), [villes]);
 
   if (!data.villes || villes.length === 0) {
     return (
@@ -105,7 +108,6 @@ export function MaVillePage({ data, subPage, villeSlug }: Props) {
 
   // Calculs partagés entre sub-pages
   const lastYear = ville.annees[ville.annees.length - 1]!;
-  const moyennes = useMemo(() => calcMoyennes(villes), [villes]);
 
   // Aiguillage selon sub-page
   switch (subPage) {
@@ -558,7 +560,6 @@ function SubComparaison({
 }) {
   const lastYear = ville.annees[ville.annees.length - 1]!;
   const budgetParHab = lastYear.budgetTotalEur / ville.population;
-  const detteParHab = lastYear.detteEncoursEur / ville.population;
 
   // Top 5 villes les plus chères / les moins chères en budget/hab
   const allWithBudget = villes
