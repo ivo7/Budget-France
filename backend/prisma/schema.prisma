@@ -411,3 +411,108 @@ model GlossaryEntry {
 
   @@index([categorie])
 }
+
+// ----------------------------------------------------------------------------
+// Domaine 7 : COMMUNES (Phase 2)
+// ----------------------------------------------------------------------------
+// Données budgétaires de toutes les communes françaises (~35 000) issues
+// des comptes individuels DGFiP (data.gouv.fr). Importation annuelle via
+// le script pipeline/src/villesImport.ts.
+
+/// Référentiel d'une commune française.
+model Commune {
+  codeInsee     String                @id                   // ex: "75056" pour Paris
+  nom           String
+  slug          String                @unique               // pour les URLs
+  departement   String                                       // ex: "Paris (75)"
+  departementCode String                                     // ex: "75"
+  region        String                                       // ex: "Île-de-France"
+  population    Int                                          // dernière population INSEE connue
+  classification String                                      // strate OFGL : "Grande ville", etc.
+  metropole     String?                                      // statut métropole si applicable
+
+  finances      CommuneFinanciere[]
+  fiscalite     CommuneFiscalite[]
+
+  @@index([nom])
+  @@index([slug])
+  @@index([departementCode])
+  @@index([population])
+}
+
+/// Données budgétaires d'une commune pour une année donnée.
+/// Toutes les valeurs en EUROS (BigInt pour gros montants Paris/Lyon).
+model CommuneFinanciere {
+  id                          String  @id @default(cuid())
+  codeInsee                   String
+  annee                       Int
+
+  // Recettes / Dépenses
+  recettesTotalesEur          BigInt
+  recettesFonctionnementEur   BigInt
+  recettesInvestEur           BigInt
+  depensesTotalesEur          BigInt
+  depensesFonctionnementEur   BigInt
+  depensesInvestEur           BigInt
+  soldeBudgetaireEur          BigInt
+  budgetTotalEur              BigInt   // synthèse pour affichage
+
+  // Dette
+  detteEncoursEur             BigInt
+  chargeDetteEur              BigInt    // intérêts versés dans l'année
+
+  // Marge
+  capaciteAutofinancementEur  BigInt    // CAF brute
+
+  // Composantes principales
+  depensesPersonnelEur        BigInt
+  depensesChargesGeneralesEur BigInt
+  depensesSubventionsEur      BigInt
+
+  // Composantes des recettes
+  recettesImpotsLocauxEur     BigInt
+  recettesDotationsEtatEur    BigInt
+  recettesSubventionsEur      BigInt
+  recettesServicesEur         BigInt
+
+  // Composition en pourcentage (calculée à l'import pour accélérer le frontend)
+  compoRecettesImpotsPct      Float
+  compoRecettesDotationsPct   Float
+  compoRecettesSubvPct        Float
+  compoRecettesServicesPct    Float
+  compoRecettesAutresPct      Float
+  compoDepensesPersonnelPct   Float
+  compoDepensesGeneralesPct   Float
+  compoDepensesSubvPct        Float
+  compoDepensesFinancieresPct Float
+  compoDepensesInvestPct      Float
+
+  source                      String   // "DGFiP comptes individuels 2024" / "seed Phase 1"
+  importedAt                  DateTime @default(now())
+
+  commune                     Commune  @relation(fields: [codeInsee], references: [codeInsee], onDelete: Cascade)
+
+  @@unique([codeInsee, annee])
+  @@index([annee])
+}
+
+/// Taux fiscaux locaux d'une commune pour une année donnée.
+/// (Phase 2bis — à brancher quand on aura le CSV DGFiP des bases d'imposition.)
+model CommuneFiscalite {
+  id                  String  @id @default(cuid())
+  codeInsee           String
+  annee               Int
+  tauxTaxeFonciereBati    Float?
+  tauxTaxeFonciereNonBati Float?
+  tauxTaxeHabitation      Float?
+  tauxCfe                 Float?
+  tauxTeom                Float?
+
+  source              String
+  importedAt          DateTime @default(now())
+
+  commune             Commune  @relation(fields: [codeInsee], references: [codeInsee], onDelete: Cascade)
+
+  @@unique([codeInsee, annee])
+  @@index([annee])
+}

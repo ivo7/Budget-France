@@ -14,6 +14,8 @@ import { registerDatasetRoutes } from "./routes/datasets.ts";
 import { registerStripeRoutes } from "./routes/stripe.ts";
 import { registerAdminRoutes, isAdminAuthenticated } from "./routes/admin.ts";
 import { registerAnalyticsRoutes } from "./routes/analytics.ts";
+import { registerCommunesRoutes } from "./routes/communes.ts";
+import { loadCommunesIfNeeded } from "./seed/loadCommunes.ts";
 import { checkThresholds } from "./jobs/threshold.ts";
 import { sendMonthlyBulletin } from "./jobs/monthly.ts";
 import { sendWeeklyBulletin } from "./jobs/weekly.ts";
@@ -93,10 +95,12 @@ async function main() {
   registerStripeRoutes(app);
   registerAdminRoutes(app);
   registerAnalyticsRoutes(app);
+  registerCommunesRoutes(app);
 
   // Charge les datasets en DB au démarrage (idempotent).
   // À faire APRÈS prisma db push (géré dans le Dockerfile) et AVANT listen.
   await loadDatasetsIfNeeded((msg) => app.log.info(msg));
+  await loadCommunesIfNeeded((msg) => app.log.info(msg));
 
   // Endpoints admin déclenchant manuellement les jobs.
   // Protégés par le même Bearer token que les autres routes /api/admin/*.

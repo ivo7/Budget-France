@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useBudgetData } from "./hooks/useBudgetData";
 import { useHashRoute } from "./hooks/useHashRoute";
 import { usePageAnalytics } from "./hooks/useAnalytics";
+import { useCommuneSearch } from "./hooks/useCommune";
 import { LiveDebtCounter } from "./components/LiveDebtCounter";
 import { LiveSpendingCounter } from "./components/LiveSpendingCounter";
 import { KPICard } from "./components/KPICard";
@@ -1437,9 +1438,16 @@ function VilleSearch({
 }) {
   const [query, setQuery] = useState("");
 
-  const filtered = useMemo(() => {
+  // Phase 2 : on tente d'abord l'API (toutes les communes en DB),
+  // fallback sur le snapshot local si l'API ne répond pas (40 villes Phase 1).
+  const { results: apiResults, loading: apiLoading, error: apiError } =
+    useCommuneSearch(query, 12);
+
+  const useApi = !apiError && apiResults.length > 0;
+
+  // Fallback snapshot si API indisponible
+  const localFiltered = useMemo(() => {
     if (!query.trim()) {
-      // Sans recherche : afficher les 8 plus grandes villes par population
       return [...allVilles].sort((a, b) => b.population - a.population).slice(0, 8);
     }
     const q = query.toLowerCase().trim();
@@ -1448,7 +1456,9 @@ function VilleSearch({
       .slice(0, 12);
   }, [allVilles, query]);
 
-  // Focus auto sur l'input
+  const displayed = useApi ? apiResults : localFiltered;
+
+  // Focus auto
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     inputRef.current?.focus();
@@ -1466,22 +1476,25 @@ function VilleSearch({
   return (
     <div>
       <div className="text-xs uppercase tracking-widest text-muted mb-2">
-        Trouver ma ville (parmi {allVilles.length} disponibles)
+        Trouver ma ville
+        {useApi && <span className="ml-2 text-money normal-case">— recherche complète activée</span>}
       </div>
       <input
         ref={inputRef}
         type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Tape le nom de ta ville (Paris, Marseille, Lyon…)"
+        placeholder="Tape le nom de ta ville ou son code postal (Paris, Marseille, 75001…)"
         className="w-full bg-white border-2 border-slate-200 rounded-lg px-4 py-3 text-base focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
       />
 
       <div className="mt-3">
-        {filtered.length === 0 ? (
+        {apiLoading && query.trim() && (
+          <div className="text-xs text-slate-400 italic px-2 py-1">Recherche…</div>
+        )}
+        {displayed.length === 0 && !apiLoading ? (
           <div className="text-sm text-slate-500 italic px-2 py-3">
-            Aucune ville ne correspond à « {query} ». Phase 1 limitée aux {allVilles.length}{" "}
-            plus grandes villes.
+            Aucune ville ne correspond à « {query} ».
           </div>
         ) : (
           <>
@@ -1491,7 +1504,7 @@ function VilleSearch({
               </div>
             )}
             <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-              {filtered.map((v) => (
+              {displayed.map((v) => (
                 <li key={v.slug}>
                   <button
                     type="button"
@@ -1513,8 +1526,9 @@ function VilleSearch({
       </div>
 
       <div className="mt-3 text-[11px] text-slate-400">
-        Phase 1 (MVP) — données pour les 20 plus grandes villes uniquement.
-        Toutes les communes seront ajoutées en Phase 2.
+        {useApi
+          ? "Recherche dans toutes les communes françaises de la base (DGFiP)."
+          : "Recherche dans les 40 plus grandes villes (Phase 1). L'API DB n'est pas disponible."}
       </div>
     </div>
   );
