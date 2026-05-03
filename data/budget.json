@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-26T20:49:31.685Z",
+  "generatedAt": "2026-05-02T01:52:58.275Z",
   "annee": 2026,
   "budgetPrevisionnel": {
     "value": 580000000000,
@@ -8,7 +8,7 @@
       "id": "datagouv.seed",
       "label": "data.gouv.fr — LFI 2026 (fallback)",
       "url": "https://www.data.gouv.fr/fr/datasets/budget-de-letat/",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     "alternates": [],
@@ -21,24 +21,24 @@
       "id": "datagouv.seed",
       "label": "data.gouv.fr — LFI 2026 (fallback)",
       "url": "https://www.data.gouv.fr/fr/datasets/budget-de-letat/",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     "alternates": [],
     "asOf": "2026-01-01"
   },
   "budgetExecute": {
-    "value": 184118491981.862,
+    "value": 192398628940.89294,
     "unit": "EUR",
     "source": {
       "id": "datagouv.seed",
       "label": "data.gouv.fr — LFI 2026 (fallback)",
       "url": "https://www.data.gouv.fr/fr/datasets/budget-de-letat/",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     "alternates": [],
-    "asOf": "2026-04-26"
+    "asOf": "2026-05-02"
   },
   "soldeBudgetaire": {
     "value": -175000000000,
@@ -47,89 +47,133 @@
       "id": "datagouv.seed",
       "label": "data.gouv.fr — LFI 2026 (fallback)",
       "url": "https://www.data.gouv.fr/fr/datasets/budget-de-letat/",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     "alternates": [],
     "asOf": "2026-01-01"
   },
   "dettePublique": {
-    "value": 3460465100000,
+    "value": 3408051310456.3037,
     "unit": "EUR",
     "source": {
-      "id": "eurostat.dette",
-      "label": "Eurostat — Dette publique (gov_10q_ggdebt)",
-      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/gov_10q_ggdebt?format=JSON&geo=FR&sector=S13&na_item=GD&unit=MIO_EUR",
-      "fetchedAt": "2026-04-26T20:49:28.552Z",
-      "status": "ok"
+      "id": "insee.seed",
+      "label": "INSEE — valeurs connues (fallback)",
+      "url": "https://www.insee.fr/fr/statistiques/2830192",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
+      "status": "fallback"
     },
-    "alternates": [],
-    "asOf": "2025-12-31"
+    "alternates": [
+      {
+        "id": "dette.error.0",
+        "label": "dette (échec)",
+        "url": "",
+        "fetchedAt": "2026-05-02T01:52:58.256Z",
+        "status": "error",
+        "error": "fetch failed"
+      },
+      {
+        "id": "dette.error.1",
+        "label": "dette (échec)",
+        "url": "",
+        "fetchedAt": "2026-05-02T01:52:58.259Z",
+        "status": "error",
+        "error": "fetch failed"
+      }
+    ],
+    "asOf": "2026-05-02"
   },
   "pib": {
-    "value": 2979085100000,
+    "value": 2958000000000,
     "unit": "EUR",
     "source": {
-      "id": "eurostat.pib",
-      "label": "Eurostat — PIB France (nama_10_gdp)",
-      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nama_10_gdp?format=JSON&geo=FR&na_item=B1GQ&unit=CP_MEUR",
-      "fetchedAt": "2026-04-26T20:49:28.655Z",
-      "status": "ok"
+      "id": "insee.seed",
+      "label": "INSEE — valeurs connues (fallback)",
+      "url": "https://www.insee.fr/fr/statistiques/2830192",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
+      "status": "fallback"
     },
-    "alternates": [],
-    "asOf": "2025-12-31"
+    "alternates": [
+      {
+        "id": "pib.error.0",
+        "label": "pib (échec)",
+        "url": "",
+        "fetchedAt": "2026-05-02T01:52:58.262Z",
+        "status": "error",
+        "error": "fetch failed"
+      }
+    ],
+    "asOf": "2026-01-01"
   },
   "ratioDettePib": {
-    "value": 1.1615865219828732,
+    "value": 1.1521471637783312,
     "unit": "RATIO",
     "source": {
       "id": "calc.dette_sur_pib",
       "label": "Calcul — Dette / PIB",
       "url": "",
-      "fetchedAt": "2026-04-26T20:49:31.684Z",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
       "status": "ok"
     },
     "alternates": [],
-    "asOf": "2026-04-26"
+    "asOf": "2026-05-02"
   },
   "tauxOat10ans": {
-    "value": 3.64,
+    "value": 3.1,
     "unit": "PCT",
     "source": {
-      "id": "ecb.oat10",
-      "label": "BCE — Rendement OAT 10 ans (IRS M.FR.L.L40)",
-      "url": "https://data-api.ecb.europa.eu/service/data/IRS/M.FR.L.L40.CI.0000.EUR.N.Z?format=csvdata&startPeriod=2015-01",
-      "fetchedAt": "2026-04-26T20:49:29.446Z",
-      "status": "ok"
+      "id": "bdf.seed",
+      "label": "Banque de France — valeurs connues (fallback)",
+      "url": "https://www.banque-france.fr/",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
+      "status": "fallback"
     },
-    "alternates": [],
-    "asOf": "2026-03-01"
+    "alternates": [
+      {
+        "id": "oat10.error.0",
+        "label": "oat10 (échec)",
+        "url": "",
+        "fetchedAt": "2026-05-02T01:52:58.264Z",
+        "status": "error",
+        "error": "fetch failed"
+      }
+    ],
+    "asOf": "2026-05-02"
   },
   "tauxDirecteurBce": {
-    "value": 2.15,
+    "value": 2.5,
     "unit": "PCT",
     "source": {
-      "id": "ecb.mro",
-      "label": "BCE — Taux directeur (MRO)",
-      "url": "https://data-api.ecb.europa.eu/service/data/FM/D.U2.EUR.4F.KR.MRR_FR.LEV?format=csvdata&lastNObservations=1",
-      "fetchedAt": "2026-04-26T20:49:30.658Z",
-      "status": "ok"
+      "id": "bdf.seed",
+      "label": "Banque de France — valeurs connues (fallback)",
+      "url": "https://www.banque-france.fr/",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
+      "status": "fallback"
     },
-    "alternates": [],
-    "asOf": "2026-04-26"
+    "alternates": [
+      {
+        "id": "mro.error.0",
+        "label": "mro (échec)",
+        "url": "",
+        "fetchedAt": "2026-05-02T01:52:58.267Z",
+        "status": "error",
+        "error": "fetch failed"
+      }
+    ],
+    "asOf": "2026-05-02"
   },
   "vitesseEndettementEurParSec": {
-    "value": 4894.989852866565,
+    "value": 5549.213597158802,
     "unit": "EUR_PER_SEC",
     "source": {
       "id": "calc.vitesse_endettement",
       "label": "Calcul — Vitesse d'endettement (dérivée 12 mois)",
       "url": "",
-      "fetchedAt": "2026-04-26T20:49:31.684Z",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
       "status": "ok"
     },
     "alternates": [],
-    "asOf": "2026-04-26"
+    "asOf": "2026-05-02"
   },
   "vitesseDepensesEurParSec": {
     "value": 18391.67935058346,
@@ -138,11 +182,11 @@
       "id": "calc.vitesse_depenses",
       "label": "Calcul — Vitesse d'écoulement des dépenses (LFI / 31,5 M s)",
       "url": "",
-      "fetchedAt": "2026-04-26T20:49:31.684Z",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
       "status": "ok"
     },
     "alternates": [],
-    "asOf": "2026-04-26"
+    "asOf": "2026-05-02"
   },
   "series": {
     "detteHistorique": {
@@ -151,428 +195,96 @@
       "unit": "EUR",
       "points": [
         {
-          "date": "2000-03-31",
-          "value": 854843700000
-        },
-        {
-          "date": "2000-06-30",
-          "value": 866902400000
-        },
-        {
-          "date": "2000-09-30",
-          "value": 870578700000
-        },
-        {
-          "date": "2000-12-31",
-          "value": 880004800000
-        },
-        {
-          "date": "2001-03-31",
-          "value": 875543200000
-        },
-        {
-          "date": "2001-06-30",
-          "value": 898679800000
-        },
-        {
-          "date": "2001-09-30",
-          "value": 908572800000
-        },
-        {
-          "date": "2001-12-31",
-          "value": 907672600000
-        },
-        {
-          "date": "2002-03-31",
-          "value": 919783300000
-        },
-        {
-          "date": "2002-06-30",
-          "value": 946681100000
-        },
-        {
-          "date": "2002-09-30",
-          "value": 950334700000
-        },
-        {
-          "date": "2002-12-31",
-          "value": 966822500000
-        },
-        {
-          "date": "2003-03-31",
-          "value": 998511400000
-        },
-        {
-          "date": "2003-06-30",
-          "value": 1038217700000
-        },
-        {
-          "date": "2003-09-30",
-          "value": 1054002600000.0001
-        },
-        {
-          "date": "2003-12-31",
-          "value": 1060406399999.9999
-        },
-        {
-          "date": "2004-03-31",
-          "value": 1082162300000
-        },
-        {
-          "date": "2004-06-30",
-          "value": 1116596900000
-        },
-        {
-          "date": "2004-09-30",
-          "value": 1121826200000
-        },
-        {
-          "date": "2004-12-31",
-          "value": 1134346900000
-        },
-        {
-          "date": "2005-03-31",
-          "value": 1157642800000
-        },
-        {
-          "date": "2005-06-30",
-          "value": 1176901400000
-        },
-        {
-          "date": "2005-09-30",
-          "value": 1183008600000
-        },
-        {
           "date": "2005-12-31",
-          "value": 1201470700000
-        },
-        {
-          "date": "2006-03-31",
-          "value": 1211122000000
-        },
-        {
-          "date": "2006-06-30",
-          "value": 1208337500000
-        },
-        {
-          "date": "2006-09-30",
-          "value": 1220494600000
+          "value": 1152000000000
         },
         {
           "date": "2006-12-31",
-          "value": 1207312700000
-        },
-        {
-          "date": "2007-03-31",
-          "value": 1244508900000
-        },
-        {
-          "date": "2007-06-30",
-          "value": 1277565000000
-        },
-        {
-          "date": "2007-09-30",
-          "value": 1280494800000
+          "value": 1152000000000
         },
         {
           "date": "2007-12-31",
-          "value": 1268858700000
-        },
-        {
-          "date": "2008-03-31",
-          "value": 1311092400000
-        },
-        {
-          "date": "2008-06-30",
-          "value": 1330957100000
-        },
-        {
-          "date": "2008-09-30",
-          "value": 1348710100000
+          "value": 1212000000000
         },
         {
           "date": "2008-12-31",
-          "value": 1389401600000
-        },
-        {
-          "date": "2009-03-31",
-          "value": 1472910600000
-        },
-        {
-          "date": "2009-06-30",
-          "value": 1561745900000
-        },
-        {
-          "date": "2009-09-30",
-          "value": 1601408300000
+          "value": 1318000000000
         },
         {
           "date": "2009-12-31",
-          "value": 1627182200000
-        },
-        {
-          "date": "2010-03-31",
-          "value": 1672652400000
-        },
-        {
-          "date": "2010-06-30",
-          "value": 1730926200000
-        },
-        {
-          "date": "2010-09-30",
-          "value": 1710061300000
+          "value": 1493000000000
         },
         {
           "date": "2010-12-31",
-          "value": 1722172200000
-        },
-        {
-          "date": "2011-03-31",
-          "value": 1766820200000
-        },
-        {
-          "date": "2011-06-30",
-          "value": 1811729800000
-        },
-        {
-          "date": "2011-09-30",
-          "value": 1806844300000
+          "value": 1631000000000
         },
         {
           "date": "2011-12-31",
-          "value": 1830136300000
-        },
-        {
-          "date": "2012-03-31",
-          "value": 1886815300000
-        },
-        {
-          "date": "2012-06-30",
-          "value": 1922559800000
-        },
-        {
-          "date": "2012-09-30",
-          "value": 1902116200000
+          "value": 1754000000000
         },
         {
           "date": "2012-12-31",
-          "value": 1915835200000
-        },
-        {
-          "date": "2013-03-31",
-          "value": 1953602900000
-        },
-        {
-          "date": "2013-06-30",
-          "value": 1996303500000
-        },
-        {
-          "date": "2013-09-30",
-          "value": 1985612900000
+          "value": 1869000000000
         },
         {
           "date": "2013-12-31",
-          "value": 2004958200000
-        },
-        {
-          "date": "2014-03-31",
-          "value": 2048559500000
-        },
-        {
-          "date": "2014-06-30",
-          "value": 2067820000000
-        },
-        {
-          "date": "2014-09-30",
-          "value": 2073949800000
+          "value": 1953000000000
         },
         {
           "date": "2014-12-31",
-          "value": 2071124500000
-        },
-        {
-          "date": "2015-03-31",
-          "value": 2123941900000
-        },
-        {
-          "date": "2015-06-30",
-          "value": 2141124299999.9998
-        },
-        {
-          "date": "2015-09-30",
-          "value": 2140154100000
+          "value": 2039000000000
         },
         {
           "date": "2015-12-31",
-          "value": 2134871000000
-        },
-        {
-          "date": "2016-03-31",
-          "value": 2188165700000.0002
-        },
-        {
-          "date": "2016-06-30",
-          "value": 2217789300000
-        },
-        {
-          "date": "2016-09-30",
-          "value": 2206513200000
+          "value": 2101000000000
         },
         {
           "date": "2016-12-31",
-          "value": 2190524600000
-        },
-        {
-          "date": "2017-03-31",
-          "value": 2256023100000
-        },
-        {
-          "date": "2017-06-30",
-          "value": 2281296600000
-        },
-        {
-          "date": "2017-09-30",
-          "value": 2278841600000
+          "value": 2152000000000
         },
         {
           "date": "2017-12-31",
-          "value": 2263285800000
-        },
-        {
-          "date": "2018-03-31",
-          "value": 2291562000000
-        },
-        {
-          "date": "2018-06-30",
-          "value": 2305538600000
-        },
-        {
-          "date": "2018-09-30",
-          "value": 2325737300000
+          "value": 2218000000000
         },
         {
           "date": "2018-12-31",
-          "value": 2320737100000
-        },
-        {
-          "date": "2019-03-31",
-          "value": 2362205400000
-        },
-        {
-          "date": "2019-06-30",
-          "value": 2379055500000
-        },
-        {
-          "date": "2019-09-30",
-          "value": 2420301300000
+          "value": 2315000000000
         },
         {
           "date": "2019-12-31",
-          "value": 2387399000000
-        },
-        {
-          "date": "2020-03-31",
-          "value": 2445788100000
-        },
-        {
-          "date": "2020-06-30",
-          "value": 2644864500000
-        },
-        {
-          "date": "2020-09-30",
-          "value": 2679560600000
+          "value": 2375000000000
         },
         {
           "date": "2020-12-31",
-          "value": 2663852000000
-        },
-        {
-          "date": "2021-03-31",
-          "value": 2752471300000
-        },
-        {
-          "date": "2021-06-30",
-          "value": 2775228100000
-        },
-        {
-          "date": "2021-09-30",
-          "value": 2846602200000
+          "value": 2648000000000
         },
         {
           "date": "2021-12-31",
-          "value": 2828781300000
-        },
-        {
-          "date": "2022-03-31",
-          "value": 2915671000000
-        },
-        {
-          "date": "2022-06-30",
-          "value": 2922045800000
-        },
-        {
-          "date": "2022-09-30",
-          "value": 2962730000000
+          "value": 2813000000000
         },
         {
           "date": "2022-12-31",
-          "value": 2955639100000
-        },
-        {
-          "date": "2023-03-31",
-          "value": 3021059300000
-        },
-        {
-          "date": "2023-06-30",
-          "value": 3055923300000
-        },
-        {
-          "date": "2023-09-30",
-          "value": 3095773700000
+          "value": 2950000000000
         },
         {
           "date": "2023-12-31",
-          "value": 3103247700000
-        },
-        {
-          "date": "2024-03-31",
-          "value": 3162999000000
-        },
-        {
-          "date": "2024-06-30",
-          "value": 3232354600000
-        },
-        {
-          "date": "2024-09-30",
-          "value": 3303026400000
+          "value": 3100000000000
         },
         {
           "date": "2024-12-31",
-          "value": 3306096700000
-        },
-        {
-          "date": "2025-03-31",
-          "value": 3346280800000
-        },
-        {
-          "date": "2025-06-30",
-          "value": 3417154300000
-        },
-        {
-          "date": "2025-09-30",
-          "value": 3484061600000
+          "value": 3230000000000
         },
         {
           "date": "2025-12-31",
-          "value": 3460465100000
+          "value": 3350000000000
         }
       ],
       "source": {
-        "id": "eurostat.dette",
-        "label": "Eurostat — Dette publique (gov_10q_ggdebt)",
-        "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/gov_10q_ggdebt?format=JSON&geo=FR&sector=S13&na_item=GD&unit=MIO_EUR",
-        "fetchedAt": "2026-04-26T20:49:28.552Z",
-        "status": "ok"
+        "id": "insee.seed",
+        "label": "INSEE — valeurs connues (fallback)",
+        "url": "https://www.insee.fr/fr/statistiques/2830192",
+        "fetchedAt": "2026-05-02T01:52:57.863Z",
+        "status": "fallback"
       }
     },
     "soldeHistorique": {
@@ -629,7 +341,7 @@
         "id": "datagouv.seed",
         "label": "data.gouv.fr — LFI 2026 (fallback)",
         "url": "https://www.data.gouv.fr/fr/datasets/budget-de-letat/",
-        "fetchedAt": "2026-04-26T20:49:26.831Z",
+        "fetchedAt": "2026-05-02T01:52:57.863Z",
         "status": "fallback"
       }
     },
@@ -639,552 +351,60 @@
       "unit": "PCT",
       "points": [
         {
-          "date": "2015-01-01",
-          "value": 0.67
+          "date": "2015-12-31",
+          "value": 0.99
         },
         {
-          "date": "2015-02-01",
-          "value": 0.6
-        },
-        {
-          "date": "2015-03-01",
-          "value": 0.51
-        },
-        {
-          "date": "2015-04-01",
-          "value": 0.44
-        },
-        {
-          "date": "2015-05-01",
-          "value": 0.89
-        },
-        {
-          "date": "2015-06-01",
-          "value": 1.2
-        },
-        {
-          "date": "2015-07-01",
-          "value": 1.11
-        },
-        {
-          "date": "2015-08-01",
-          "value": 1.01
-        },
-        {
-          "date": "2015-09-01",
-          "value": 1
-        },
-        {
-          "date": "2015-10-01",
-          "value": 0.87
-        },
-        {
-          "date": "2015-11-01",
-          "value": 0.88
-        },
-        {
-          "date": "2015-12-01",
-          "value": 0.93
-        },
-        {
-          "date": "2016-01-01",
-          "value": 0.84
-        },
-        {
-          "date": "2016-02-01",
-          "value": 0.59
-        },
-        {
-          "date": "2016-03-01",
-          "value": 0.51
-        },
-        {
-          "date": "2016-04-01",
-          "value": 0.51
-        },
-        {
-          "date": "2016-05-01",
-          "value": 0.51
-        },
-        {
-          "date": "2016-06-01",
-          "value": 0.39
-        },
-        {
-          "date": "2016-07-01",
-          "value": 0.17
-        },
-        {
-          "date": "2016-08-01",
-          "value": 0.15
-        },
-        {
-          "date": "2016-09-01",
-          "value": 0.18
-        },
-        {
-          "date": "2016-10-01",
-          "value": 0.33
-        },
-        {
-          "date": "2016-11-01",
-          "value": 0.67
-        },
-        {
-          "date": "2016-12-01",
-          "value": 0.75
-        },
-        {
-          "date": "2017-01-01",
-          "value": 0.86
-        },
-        {
-          "date": "2017-02-01",
-          "value": 1.03
-        },
-        {
-          "date": "2017-03-01",
-          "value": 1.02
-        },
-        {
-          "date": "2017-04-01",
-          "value": 0.88
-        },
-        {
-          "date": "2017-05-01",
-          "value": 0.81
-        },
-        {
-          "date": "2017-06-01",
-          "value": 0.66
-        },
-        {
-          "date": "2017-07-01",
-          "value": 0.84
-        },
-        {
-          "date": "2017-08-01",
-          "value": 0.71
-        },
-        {
-          "date": "2017-09-01",
-          "value": 0.7
-        },
-        {
-          "date": "2017-10-01",
-          "value": 0.81
-        },
-        {
-          "date": "2017-11-01",
-          "value": 0.72
-        },
-        {
-          "date": "2017-12-01",
-          "value": 0.67
-        },
-        {
-          "date": "2018-01-01",
-          "value": 0.85
-        },
-        {
-          "date": "2018-02-01",
-          "value": 0.98
-        },
-        {
-          "date": "2018-03-01",
-          "value": 0.83
-        },
-        {
-          "date": "2018-04-01",
-          "value": 0.78
-        },
-        {
-          "date": "2018-05-01",
-          "value": 0.79
-        },
-        {
-          "date": "2018-06-01",
-          "value": 0.75
-        },
-        {
-          "date": "2018-07-01",
-          "value": 0.67
-        },
-        {
-          "date": "2018-08-01",
-          "value": 0.7
-        },
-        {
-          "date": "2018-09-01",
-          "value": 0.77
-        },
-        {
-          "date": "2018-10-01",
-          "value": 0.82
-        },
-        {
-          "date": "2018-11-01",
-          "value": 0.76
-        },
-        {
-          "date": "2018-12-01",
-          "value": 0.7
-        },
-        {
-          "date": "2019-01-01",
-          "value": 0.65
-        },
-        {
-          "date": "2019-02-01",
-          "value": 0.55
-        },
-        {
-          "date": "2019-03-01",
-          "value": 0.44
-        },
-        {
-          "date": "2019-04-01",
-          "value": 0.37
-        },
-        {
-          "date": "2019-05-01",
-          "value": 0.3
-        },
-        {
-          "date": "2019-06-01",
-          "value": 0.08
-        },
-        {
-          "date": "2019-07-01",
-          "value": -0.07
-        },
-        {
-          "date": "2019-08-01",
-          "value": -0.34
-        },
-        {
-          "date": "2019-09-01",
-          "value": -0.27
-        },
-        {
-          "date": "2019-10-01",
-          "value": -0.16
-        },
-        {
-          "date": "2019-11-01",
-          "value": -0.02
-        },
-        {
-          "date": "2019-12-01",
-          "value": 0.04
-        },
-        {
-          "date": "2020-01-01",
-          "value": -0.01
-        },
-        {
-          "date": "2020-02-01",
-          "value": -0.18
-        },
-        {
-          "date": "2020-03-01",
-          "value": -0.05
-        },
-        {
-          "date": "2020-04-01",
-          "value": 0.06
-        },
-        {
-          "date": "2020-05-01",
-          "value": -0.03
-        },
-        {
-          "date": "2020-06-01",
-          "value": -0.04
-        },
-        {
-          "date": "2020-07-01",
-          "value": -0.15
-        },
-        {
-          "date": "2020-08-01",
-          "value": -0.17
-        },
-        {
-          "date": "2020-09-01",
-          "value": -0.21
-        },
-        {
-          "date": "2020-10-01",
-          "value": -0.3
-        },
-        {
-          "date": "2020-11-01",
-          "value": -0.32
-        },
-        {
-          "date": "2020-12-01",
-          "value": -0.34
-        },
-        {
-          "date": "2021-01-01",
-          "value": -0.31
-        },
-        {
-          "date": "2021-02-01",
-          "value": -0.15
-        },
-        {
-          "date": "2021-03-01",
-          "value": -0.07
-        },
-        {
-          "date": "2021-04-01",
-          "value": -0.01
-        },
-        {
-          "date": "2021-05-01",
-          "value": 0.21
-        },
-        {
-          "date": "2021-06-01",
-          "value": 0.15
-        },
-        {
-          "date": "2021-07-01",
-          "value": -0.01
-        },
-        {
-          "date": "2021-08-01",
-          "value": -0.12
-        },
-        {
-          "date": "2021-09-01",
-          "value": 0.04
-        },
-        {
-          "date": "2021-10-01",
-          "value": 0.2
-        },
-        {
-          "date": "2021-11-01",
-          "value": 0.1
-        },
-        {
-          "date": "2021-12-01",
-          "value": 0.05
-        },
-        {
-          "date": "2022-01-01",
-          "value": 0.31
-        },
-        {
-          "date": "2022-02-01",
+          "date": "2016-12-31",
           "value": 0.68
         },
         {
-          "date": "2022-03-01",
+          "date": "2017-12-31",
           "value": 0.78
         },
         {
-          "date": "2022-04-01",
-          "value": 1.28
+          "date": "2018-12-31",
+          "value": 0.71
         },
         {
-          "date": "2022-05-01",
-          "value": 1.52
+          "date": "2019-12-31",
+          "value": 0.12
         },
         {
-          "date": "2022-06-01",
-          "value": 2.06
+          "date": "2020-12-31",
+          "value": -0.34
         },
         {
-          "date": "2022-07-01",
-          "value": 1.71
+          "date": "2021-12-31",
+          "value": 0.2
         },
         {
-          "date": "2022-08-01",
-          "value": 1.69
+          "date": "2022-12-31",
+          "value": 3.12
         },
         {
-          "date": "2022-09-01",
-          "value": 2.41
+          "date": "2023-12-31",
+          "value": 2.56
         },
         {
-          "date": "2022-10-01",
-          "value": 2.77
+          "date": "2024-12-31",
+          "value": 3.2
         },
         {
-          "date": "2022-11-01",
-          "value": 2.58
-        },
-        {
-          "date": "2022-12-01",
-          "value": 2.62
-        },
-        {
-          "date": "2023-01-01",
-          "value": 2.69
-        },
-        {
-          "date": "2023-02-01",
-          "value": 2.87
-        },
-        {
-          "date": "2023-03-01",
-          "value": 2.92
-        },
-        {
-          "date": "2023-04-01",
-          "value": 2.9
-        },
-        {
-          "date": "2023-05-01",
-          "value": 2.94
-        },
-        {
-          "date": "2023-06-01",
-          "value": 2.93
-        },
-        {
-          "date": "2023-07-01",
-          "value": 3.04
-        },
-        {
-          "date": "2023-08-01",
-          "value": 3.11
-        },
-        {
-          "date": "2023-09-01",
-          "value": 3.24
-        },
-        {
-          "date": "2023-10-01",
-          "value": 3.45
-        },
-        {
-          "date": "2023-11-01",
-          "value": 3.19
-        },
-        {
-          "date": "2023-12-01",
-          "value": 2.65
-        },
-        {
-          "date": "2024-01-01",
-          "value": 2.74
-        },
-        {
-          "date": "2024-02-01",
-          "value": 2.85
-        },
-        {
-          "date": "2024-03-01",
-          "value": 2.82
-        },
-        {
-          "date": "2024-04-01",
-          "value": 2.97
-        },
-        {
-          "date": "2024-05-01",
-          "value": 3.03
-        },
-        {
-          "date": "2024-06-01",
+          "date": "2025-12-31",
           "value": 3.15
         },
         {
-          "date": "2024-07-01",
-          "value": 3.14
-        },
-        {
-          "date": "2024-08-01",
-          "value": 2.94
-        },
-        {
-          "date": "2024-09-01",
-          "value": 2.9
-        },
-        {
-          "date": "2024-10-01",
-          "value": 2.99
-        },
-        {
-          "date": "2024-11-01",
-          "value": 3.09
-        },
-        {
-          "date": "2024-12-01",
-          "value": 3.01
-        },
-        {
-          "date": "2025-01-01",
-          "value": 3.32
-        },
-        {
-          "date": "2025-02-01",
-          "value": 3.15
-        },
-        {
-          "date": "2025-03-01",
-          "value": 3.43
-        },
-        {
-          "date": "2025-04-01",
-          "value": 3.26
-        },
-        {
-          "date": "2025-05-01",
-          "value": 3.26
-        },
-        {
-          "date": "2025-06-01",
-          "value": 3.24
-        },
-        {
-          "date": "2025-07-01",
-          "value": 3.36
-        },
-        {
-          "date": "2025-08-01",
-          "value": 3.42
-        },
-        {
-          "date": "2025-09-01",
-          "value": 3.51
-        },
-        {
-          "date": "2025-10-01",
-          "value": 3.44
-        },
-        {
-          "date": "2025-11-01",
-          "value": 3.44
-        },
-        {
-          "date": "2025-12-01",
-          "value": 3.56
-        },
-        {
-          "date": "2026-01-01",
-          "value": 3.53
-        },
-        {
-          "date": "2026-02-01",
-          "value": 3.4
-        },
-        {
-          "date": "2026-03-01",
-          "value": 3.64
+          "date": "2026-04-01",
+          "value": 3.1
         }
       ],
       "source": {
-        "id": "ecb.oat10",
-        "label": "BCE — Rendement OAT 10 ans (IRS M.FR.L.L40)",
-        "url": "https://data-api.ecb.europa.eu/service/data/IRS/M.FR.L.L40.CI.0000.EUR.N.Z?format=csvdata&startPeriod=2015-01",
-        "fetchedAt": "2026-04-26T20:49:29.446Z",
-        "status": "ok"
+        "id": "bdf.seed",
+        "label": "Banque de France — valeurs connues (fallback)",
+        "url": "https://www.banque-france.fr/",
+        "fetchedAt": "2026-05-02T01:52:57.863Z",
+        "status": "fallback"
       }
     },
     "detteLongue": {
@@ -1521,7 +741,7 @@
         "id": "hist.seed",
         "label": "Séries longues 1945-2025 (INSEE + DGFiP + BdF)",
         "url": "https://www.insee.fr/fr/statistiques/serie/010565692",
-        "fetchedAt": "2026-04-26T20:49:31.684Z",
+        "fetchedAt": "2026-05-02T01:52:58.275Z",
         "status": "fallback"
       }
     },
@@ -1859,7 +1079,7 @@
         "id": "hist.seed",
         "label": "Séries longues 1945-2025 (INSEE + DGFiP + BdF)",
         "url": "https://www.insee.fr/fr/statistiques/serie/010565692",
-        "fetchedAt": "2026-04-26T20:49:31.684Z",
+        "fetchedAt": "2026-05-02T01:52:58.275Z",
         "status": "fallback"
       }
     },
@@ -2197,7 +1417,7 @@
         "id": "hist.seed",
         "label": "Séries longues 1945-2025 (INSEE + DGFiP + BdF)",
         "url": "https://www.insee.fr/fr/statistiques/serie/010565692",
-        "fetchedAt": "2026-04-26T20:49:31.684Z",
+        "fetchedAt": "2026-05-02T01:52:58.275Z",
         "status": "fallback"
       }
     },
@@ -2535,7 +1755,7 @@
         "id": "hist.seed",
         "label": "Séries longues 1945-2025 (INSEE + DGFiP + BdF)",
         "url": "https://www.insee.fr/fr/statistiques/serie/010565692",
-        "fetchedAt": "2026-04-26T20:49:31.684Z",
+        "fetchedAt": "2026-05-02T01:52:58.275Z",
         "status": "fallback"
       }
     },
@@ -2873,7 +2093,7 @@
         "id": "hist.seed",
         "label": "Séries longues 1945-2025 (INSEE + DGFiP + BdF)",
         "url": "https://www.insee.fr/fr/statistiques/serie/010565692",
-        "fetchedAt": "2026-04-26T20:49:31.684Z",
+        "fetchedAt": "2026-05-02T01:52:58.275Z",
         "status": "fallback"
       }
     }
@@ -2884,27 +2104,27 @@
       {
         "mois": "2026-01",
         "prevu": 27000000000,
-        "reel": 27196100298.908924
+        "reel": 27420094827.026917
       },
       {
         "mois": "2026-02",
         "prevu": 28687500000,
-        "reel": 27719410295.18692
+        "reel": 28879896801.33223
       },
       {
         "mois": "2026-03",
         "prevu": 30375000000,
-        "reel": 31288936881.319767
+        "reel": 30706724991.181755
       },
       {
         "mois": "2026-04",
         "prevu": 32062500000,
-        "reel": 32952341020.23289
+        "reel": 31444206877.99288
       },
       {
         "mois": "2026-05",
         "prevu": 35437500000,
-        "reel": 0
+        "reel": 34756858546.871475
       },
       {
         "mois": "2026-06",
@@ -2946,27 +2166,27 @@
       {
         "mois": "2026-01",
         "prevu": 48333333333.33333,
-        "reel": 48400530375.521866
+        "reel": 47962580054.852684
       },
       {
         "mois": "2026-02",
         "prevu": 45916666666.66666,
-        "reel": 45200834817.323524
+        "reel": 46699946526.974625
       },
       {
         "mois": "2026-03",
         "prevu": 48333333333.33333,
-        "reel": 49014273681.40859
+        "reel": 49446182107.91361
       },
       {
         "mois": "2026-04",
         "prevu": 48333333333.33333,
-        "reel": 47791637806.59527
+        "reel": 48448146973.68975
       },
       {
         "mois": "2026-05",
         "prevu": 50750000000,
-        "reel": 0
+        "reel": 52176297470.059006
       },
       {
         "mois": "2026-06",
@@ -3150,7 +2370,7 @@
       "id": "lfi.2026.seed",
       "label": "LFI 2026 — grandes masses (seed)",
       "url": "https://www.budget.gouv.fr/documentation/documents-budgetaires/exercice-2026",
-      "fetchedAt": "2026-04-26T20:49:26.808Z",
+      "fetchedAt": "2026-05-02T01:52:57.852Z",
       "status": "fallback"
     }
   },
@@ -7458,7 +6678,7 @@
       "id": "fraude.seed",
       "label": "Cour des comptes, CPO, OFCE, Solidaires Finances publiques (synthèse)",
       "url": "https://www.ccomptes.fr/fr/publications/la-fraude-aux-prelevements-obligatoires",
-      "fetchedAt": "2026-04-26T20:49:31.685Z",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
       "status": "fallback"
     }
   },
@@ -8781,7 +8001,7 @@
       "id": "europe.seed",
       "label": "Eurostat — gov_10q_ggdebt + gov_10q_ggnfa (Excessive Deficit Procedure)",
       "url": "https://ec.europa.eu/eurostat/web/government-finance-statistics",
-      "fetchedAt": "2026-04-26T20:49:31.685Z",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
       "status": "fallback"
     }
   },
@@ -12588,7 +11808,7 @@
       "id": "spread.seed",
       "label": "BCE — Data Portal (IRS France + Allemagne 10 ans)",
       "url": "https://data.ecb.europa.eu/",
-      "fetchedAt": "2026-04-26T20:49:31.685Z",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
       "status": "fallback"
     }
   },
@@ -17661,7 +16881,7 @@
       "id": "spread.multipays",
       "label": "BCE Data Portal — IRS 10 ans (FR / DE / IT / ES)",
       "url": "https://data.ecb.europa.eu/",
-      "fetchedAt": "2026-04-26T20:49:31.686Z",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
       "status": "fallback"
     }
   },
@@ -17996,7 +17216,7 @@
       "id": "insee.inflation",
       "label": "INSEE — Indice des prix à la consommation (IPC)",
       "url": "https://www.insee.fr/fr/statistiques/serie/001769682",
-      "fetchedAt": "2026-04-26T20:49:31.686Z",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
       "status": "fallback"
     }
   },
@@ -18043,7 +17263,7 @@
       "id": "aft.detenteurs",
       "label": "Agence France Trésor — Composition de la détention de la dette",
       "url": "https://www.aft.gouv.fr/files/medias-aft/9_Investisseurs/9.4_Composition.pdf",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     }
   },
@@ -18166,7 +17386,7 @@
       "id": "events.seed",
       "label": "Chronologie Banque de France + INSEE + Cour des comptes",
       "url": "https://www.banque-france.fr/fr/publications-et-statistiques/chronologie",
-      "fetchedAt": "2026-04-26T20:49:26.822Z",
+      "fetchedAt": "2026-05-02T01:52:57.859Z",
       "status": "fallback"
     }
   },
@@ -19479,7 +18699,7 @@
       "id": "secu-collec-hist.seed",
       "label": "LFSS + Comptes Sécu historiques + INSEE APUL + DGCL annuaire",
       "url": "https://www.insee.fr/fr/statistiques/5421158",
-      "fetchedAt": "2026-04-26T20:49:31.686Z",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
       "status": "fallback"
     },
     "missions": [
@@ -24136,7 +23356,7 @@
       "id": "missions.seed",
       "label": "Direction du Budget — historique des missions (reconstitution)",
       "url": "https://www.budget.gouv.fr/documentation/documents-budgetaires",
-      "fetchedAt": "2026-04-26T20:49:31.686Z",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
       "status": "fallback"
     }
   },
@@ -24405,7 +23625,7 @@
       "id": "secu-collec.seed",
       "label": "LFSS + URSSAF + DGCL + Cour des comptes (Sécu) + INSEE (APUL)",
       "url": "https://www.securite-sociale.fr/la-secu-cest-quoi/financement",
-      "fetchedAt": "2026-04-26T20:49:26.822Z",
+      "fetchedAt": "2026-05-02T01:52:57.859Z",
       "status": "fallback"
     }
   },
@@ -24547,458 +23767,459 @@
       "id": "ratings.seed",
       "label": "S&P Global Ratings + Moody's + Fitch Ratings",
       "url": "https://www.aft.gouv.fr/",
-      "fetchedAt": "2026-04-26T20:49:26.822Z",
+      "fetchedAt": "2026-05-02T01:52:57.859Z",
       "status": "fallback"
     }
   },
   "sources": [
     {
-      "id": "eurostat.dette",
-      "label": "Eurostat — Dette publique (gov_10q_ggdebt)",
-      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/gov_10q_ggdebt?format=JSON&geo=FR&sector=S13&na_item=GD&unit=MIO_EUR",
-      "fetchedAt": "2026-04-26T20:49:28.552Z",
-      "status": "ok"
-    },
-    {
-      "id": "eurostat.pib",
-      "label": "Eurostat — PIB France (nama_10_gdp)",
-      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nama_10_gdp?format=JSON&geo=FR&na_item=B1GQ&unit=CP_MEUR",
-      "fetchedAt": "2026-04-26T20:49:28.655Z",
-      "status": "ok"
-    },
-    {
-      "id": "ecb.oat10",
-      "label": "BCE — Rendement OAT 10 ans (IRS M.FR.L.L40)",
-      "url": "https://data-api.ecb.europa.eu/service/data/IRS/M.FR.L.L40.CI.0000.EUR.N.Z?format=csvdata&startPeriod=2015-01",
-      "fetchedAt": "2026-04-26T20:49:29.446Z",
-      "status": "ok"
-    },
-    {
-      "id": "ecb.mro",
-      "label": "BCE — Taux directeur (MRO)",
-      "url": "https://data-api.ecb.europa.eu/service/data/FM/D.U2.EUR.4F.KR.MRR_FR.LEV?format=csvdata&lastNObservations=1",
-      "fetchedAt": "2026-04-26T20:49:30.658Z",
-      "status": "ok"
-    },
-    {
-      "id": "bdf.webstat",
-      "label": "Banque de France — Webstat (taux)",
-      "url": "https://webstat.banque-france.fr/ws_wsfr/fr/exports/taux_interet/TLMBSI-FR.csv",
-      "fetchedAt": "2026-04-26T20:49:31.189Z",
-      "status": "error",
-      "error": "HTTP 404 Not Found — https://webstat.banque-france.fr/ws_wsfr/fr/exports/taux_interet/TLMBSI-FR.csv"
-    },
-    {
-      "id": "datagouv.lfi",
-      "label": "data.gouv.fr — Projet de loi de finances pour 2012  (PLF 2012), jaune données relations financières union européenne part de financement des  états membres",
-      "url": "https://www.data.gouv.fr/datasets/projet-de-loi-de-finances-pour-2012-plf-2012-jaune-donnees-relations-financieres-union-europeenne-part-de-financement-des-etats-membres",
-      "fetchedAt": "2026-04-26T20:49:31.684Z",
-      "status": "ok"
-    },
-    {
-      "id": "hist.seed",
-      "label": "Séries longues 1945-2025 (INSEE + DGFiP + BdF)",
-      "url": "https://www.insee.fr/fr/statistiques/serie/010565692",
-      "fetchedAt": "2026-04-26T20:49:31.684Z",
-      "status": "fallback"
-    },
-    {
-      "id": "lfi.source",
-      "label": "Direction du Budget — Loi de finances initiale 2026 (base des compteurs dépenses et solde)",
-      "url": "https://www.budget.gouv.fr/documentation/documents-budgetaires",
-      "fetchedAt": "2026-04-26T20:49:31.685Z",
-      "status": "fallback"
-    },
-    {
-      "id": "fraude.source",
-      "label": "Cour des comptes — La fraude aux prélèvements obligatoires",
-      "url": "https://www.ccomptes.fr/fr/publications/la-fraude-aux-prelevements-obligatoires",
-      "fetchedAt": "2026-04-26T20:49:31.685Z",
-      "status": "fallback"
-    },
-    {
-      "id": "cpo.source",
-      "label": "Conseil des Prélèvements Obligatoires — études TVA / IS",
-      "url": "https://www.ccomptes.fr/fr/institutions-associees/conseil-des-prelevements-obligatoires",
-      "fetchedAt": "2026-04-26T20:49:31.685Z",
-      "status": "fallback"
-    },
-    {
-      "id": "ofce.source",
-      "label": "OFCE — séries longues budgétaires France",
-      "url": "https://www.ofce.sciences-po.fr/",
-      "fetchedAt": "2026-04-26T20:49:31.685Z",
-      "status": "fallback"
-    },
-    {
-      "id": "europe.source",
-      "label": "Eurostat — gov_10q_ggdebt + gov_10q_ggnfa (FR · DE · IT · ES · UE)",
-      "url": "https://ec.europa.eu/eurostat/web/government-finance-statistics",
-      "fetchedAt": "2026-04-26T20:49:31.685Z",
-      "status": "fallback"
-    },
-    {
-      "id": "spread.source",
-      "label": "BCE — Data Portal (OAT FR + Bund DE, taux mensuels)",
-      "url": "https://data.ecb.europa.eu/",
-      "fetchedAt": "2026-04-26T20:49:31.685Z",
-      "status": "fallback"
-    },
-    {
-      "id": "sp.source",
-      "label": "Standard & Poor's Global Ratings — France",
-      "url": "https://disclosure.spglobal.com/ratings/",
-      "fetchedAt": "2026-04-26T20:49:31.685Z",
-      "status": "fallback"
-    },
-    {
-      "id": "moodys.source",
-      "label": "Moody's Ratings — France",
-      "url": "https://ratings.moodys.com/",
-      "fetchedAt": "2026-04-26T20:49:31.685Z",
-      "status": "fallback"
-    },
-    {
-      "id": "fitch.source",
-      "label": "Fitch Ratings — France",
-      "url": "https://www.fitchratings.com/issuers/france",
-      "fetchedAt": "2026-04-26T20:49:31.685Z",
-      "status": "fallback"
-    },
-    {
-      "id": "aft.source",
-      "label": "Agence France Trésor — synthèses ratings et émissions",
-      "url": "https://www.aft.gouv.fr/",
-      "fetchedAt": "2026-04-26T20:49:31.685Z",
-      "status": "fallback"
-    },
-    {
-      "id": "dgfip.source",
-      "label": "DGFiP — Situation Mensuelle Budgétaire",
-      "url": "https://www.budget.gouv.fr/documentation/documents-budgetaires/situation-mensuelle-budgetaire",
-      "fetchedAt": "2026-04-26T20:49:31.685Z",
-      "status": "fallback"
-    },
-    {
-      "id": "insee.population",
-      "label": "INSEE — Estimation de population (68,5 M au 01/01/2026)",
-      "url": "https://www.insee.fr/fr/statistiques/1893198",
-      "fetchedAt": "2026-04-26T20:49:31.685Z",
-      "status": "fallback"
-    },
-    {
-      "id": "impots.bareme",
-      "label": "impots.gouv.fr — Barème de l'impôt sur le revenu 2024",
-      "url": "https://www.impots.gouv.fr/particulier/le-calcul-de-limpot-sur-le-revenu",
-      "fetchedAt": "2026-04-26T20:49:31.685Z",
-      "status": "fallback"
-    },
-    {
-      "id": "education.nationale",
-      "label": "Éducation nationale — rémunération moyenne enseignants secondaire",
-      "url": "https://www.education.gouv.fr/les-personnels-de-l-education-nationale-6515",
-      "fetchedAt": "2026-04-26T20:49:31.685Z",
-      "status": "fallback"
-    },
-    {
-      "id": "sante.hopitaux",
-      "label": "Ministère de la Santé — budget moyen d'un centre hospitalier",
-      "url": "https://sante.gouv.fr/",
-      "fetchedAt": "2026-04-26T20:49:31.685Z",
-      "status": "fallback"
-    },
-    {
-      "id": "sncf.reseau",
-      "label": "SNCF Réseau — coût moyen d'une LGV récente",
-      "url": "https://www.sncf-reseau.com/fr",
-      "fetchedAt": "2026-04-26T20:49:31.685Z",
-      "status": "fallback"
-    },
-    {
-      "id": "ush.logement",
-      "label": "Union sociale pour l'habitat — coûts construction logement social",
-      "url": "https://www.union-habitat.org/",
-      "fetchedAt": "2026-04-26T20:49:31.685Z",
-      "status": "fallback"
-    },
-    {
-      "id": "dga.armement",
-      "label": "Direction générale de l'armement — prix export Rafale",
-      "url": "https://www.defense.gouv.fr/dga",
-      "fetchedAt": "2026-04-26T20:49:31.685Z",
-      "status": "fallback"
-    },
-    {
-      "id": "cnsa.ehpad",
-      "label": "CNSA — coût moyen d'une place en EHPAD",
-      "url": "https://www.cnsa.fr/",
-      "fetchedAt": "2026-04-26T20:49:31.685Z",
-      "status": "fallback"
-    },
-    {
-      "id": "rte.reseau",
-      "label": "RTE — coûts installés des énergies renouvelables",
-      "url": "https://www.rte-france.com/",
-      "fetchedAt": "2026-04-26T20:49:31.685Z",
-      "status": "fallback"
-    },
-    {
-      "id": "secu.lfss",
-      "label": "Sécurité sociale — Loi de financement (LFSS) et annexes PLFSS",
-      "url": "https://www.securite-sociale.fr/la-secu-cest-quoi/financement",
-      "fetchedAt": "2026-04-26T20:49:31.685Z",
-      "status": "fallback"
-    },
-    {
-      "id": "urssaf.baremes",
-      "label": "URSSAF — barèmes des cotisations 2024-2025",
-      "url": "https://www.urssaf.fr/accueil/employeur/cotisations/taux-cotisations.html",
-      "fetchedAt": "2026-04-26T20:49:31.685Z",
-      "status": "fallback"
-    },
-    {
-      "id": "ccomptes.secu",
-      "label": "Cour des comptes — rapport annuel sur l'application de la LFSS",
-      "url": "https://www.ccomptes.fr/fr/domaines-dintervention/securite-sociale",
-      "fetchedAt": "2026-04-26T20:49:31.685Z",
-      "status": "fallback"
-    },
-    {
-      "id": "dgcl.collec",
-      "label": "DGCL — Direction générale des collectivités locales (OFGL)",
-      "url": "https://www.collectivites-locales.gouv.fr/",
-      "fetchedAt": "2026-04-26T20:49:31.685Z",
-      "status": "fallback"
-    },
-    {
-      "id": "insee.apul",
-      "label": "INSEE — Comptes nationaux des administrations publiques locales (APUL)",
-      "url": "https://www.insee.fr/fr/statistiques/5421158",
-      "fetchedAt": "2026-04-26T20:49:31.685Z",
-      "status": "fallback"
-    },
-    {
-      "id": "unedic.financement",
-      "label": "Unédic — situation financière et rapport d'activité",
-      "url": "https://www.unedic.org/",
-      "fetchedAt": "2026-04-26T20:49:31.685Z",
+      "id": "insee.seed",
+      "label": "INSEE — valeurs connues (fallback)",
+      "url": "https://www.insee.fr/fr/statistiques/2830192",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     {
       "id": "insee.seed",
       "label": "INSEE — valeurs connues (fallback)",
       "url": "https://www.insee.fr/fr/statistiques/2830192",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     {
       "id": "bdf.seed",
       "label": "Banque de France — valeurs connues (fallback)",
       "url": "https://www.banque-france.fr/",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
+      "status": "fallback"
+    },
+    {
+      "id": "bdf.seed",
+      "label": "Banque de France — valeurs connues (fallback)",
+      "url": "https://www.banque-france.fr/",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
+      "status": "fallback"
+    },
+    {
+      "id": "bdf.webstat",
+      "label": "Banque de France — Webstat (taux)",
+      "url": "https://webstat.banque-france.fr/ws_wsfr/fr/exports/taux_interet/TLMBSI-FR.csv",
+      "fetchedAt": "2026-05-02T01:52:58.273Z",
+      "status": "error",
+      "error": "fetch failed"
+    },
+    {
+      "id": "datagouv.lfi",
+      "label": "data.gouv.fr — Loi de finances",
+      "url": "https://www.data.gouv.fr/fr/datasets/?q=loi+de+finances",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
+      "status": "error",
+      "error": "fetch failed"
+    },
+    {
+      "id": "hist.seed",
+      "label": "Séries longues 1945-2025 (INSEE + DGFiP + BdF)",
+      "url": "https://www.insee.fr/fr/statistiques/serie/010565692",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
+      "status": "fallback"
+    },
+    {
+      "id": "lfi.source",
+      "label": "Direction du Budget — Loi de finances initiale 2026 (base des compteurs dépenses et solde)",
+      "url": "https://www.budget.gouv.fr/documentation/documents-budgetaires",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
+      "status": "fallback"
+    },
+    {
+      "id": "fraude.source",
+      "label": "Cour des comptes — La fraude aux prélèvements obligatoires",
+      "url": "https://www.ccomptes.fr/fr/publications/la-fraude-aux-prelevements-obligatoires",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
+      "status": "fallback"
+    },
+    {
+      "id": "cpo.source",
+      "label": "Conseil des Prélèvements Obligatoires — études TVA / IS",
+      "url": "https://www.ccomptes.fr/fr/institutions-associees/conseil-des-prelevements-obligatoires",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
+      "status": "fallback"
+    },
+    {
+      "id": "ofce.source",
+      "label": "OFCE — séries longues budgétaires France",
+      "url": "https://www.ofce.sciences-po.fr/",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
+      "status": "fallback"
+    },
+    {
+      "id": "europe.source",
+      "label": "Eurostat — gov_10q_ggdebt + gov_10q_ggnfa (FR · DE · IT · ES · UE)",
+      "url": "https://ec.europa.eu/eurostat/web/government-finance-statistics",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
+      "status": "fallback"
+    },
+    {
+      "id": "spread.source",
+      "label": "BCE — Data Portal (OAT FR + Bund DE, taux mensuels)",
+      "url": "https://data.ecb.europa.eu/",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
+      "status": "fallback"
+    },
+    {
+      "id": "sp.source",
+      "label": "Standard & Poor's Global Ratings — France",
+      "url": "https://disclosure.spglobal.com/ratings/",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
+      "status": "fallback"
+    },
+    {
+      "id": "moodys.source",
+      "label": "Moody's Ratings — France",
+      "url": "https://ratings.moodys.com/",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
+      "status": "fallback"
+    },
+    {
+      "id": "fitch.source",
+      "label": "Fitch Ratings — France",
+      "url": "https://www.fitchratings.com/issuers/france",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
+      "status": "fallback"
+    },
+    {
+      "id": "aft.source",
+      "label": "Agence France Trésor — synthèses ratings et émissions",
+      "url": "https://www.aft.gouv.fr/",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
+      "status": "fallback"
+    },
+    {
+      "id": "dgfip.source",
+      "label": "DGFiP — Situation Mensuelle Budgétaire",
+      "url": "https://www.budget.gouv.fr/documentation/documents-budgetaires/situation-mensuelle-budgetaire",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
+      "status": "fallback"
+    },
+    {
+      "id": "insee.population",
+      "label": "INSEE — Estimation de population (68,5 M au 01/01/2026)",
+      "url": "https://www.insee.fr/fr/statistiques/1893198",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
+      "status": "fallback"
+    },
+    {
+      "id": "impots.bareme",
+      "label": "impots.gouv.fr — Barème de l'impôt sur le revenu 2024",
+      "url": "https://www.impots.gouv.fr/particulier/le-calcul-de-limpot-sur-le-revenu",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
+      "status": "fallback"
+    },
+    {
+      "id": "education.nationale",
+      "label": "Éducation nationale — rémunération moyenne enseignants secondaire",
+      "url": "https://www.education.gouv.fr/les-personnels-de-l-education-nationale-6515",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
+      "status": "fallback"
+    },
+    {
+      "id": "sante.hopitaux",
+      "label": "Ministère de la Santé — budget moyen d'un centre hospitalier",
+      "url": "https://sante.gouv.fr/",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
+      "status": "fallback"
+    },
+    {
+      "id": "sncf.reseau",
+      "label": "SNCF Réseau — coût moyen d'une LGV récente",
+      "url": "https://www.sncf-reseau.com/fr",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
+      "status": "fallback"
+    },
+    {
+      "id": "ush.logement",
+      "label": "Union sociale pour l'habitat — coûts construction logement social",
+      "url": "https://www.union-habitat.org/",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
+      "status": "fallback"
+    },
+    {
+      "id": "dga.armement",
+      "label": "Direction générale de l'armement — prix export Rafale",
+      "url": "https://www.defense.gouv.fr/dga",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
+      "status": "fallback"
+    },
+    {
+      "id": "cnsa.ehpad",
+      "label": "CNSA — coût moyen d'une place en EHPAD",
+      "url": "https://www.cnsa.fr/",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
+      "status": "fallback"
+    },
+    {
+      "id": "rte.reseau",
+      "label": "RTE — coûts installés des énergies renouvelables",
+      "url": "https://www.rte-france.com/",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
+      "status": "fallback"
+    },
+    {
+      "id": "secu.lfss",
+      "label": "Sécurité sociale — Loi de financement (LFSS) et annexes PLFSS",
+      "url": "https://www.securite-sociale.fr/la-secu-cest-quoi/financement",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
+      "status": "fallback"
+    },
+    {
+      "id": "urssaf.baremes",
+      "label": "URSSAF — barèmes des cotisations 2024-2025",
+      "url": "https://www.urssaf.fr/accueil/employeur/cotisations/taux-cotisations.html",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
+      "status": "fallback"
+    },
+    {
+      "id": "ccomptes.secu",
+      "label": "Cour des comptes — rapport annuel sur l'application de la LFSS",
+      "url": "https://www.ccomptes.fr/fr/domaines-dintervention/securite-sociale",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
+      "status": "fallback"
+    },
+    {
+      "id": "dgcl.collec",
+      "label": "DGCL — Direction générale des collectivités locales (OFGL)",
+      "url": "https://www.collectivites-locales.gouv.fr/",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
+      "status": "fallback"
+    },
+    {
+      "id": "insee.apul",
+      "label": "INSEE — Comptes nationaux des administrations publiques locales (APUL)",
+      "url": "https://www.insee.fr/fr/statistiques/5421158",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
+      "status": "fallback"
+    },
+    {
+      "id": "unedic.financement",
+      "label": "Unédic — situation financière et rapport d'activité",
+      "url": "https://www.unedic.org/",
+      "fetchedAt": "2026-05-02T01:52:58.275Z",
+      "status": "fallback"
+    },
+    {
+      "id": "insee.seed",
+      "label": "INSEE — valeurs connues (fallback)",
+      "url": "https://www.insee.fr/fr/statistiques/2830192",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
+      "status": "fallback"
+    },
+    {
+      "id": "bdf.seed",
+      "label": "Banque de France — valeurs connues (fallback)",
+      "url": "https://www.banque-france.fr/",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     {
       "id": "datagouv.seed",
       "label": "data.gouv.fr — LFI 2026 (fallback)",
       "url": "https://www.data.gouv.fr/fr/datasets/budget-de-letat/",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     {
       "id": "budget.gouv",
       "label": "Direction du Budget — LFI 2026",
       "url": "https://www.budget.gouv.fr/documentation/documents-budgetaires",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     {
       "id": "dgfip.smb",
       "label": "DGFiP — Situation Mensuelle Budgétaire",
       "url": "https://www.budget.gouv.fr/documentation/documents-budgetaires/situation-mensuelle-budgetaire",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     {
       "id": "secu.lfss",
       "label": "Sécurité sociale — LFSS / PLFSS",
       "url": "https://www.securite-sociale.fr/la-secu-cest-quoi/financement",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     {
       "id": "urssaf.baremes",
       "label": "URSSAF — barèmes des cotisations",
       "url": "https://www.urssaf.fr/accueil/employeur/cotisations/taux-cotisations.html",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     {
       "id": "ccomptes.secu",
       "label": "Cour des comptes — rapport LFSS",
       "url": "https://www.ccomptes.fr/fr/domaines-dintervention/securite-sociale",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     {
       "id": "dgcl.collec",
       "label": "DGCL — Collectivités locales (OFGL)",
       "url": "https://www.collectivites-locales.gouv.fr/",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     {
       "id": "insee.apul",
       "label": "INSEE — Comptes APUL",
       "url": "https://www.insee.fr/fr/statistiques/5421158",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     {
       "id": "unedic",
       "label": "Unédic — situation financière",
       "url": "https://www.unedic.org/",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     {
       "id": "eurostat.dette",
       "label": "Eurostat — gov_10q_ggdebt",
       "url": "https://ec.europa.eu/eurostat/databrowser/view/gov_10q_ggdebt",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     {
       "id": "eurostat.solde",
       "label": "Eurostat — gov_10q_ggnfa",
       "url": "https://ec.europa.eu/eurostat/databrowser/view/gov_10q_ggnfa",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     {
       "id": "ecb.taux",
       "label": "BCE — Data Portal (taux OAT + Bund)",
       "url": "https://data.ecb.europa.eu/",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     {
       "id": "aft",
       "label": "Agence France Trésor — synthèses",
       "url": "https://www.aft.gouv.fr/",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     {
       "id": "sp.ratings",
       "label": "Standard & Poor's Global Ratings",
       "url": "https://disclosure.spglobal.com/ratings/",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     {
       "id": "moodys.ratings",
       "label": "Moody's Ratings",
       "url": "https://ratings.moodys.com/",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     {
       "id": "fitch.ratings",
       "label": "Fitch Ratings — France",
       "url": "https://www.fitchratings.com/issuers/france",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     {
       "id": "ccomptes.fraude",
       "label": "Cour des comptes — fraude aux prélèvements obligatoires",
       "url": "https://www.ccomptes.fr/fr/publications/la-fraude-aux-prelevements-obligatoires",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     {
       "id": "cpo",
       "label": "Conseil des Prélèvements Obligatoires",
       "url": "https://www.ccomptes.fr/fr/institutions-associees/conseil-des-prelevements-obligatoires",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     {
       "id": "ofce",
       "label": "OFCE — séries longues budgétaires",
       "url": "https://www.ofce.sciences-po.fr/",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     {
       "id": "insee.population",
       "label": "INSEE — Estimation de population",
       "url": "https://www.insee.fr/fr/statistiques/1893198",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     {
       "id": "impots.bareme",
       "label": "impots.gouv.fr — Barème IR 2024",
       "url": "https://www.impots.gouv.fr/particulier/le-calcul-de-limpot-sur-le-revenu",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     {
       "id": "education.nationale",
       "label": "Éducation nationale — rémunérations enseignants",
       "url": "https://www.education.gouv.fr/",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     {
       "id": "sante.gouv",
       "label": "Ministère de la Santé — budget hôpitaux",
       "url": "https://sante.gouv.fr/",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     {
       "id": "sncf.reseau",
       "label": "SNCF Réseau — coûts LGV",
       "url": "https://www.sncf-reseau.com/fr",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     {
       "id": "ush",
       "label": "Union sociale pour l'habitat — coûts logement",
       "url": "https://www.union-habitat.org/",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     {
       "id": "dga",
       "label": "Direction générale de l'armement — Rafale",
       "url": "https://www.defense.gouv.fr/dga",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     {
       "id": "cnsa",
       "label": "CNSA — coût EHPAD",
       "url": "https://www.cnsa.fr/",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     {
       "id": "rte",
       "label": "RTE — coûts énergies renouvelables",
       "url": "https://www.rte-france.com/",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     },
     {
       "id": "bdf.chronologie",
       "label": "Banque de France — Chronologie",
       "url": "https://www.banque-france.fr/fr/publications-et-statistiques/chronologie",
-      "fetchedAt": "2026-04-26T20:49:26.831Z",
+      "fetchedAt": "2026-05-02T01:52:57.863Z",
       "status": "fallback"
     }
   ]

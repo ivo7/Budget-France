@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useBudgetData } from "./hooks/useBudgetData";
 import { useHashRoute } from "./hooks/useHashRoute";
 import { usePageAnalytics } from "./hooks/useAnalytics";
@@ -57,44 +57,92 @@ import type { BudgetSnapshot } from "./types";
 // gratuite de lancement.
 const PREMIUM_ENABLED = false;
 
-type Page = "dashboard" | "europe" | "historique" | "fraudes" | "mes-impots" | "ma-ville" | "pedagogie" | "secu-collec" | "sources" | "glossaire" | "institutions" | "tarifs" | "paiement-reussi" | "compte" | "admin";
+// Pages nationales (Budget France) + pages ville (Budget [Ville]).
+// Les pages ville sont identifiées par "ville-*" et associées à un slug.
+type Page =
+  | "dashboard" | "europe" | "historique" | "fraudes" | "mes-impots"
+  | "pedagogie" | "secu-collec" | "sources" | "glossaire" | "institutions"
+  | "tarifs" | "paiement-reussi" | "compte" | "admin"
+  | "ville-synthese" | "ville-recettes" | "ville-depenses"
+  | "ville-historique" | "ville-comparaison" | "ville-sources";
 
-function resolvePage(hash: string): Page {
-  // Routes prioritaires (matches préfixe)
-  if (hash.startsWith("admin")) return "admin";
-  if (hash.startsWith("tarifs") || hash.startsWith("premium")) return "tarifs";
-  if (hash.startsWith("paiement-reussi") || hash.startsWith("success")) return "paiement-reussi";
-  if (hash.startsWith("compte") || hash.startsWith("account")) return "compte";
-  if (hash.startsWith("europe")) return "europe";
-  if (hash.startsWith("historique")) return "historique";
-  if (hash.startsWith("fraudes")) return "fraudes";
-  if (hash.startsWith("secu") || hash.startsWith("collectivites") || hash.startsWith("secu-collec")) return "secu-collec";
-  if (hash.startsWith("mes-impots") || hash.startsWith("impots")) return "mes-impots";
-  if (hash.startsWith("ma-ville") || hash.startsWith("commune")) return "ma-ville";
-  if (hash.startsWith("pedagogie") || hash.startsWith("eleves") || hash.startsWith("comprendre")) return "pedagogie";
-  if (hash.startsWith("sources")) return "sources";
-  if (hash.startsWith("glossaire") || hash.startsWith("fiches")) return "glossaire";
-  if (hash.startsWith("institutions")) return "institutions";
-  return "dashboard";
+interface RouteResolution {
+  page: Page;
+  /** Slug de la ville si on est dans le contexte ville, sinon null. */
+  villeSlug: string | null;
+}
+
+/** Convertit un nom de ville en slug URL-safe (sans accents, lowercase). */
+export function slugify(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function resolveRoute(hash: string): RouteResolution {
+  // ─── Routes ville ─────────────────────────────────────────────────────
+  // Format: villes/[slug] (synthèse) ou villes/[slug]/[subpage]
+  if (hash.startsWith("villes/") || hash.startsWith("ville/")) {
+    const parts = hash.replace(/^villes?\//, "").split("/");
+    const slug = (parts[0] ?? "").trim();
+    const sub = (parts[1] ?? "").trim();
+    let page: Page = "ville-synthese";
+    if (sub === "recettes") page = "ville-recettes";
+    else if (sub === "depenses") page = "ville-depenses";
+    else if (sub === "historique") page = "ville-historique";
+    else if (sub === "comparaison" || sub === "compare") page = "ville-comparaison";
+    else if (sub === "sources") page = "ville-sources";
+    return { page, villeSlug: slug || null };
+  }
+
+  // ─── Routes nationales (Budget France) ────────────────────────────────
+  let page: Page = "dashboard";
+  if (hash.startsWith("admin")) page = "admin";
+  else if (hash.startsWith("tarifs") || hash.startsWith("premium")) page = "tarifs";
+  else if (hash.startsWith("paiement-reussi") || hash.startsWith("success")) page = "paiement-reussi";
+  else if (hash.startsWith("compte") || hash.startsWith("account")) page = "compte";
+  else if (hash.startsWith("europe")) page = "europe";
+  else if (hash.startsWith("historique")) page = "historique";
+  else if (hash.startsWith("fraudes")) page = "fraudes";
+  else if (hash.startsWith("secu") || hash.startsWith("collectivites") || hash.startsWith("secu-collec")) page = "secu-collec";
+  else if (hash.startsWith("mes-impots") || hash.startsWith("impots")) page = "mes-impots";
+  else if (hash.startsWith("pedagogie") || hash.startsWith("eleves") || hash.startsWith("comprendre")) page = "pedagogie";
+  else if (hash.startsWith("sources")) page = "sources";
+  else if (hash.startsWith("glossaire") || hash.startsWith("fiches")) page = "glossaire";
+  else if (hash.startsWith("institutions")) page = "institutions";
+  return { page, villeSlug: null };
 }
 
 export default function App() {
   const { data, loading, error } = useBudgetData();
   const hash = useHashRoute();
-  const page = resolvePage(hash);
+  const { page, villeSlug } = resolveRoute(hash);
 
   // Remonte en haut à chaque changement de page.
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
-  }, [page]);
+  }, [page, villeSlug]);
 
   // Tracking analytics minimaliste (fréquentation par page, anonyme).
   // Ne s'enclenche pas sur la page admin pour ne pas polluer les stats.
   usePageAnalytics(page === "admin" ? "__admin" : page);
 
+  // Détection du contexte ville pour Header
+  const isVillePage = page.startsWith("ville-");
+  const villeData = isVillePage && villeSlug && data?.villes
+    ? data.villes.items.find((v) => slugify(v.nom) === villeSlug)
+    : null;
+
   return (
     <div className="min-h-full">
-      <Header page={page} />
+      <Header
+        page={page}
+        ville={villeData ? { nom: villeData.nom, departement: villeData.departement } : null}
+        allVilles={data?.villes?.items.map((v) => ({ slug: slugify(v.nom), nom: v.nom, population: v.population, departement: v.departement })) ?? []}
+      />
       <main className="mx-auto max-w-7xl px-4 md:px-6 pb-24">
         {loading && <LoadingBanner />}
         {error && <ErrorBanner message={error} />}
@@ -108,11 +156,16 @@ export default function App() {
           {data && page === "historique" && <HistoriquePage data={data} />}
           {data && page === "fraudes" && <FraudesPage data={data} />}
           {data && page === "mes-impots" && <MesImpotsPage data={data} />}
-          {data && page === "ma-ville" && <MaVillePage data={data} />}
           {data && page === "pedagogie" && <PedagogyPage data={data} />}
           {data && page === "secu-collec" && <SecuCollectivitesPage data={data} />}
           {data && page === "sources" && <SourcesOnlyPage data={data} />}
           {page === "institutions" && <InstitutionsPage />}
+
+          {/* Pages ville (sub-tabs au sein du contexte ville) */}
+          {data && isVillePage && (
+            <MaVillePage data={data} subPage={page} villeSlug={villeSlug} />
+          )}
+
           {/* Les pages Premium ne s'affichent que si le flag est activé */}
           {PREMIUM_ENABLED && page === "tarifs" && <PricingPage />}
           {PREMIUM_ENABLED && page === "paiement-reussi" && <PaymentSuccessPage />}
@@ -335,6 +388,11 @@ function DashboardPage({ data }: { data: BudgetSnapshot }) {
         />
       </section>
 
+      {/* Hero "Trouver ma ville" — incite à explorer les budgets locaux */}
+      <section className="mt-4">
+        <FindMyCityHero data={data} />
+      </section>
+
       {/* Inscription notifications — Alertes et Bulletin */}
       <section className="mt-4">
         <SubscribeForm />
@@ -377,6 +435,95 @@ function DashboardPage({ data }: { data: BudgetSnapshot }) {
         <PageLink href="#/sources" title="Sources" subtitle="Traçabilité" />
       </section>
     </>
+  );
+}
+
+// ----------------------------------------------------------------------------
+// FindMyCityHero — gros encart sur le Dashboard pour inciter à explorer
+// les budgets municipaux. Affiche un input + 6 villes les plus peuplées.
+// ----------------------------------------------------------------------------
+
+function FindMyCityHero({ data }: { data: BudgetSnapshot }) {
+  const villes = data.villes?.items ?? [];
+  const [query, setQuery] = useState("");
+
+  if (villes.length === 0) return null;
+
+  const top = [...villes].sort((a, b) => b.population - a.population);
+  const filtered = useMemo(() => {
+    if (!query.trim()) return top.slice(0, 6);
+    const q = query.toLowerCase().trim();
+    return top.filter((v) => v.nom.toLowerCase().includes(q)).slice(0, 12);
+  }, [top, query]);
+
+  function go(slug: string) {
+    window.location.hash = `#/villes/${slug}`;
+  }
+
+  return (
+    <div className="card p-5 md:p-7 bg-gradient-to-br from-brand-soft/40 to-white border-brand/20">
+      <div className="text-xs uppercase tracking-widest text-brand font-semibold">
+        🏛️ Budget de ma commune
+      </div>
+      <h2 className="font-display text-2xl md:text-3xl font-bold text-slate-900 mt-1">
+        Découvre le budget de ta ville
+      </h2>
+      <p className="text-sm text-slate-700 mt-2 max-w-2xl leading-relaxed">
+        Combien dépense ta commune ? D'où vient son argent ? Combien est-elle endettée ?
+        Tape le nom de ta ville pour explorer son budget — recettes, dépenses, dette,
+        comparaison avec les autres.
+      </p>
+
+      <div className="mt-5 max-w-xl">
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Tape Paris, Marseille, Lyon… ou utilise la 🔍 dans le menu en haut"
+          className="w-full bg-white border-2 border-brand/30 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+        />
+      </div>
+
+      <div className="mt-4">
+        {!query.trim() && (
+          <div className="text-[11px] text-slate-500 mb-2">
+            Les 6 plus grandes villes :
+          </div>
+        )}
+        <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+          {filtered.map((v) => {
+            const slug = slugify(v.nom);
+            return (
+              <li key={v.codeInsee}>
+                <button
+                  type="button"
+                  onClick={() => go(slug)}
+                  className="w-full text-left p-3 rounded-lg border border-slate-200 bg-white hover:border-brand hover:bg-brand-soft/30 hover:text-brand transition group"
+                >
+                  <div className="font-display font-semibold text-slate-900 group-hover:text-brand text-sm">
+                    {v.nom}
+                  </div>
+                  <div className="text-[10px] text-slate-500 mt-0.5">
+                    {(v.population / 1000).toFixed(0)} k hab.
+                  </div>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+
+        {filtered.length === 0 && (
+          <div className="text-sm text-slate-500 italic px-2 py-3">
+            Aucune ville ne correspond à « {query} ». Phase 1 limitée aux {villes.length} plus grandes villes.
+          </div>
+        )}
+      </div>
+
+      <div className="mt-4 text-[11px] text-slate-500">
+        ⚠ Phase 1 (MVP) — {villes.length} plus grandes villes incluses. Phase 2 prévue pour
+        toutes les communes via import data.gouv.fr automatisé.
+      </div>
+    </div>
   );
 }
 
@@ -1043,53 +1190,135 @@ function PageLink({ href, title, subtitle }: { href: string; title: string; subt
   );
 }
 
-function Header({ page }: { page: Page }) {
-  const [menuOpen, setMenuOpen] = useState(false);
+interface VilleSearchEntry {
+  slug: string;
+  nom: string;
+  population: number;
+  departement: string;
+}
 
-  // Ferme le menu quand on change de page
+interface HeaderProps {
+  page: Page;
+  ville: { nom: string; departement: string } | null;
+  allVilles: VilleSearchEntry[];
+}
+
+function Header({ page, ville, allVilles }: HeaderProps) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  // Ferme menu et recherche quand on change de page
   useEffect(() => {
     setMenuOpen(false);
-  }, [page]);
+    setSearchOpen(false);
+  }, [page, ville?.nom]);
 
-  const NAV_ITEMS: { href: string; label: string; target: Page; description: string }[] = [
+  // Items du burger national
+  const NAV_ITEMS_NATIONAL: { href: string; label: string; target: Page; description: string }[] = [
     { href: "#/",              label: "Tableau de bord",          target: "dashboard",   description: "Vue d'ensemble temps réel" },
     { href: "#/historique",    label: "Historique",               target: "historique",  description: "Évolution 1945 → 2025" },
     { href: "#/secu-collec",   label: "Sécu et Collectivités",    target: "secu-collec", description: "Les 2 autres sphères publiques" },
     { href: "#/fraudes",       label: "Fraudes",                  target: "fraudes",     description: "Fiscale et sociale" },
     { href: "#/mes-impots",    label: "Mes impôts",               target: "mes-impots",  description: "Simulateur personnel" },
-    { href: "#/ma-ville",      label: "Ma ville",                 target: "ma-ville",    description: "Budget de ma commune" },
     { href: "#/europe",        label: "Europe",                   target: "europe",      description: "Comparaisons UE + ratings" },
     { href: "#/pedagogie",     label: "Comprendre",               target: "pedagogie",   description: "Parcours en 10 étapes" },
     { href: "#/glossaire",     label: "Fiches pédagogiques",      target: "glossaire",   description: "Glossaire complet" },
     { href: "#/institutions",  label: "Institutions",             target: "institutions", description: "Qui décide, exécute, contrôle" },
     { href: "#/sources",       label: "Sources",                  target: "sources",     description: "Traçabilité des données" },
-    // Items Premium masqués pendant la phase gratuite (toggle PREMIUM_ENABLED)
     ...(PREMIUM_ENABLED ? [
-      { href: "#/tarifs",        label: "Premium",                  target: "tarifs" as Page,      description: "Bulletin hebdo · 7 jours offerts" },
-      { href: "#/compte",        label: "Mon compte",               target: "compte" as Page,      description: "Gérer mon abonnement" },
+      { href: "#/tarifs",   label: "Premium",     target: "tarifs" as Page, description: "Bulletin hebdo · 7 jours offerts" },
+      { href: "#/compte",   label: "Mon compte",  target: "compte" as Page, description: "Gérer mon abonnement" },
     ] : []),
   ];
+
+  // Items du burger ville (sub-tabs)
+  const villeSlug = ville ? slugify(ville.nom) : "";
+  const NAV_ITEMS_VILLE: { href: string; label: string; target: Page; description: string }[] = [
+    { href: `#/villes/${villeSlug}`,             label: "Synthèse",     target: "ville-synthese",     description: "Vue d'ensemble + KPIs" },
+    { href: `#/villes/${villeSlug}/recettes`,    label: "Recettes",     target: "ville-recettes",     description: "D'où vient l'argent" },
+    { href: `#/villes/${villeSlug}/depenses`,    label: "Dépenses",     target: "ville-depenses",     description: "Où va l'argent" },
+    { href: `#/villes/${villeSlug}/historique`,  label: "Historique",   target: "ville-historique",   description: "Évolution 2014 → 2024" },
+    { href: `#/villes/${villeSlug}/comparaison`, label: "Comparaison",  target: "ville-comparaison",  description: "vs strate + national" },
+    { href: `#/villes/${villeSlug}/sources`,     label: "Sources",      target: "ville-sources",      description: "Traçabilité des données" },
+  ];
+
+  const isVilleContext = Boolean(ville);
+  const navItems = isVilleContext ? NAV_ITEMS_VILLE : NAV_ITEMS_NATIONAL;
+
+  // Couleurs/initiale pour l'emblème ville (placeholder en attendant SVG officiels)
+  const villeInitial = ville ? ville.nom.charAt(0).toUpperCase() : "";
+  const villeColor = ville ? villeColorFor(ville.nom) : "#0055A4";
 
   return (
     <header className="sticky top-0 z-10 backdrop-blur bg-white/85 border-b border-slate-200">
       <div className="mx-auto max-w-7xl px-4 md:px-6 py-4 flex items-center justify-between gap-4">
-        <a href="#/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-          <div className="flex gap-0.5">
-            <span className="inline-block w-1.5 h-6 rounded-sm bg-brand" />
-            <span className="inline-block w-1.5 h-6 rounded-sm bg-white border border-slate-200" />
-            <span className="inline-block w-1.5 h-6 rounded-sm bg-flag-red" />
-          </div>
-          <div>
-            <div className="font-display text-lg font-semibold tracking-tight text-slate-900">
-              Budget France
+        {/* ─── Logo + titre (national OU ville) ──────────────────────── */}
+        {isVilleContext && ville ? (
+          <a href={`#/villes/${villeSlug}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            {/* Emblème ville : cercle coloré + initiale */}
+            <div
+              className="w-10 h-10 rounded-full flex items-center justify-center text-white font-display font-bold text-lg shadow-sm shrink-0"
+              style={{ background: villeColor }}
+              aria-hidden="true"
+            >
+              {villeInitial}
             </div>
-            <div className="text-[11px] text-muted">
-              {NAV_ITEMS.find((n) => n.target === page)?.label}
+            <div>
+              <div className="font-display text-lg font-semibold tracking-tight text-slate-900">
+                Budget {ville.nom}
+              </div>
+              <div className="text-[11px] text-muted">
+                {ville.departement}
+              </div>
             </div>
-          </div>
-        </a>
+          </a>
+        ) : (
+          <a href="#/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            {/* Drapeau France stylisé */}
+            <div className="flex gap-0.5">
+              <span className="inline-block w-1.5 h-6 rounded-sm bg-brand" />
+              <span className="inline-block w-1.5 h-6 rounded-sm bg-white border border-slate-200" />
+              <span className="inline-block w-1.5 h-6 rounded-sm bg-flag-red" />
+            </div>
+            <div>
+              <div className="font-display text-lg font-semibold tracking-tight text-slate-900">
+                Budget France
+              </div>
+              <div className="text-[11px] text-muted">
+                {NAV_ITEMS_NATIONAL.find((n) => n.target === page)?.label}
+              </div>
+            </div>
+          </a>
+        )}
 
         <div className="flex items-center gap-2">
+          {/* Bouton retour vers Budget France quand on est en contexte ville */}
+          {isVilleContext && (
+            <a
+              href="#/"
+              title="Retour à Budget France"
+              className="hidden md:inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 text-slate-600 hover:border-brand hover:text-brand transition text-sm"
+            >
+              ← <span className="font-medium">Budget France</span>
+            </a>
+          )}
+
+          {/* Icône recherche ville */}
+          <button
+            type="button"
+            onClick={() => setSearchOpen((v) => !v)}
+            aria-label="Rechercher ma ville"
+            title="Rechercher ma ville"
+            aria-expanded={searchOpen}
+            className={`inline-flex items-center justify-center w-9 h-9 rounded-lg border transition ${
+              searchOpen
+                ? "bg-brand text-white border-brand"
+                : "border-slate-200 text-slate-500 hover:border-brand hover:text-brand"
+            }`}
+          >
+            <SearchIcon />
+          </button>
+
           {/* Lien admin discret — icône cadenas */}
           <a
             href="#/admin"
@@ -1114,20 +1343,46 @@ function Header({ page }: { page: Page }) {
         </div>
       </div>
 
-      {/* Panneau menu burger */}
+      {/* ─── Dropdown recherche ville ─────────────────────────────── */}
+      {searchOpen && (
+        <>
+          <div
+            className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-[5]"
+            onClick={() => setSearchOpen(false)}
+            aria-hidden="true"
+          />
+          <div className="absolute top-full left-0 right-0 bg-white border-b border-slate-200 shadow-xl z-[6]">
+            <div className="mx-auto max-w-3xl px-4 md:px-6 py-5">
+              <VilleSearch
+                allVilles={allVilles}
+                onSelect={(slug) => {
+                  window.location.hash = `#/villes/${slug}`;
+                  setSearchOpen(false);
+                }}
+                onClose={() => setSearchOpen(false)}
+              />
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ─── Panneau menu burger ──────────────────────────────────── */}
       {menuOpen && (
         <>
-          {/* Overlay cliquable pour fermer */}
           <div
             className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-[5]"
             onClick={() => setMenuOpen(false)}
             aria-hidden="true"
           />
-          {/* Panneau lui-même */}
           <div className="absolute top-full left-0 right-0 bg-white border-b border-slate-200 shadow-xl z-[6]">
             <nav className="mx-auto max-w-7xl px-4 md:px-6 py-4">
+              {isVilleContext && ville && (
+                <div className="mb-3 pb-3 border-b border-slate-100 text-xs uppercase tracking-widest text-muted">
+                  Navigation Budget {ville.nom}
+                </div>
+              )}
               <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                {NAV_ITEMS.map((item) => (
+                {navItems.map((item) => (
                   <li key={item.target}>
                     <a
                       href={item.href}
@@ -1144,6 +1399,17 @@ function Header({ page }: { page: Page }) {
                   </li>
                 ))}
               </ul>
+              {isVilleContext && (
+                <div className="mt-4 pt-3 border-t border-slate-100">
+                  <a
+                    href="#/"
+                    onClick={() => setMenuOpen(false)}
+                    className="inline-flex items-center gap-1.5 text-xs text-brand hover:underline"
+                  >
+                    ← Retour à Budget France (vue nationale)
+                  </a>
+                </div>
+              )}
             </nav>
           </div>
         </>
@@ -1152,6 +1418,141 @@ function Header({ page }: { page: Page }) {
   );
 }
 
+// ----------------------------------------------------------------------------
+// VilleSearch — composant autocomplete pour rechercher une ville
+// ----------------------------------------------------------------------------
+
+function VilleSearch({
+  allVilles,
+  onSelect,
+  onClose,
+}: {
+  allVilles: VilleSearchEntry[];
+  onSelect: (slug: string) => void;
+  onClose: () => void;
+}) {
+  const [query, setQuery] = useState("");
+
+  const filtered = useMemo(() => {
+    if (!query.trim()) {
+      // Sans recherche : afficher les 8 plus grandes villes par population
+      return [...allVilles].sort((a, b) => b.population - a.population).slice(0, 8);
+    }
+    const q = query.toLowerCase().trim();
+    return allVilles
+      .filter((v) => v.nom.toLowerCase().includes(q) || v.slug.includes(q))
+      .slice(0, 12);
+  }, [allVilles, query]);
+
+  // Focus auto sur l'input
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  // Navigation clavier
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div>
+      <div className="text-xs uppercase tracking-widest text-muted mb-2">
+        Trouver ma ville (parmi {allVilles.length} disponibles)
+      </div>
+      <input
+        ref={inputRef}
+        type="search"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Tape le nom de ta ville (Paris, Marseille, Lyon…)"
+        className="w-full bg-white border-2 border-slate-200 rounded-lg px-4 py-3 text-base focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+      />
+
+      <div className="mt-3">
+        {filtered.length === 0 ? (
+          <div className="text-sm text-slate-500 italic px-2 py-3">
+            Aucune ville ne correspond à « {query} ». Phase 1 limitée aux {allVilles.length}{" "}
+            plus grandes villes.
+          </div>
+        ) : (
+          <>
+            {!query.trim() && (
+              <div className="text-[11px] text-slate-500 mb-2">
+                Suggestions (les plus peuplées) :
+              </div>
+            )}
+            <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+              {filtered.map((v) => (
+                <li key={v.slug}>
+                  <button
+                    type="button"
+                    onClick={() => onSelect(v.slug)}
+                    className="w-full text-left p-3 rounded-lg border border-slate-200 bg-white hover:border-brand/40 hover:bg-brand-soft/30 transition"
+                  >
+                    <div className="font-display font-semibold text-slate-900 text-sm">
+                      {v.nom}
+                    </div>
+                    <div className="text-[10px] text-slate-500 mt-0.5">
+                      {v.departement} · {v.population.toLocaleString("fr-FR")} hab.
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </div>
+
+      <div className="mt-3 text-[11px] text-slate-400">
+        Phase 1 (MVP) — données pour les 20 plus grandes villes uniquement.
+        Toutes les communes seront ajoutées en Phase 2.
+      </div>
+    </div>
+  );
+}
+
+// Couleurs principales associées à chaque grande ville française.
+// Inspirées des couleurs des armoiries / blasons publics.
+const VILLE_COLORS: Record<string, string> = {
+  paris: "#0055A4",
+  marseille: "#0F4C81",
+  lyon: "#A6192E",
+  toulouse: "#9B2335",
+  nice: "#A50034",
+  nantes: "#E84E0F",
+  montpellier: "#C8102E",
+  strasbourg: "#C8102E",
+  bordeaux: "#7B0828",
+  lille: "#A50034",
+  rennes: "#000000",
+  reims: "#0033A0",
+  "le-havre": "#003DA5",
+  "saint-etienne": "#0055A4",
+  toulon: "#003DA5",
+  grenoble: "#0033A0",
+  dijon: "#A50034",
+  angers: "#003DA5",
+  "clermont-ferrand": "#7B0828",
+  brest: "#000000",
+};
+
+function villeColorFor(nom: string): string {
+  return VILLE_COLORS[slugify(nom)] ?? "#0055A4";
+}
+
+function SearchIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+  );
+}
 function BurgerIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
