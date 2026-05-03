@@ -538,6 +538,177 @@ export const GLOSSAIRE: Categorie[] = [
     ],
   },
   {
+    titre: "Finances communales (votre ville)",
+    description:
+      "Les indicateurs et concepts qui apparaissent dans la fiche budgétaire de chaque commune. 35 062 communes françaises sont couvertes par notre base de données OFGL/DGFiP.",
+    entrees: [
+      // ----- Sections comptables M14 -----
+      {
+        terme: "Section de fonctionnement",
+        definition:
+          "Première moitié du budget communal : les charges courantes (salaires, énergie, fournitures, intérêts d'emprunt) et les recettes courantes (impôts, dotations, redevances de services). Doit être votée à l'équilibre, idéalement avec un excédent — c'est ce qu'on appelle l'épargne brute, qui finance les investissements.",
+      },
+      {
+        terme: "Section d'investissement",
+        definition:
+          "Seconde moitié du budget : les dépenses durables (école, gymnase, voirie, achat de matériel) et leurs financements (subventions, FCTVA, emprunt, autofinancement venant de la section de fonctionnement). C'est ici que se construit la ville pour 30-50 ans.",
+      },
+      {
+        terme: "Recettes Réelles de Fonctionnement",
+        abbr: "RRF",
+        definition:
+          "Total des recettes courantes d'une commune : impôts locaux, DGF, redevances de services (cantine, crèche, piscine), produits de gestion. Ne contient pas les emprunts ni les ventes de biens.",
+        exemple:
+          "RRF Lyon 2023 : ~700 M€. Pour une commune de 5 000 habitants, compter ~5-8 M€.",
+      },
+      {
+        terme: "Dépenses Réelles de Fonctionnement",
+        abbr: "DRF",
+        definition:
+          "Total des charges courantes : personnel (souvent 50-60 % des DRF), achats et charges externes (énergie, fournitures, prestations), subventions versées (associations, CCAS), charges financières (intérêts d'emprunt). Ne contient pas le remboursement du capital.",
+      },
+      {
+        terme: "Budget Primitif",
+        abbr: "BP",
+        definition:
+          "Budget prévisionnel voté avant le 15 avril de chaque année par le conseil municipal. Doit être équilibré section par section. C'est l'autorisation officielle de dépenser pour l'année. Peut être amendé par décisions modificatives ou budget supplémentaire en cours d'exercice.",
+      },
+      {
+        terme: "Compte Administratif",
+        abbr: "CA",
+        definition:
+          "Document qui retrace ce qui a été RÉELLEMENT dépensé et encaissé sur l'année écoulée. Voté avant le 30 juin de l'année suivante. C'est lui qu'OFGL collecte et que Budget France affiche — pas le budget primitif (qui est juste prévisionnel).",
+      },
+
+      // ----- Épargne / autofinancement -----
+      {
+        terme: "Épargne brute",
+        abbr: "CAF — capacité d'autofinancement",
+        definition:
+          "Différence entre les recettes courantes (RRF) et les dépenses courantes (DRF). Représente ce que la commune dégage d'elle-même pour investir et rembourser sa dette. Indicateur N°1 de la santé financière.",
+        exemple:
+          "Une commune avec 10 M€ de RRF et 8 M€ de DRF dégage 2 M€ d'épargne brute (taux d'épargne brute = 20 %, très bon).",
+      },
+      {
+        terme: "Épargne nette",
+        definition:
+          "Épargne brute moins le remboursement du capital de la dette. C'est ce qui reste réellement disponible pour de NOUVEAUX investissements. Si elle devient négative, la commune doit s'endetter pour rembourser ses anciens emprunts (signal d'alerte).",
+      },
+      {
+        terme: "Taux d'épargne brute",
+        definition:
+          "Épargne brute divisée par les recettes de fonctionnement, exprimée en pourcentage. Indicateur synthétique le plus utilisé pour juger de la santé d'une commune. Cibles : > 15 % = solide, 10 à 15 % = correct, < 10 % = la commune vit au jour le jour.",
+      },
+
+      // ----- Dette communale (3 métriques distinctes) -----
+      {
+        terme: "Encours de dette",
+        definition:
+          "Stock total de ce que la commune doit à ses créanciers (banques, Caisse des Dépôts, marchés obligataires) à un instant T. C'est la dette « accumulée », à rembourser sur 15-30 ans. À ne pas confondre avec les intérêts annuels ni l'annuité.",
+        exemple:
+          "Encours commune moyenne : ~900 €/hab. Au-dessus de 1 500 €/hab = surveillance. Au-dessus de 2 000 €/hab = signal d'alerte.",
+      },
+      {
+        terme: "Charges financières",
+        definition:
+          "INTÉRÊTS payés chaque année sur la dette (compte 661 de la M14). Ne contient pas le remboursement du capital. C'est la « location » de l'argent emprunté, pas le remboursement lui-même.",
+        exemple:
+          "Sur un encours de 10 M€ à 3 %, les charges financières sont d'environ 300 000 €/an.",
+      },
+      {
+        terme: "Annuité de la dette",
+        definition:
+          "Montant TOTAL versé chaque année aux créanciers : intérêts (charges financières) + capital remboursé. C'est le service de la dette au sens large. Plus utile que les seuls intérêts pour comprendre la pression réelle sur le budget.",
+        exemple:
+          "Sur un emprunt de 10 M€ sur 15 ans à 3 %, l'annuité est d'environ 840 000 €/an (≈ 670 K€ de capital + 170 K€ d'intérêts en moyenne).",
+      },
+      {
+        terme: "Capacité de désendettement",
+        definition:
+          "Ratio Encours de dette / Épargne brute. Mesure en COMBIEN D'ANNÉES la commune pourrait rembourser sa dette si elle y consacrait toute son épargne. Plafond légal d'alerte : 12 ans. Au-dessus, la préfecture peut saisir la Chambre régionale des comptes.",
+        exemple:
+          "Encours 10 M€, épargne brute 1 M€ → capacité de désendettement = 10 ans (zone d'attention).",
+      },
+
+      // ----- Recettes locales -----
+      {
+        terme: "Taxe foncière sur les propriétés bâties",
+        abbr: "TFPB",
+        definition:
+          "Impôt local payé par les propriétaires de logements et de locaux. Recette principale des communes depuis la suppression de la taxe d'habitation. Le conseil municipal vote chaque année le taux, appliqué à une « valeur locative cadastrale » fixée par la DGFiP.",
+      },
+      {
+        terme: "Taxe d'habitation",
+        definition:
+          "Impôt local payé par les occupants de logements (propriétaires ou locataires). Supprimée pour les résidences principales en 2023, encore due pour les résidences secondaires et les locaux vacants. Compensée par l'État pour les communes via une fraction de TVA.",
+      },
+      {
+        terme: "FCTVA",
+        abbr: "Fonds de Compensation pour la TVA",
+        definition:
+          "Remboursement par l'État d'une partie de la TVA payée par les communes sur leurs investissements. Taux unique : 16,404 % du montant TTC investi. Versé l'année N+2 (en 2026, on touche le FCTVA des dépenses 2024). Recette d'investissement majeure.",
+      },
+      {
+        terme: "Concours de l'État",
+        definition:
+          "Ensemble des transferts financiers de l'État vers une commune : DGF, dotations spécifiques (DETR, DSIL), compensations d'exonérations fiscales, fraction de TVA. Représente en moyenne 20-30 % des recettes communales.",
+      },
+      {
+        terme: "DETR",
+        abbr: "Dotation d'Équipement des Territoires Ruraux",
+        definition:
+          "Aide de l'État à l'investissement, ciblée sur les communes rurales et petites villes. Allouée par le préfet sur dossier (école, voirie, équipement sportif). Enveloppe nationale : ~1 Md€/an.",
+      },
+      {
+        terme: "Fiscalité reversée",
+        definition:
+          "Sommes versées à la commune par son intercommunalité (EPCI) pour compenser les ressources fiscales transférées : attribution de compensation, dotation de solidarité communautaire. Lien financier indispensable entre la commune et son EPCI.",
+      },
+
+      // ----- Classification et cadre -----
+      {
+        terme: "Strate démographique",
+        definition:
+          "Classification utilisée par OFGL et la DGCL pour comparer les communes entre elles : très petite (<500 hab.), petite (<2 000), moyenne (<10 000), grande (<20 000), très grande (<50 000), petite ville (<100 000), grande ville (<200 000), très grande ville (<500 000), métropole démographique (≥500 000). Comparer une ville à sa strate, pas en absolu.",
+      },
+      {
+        terme: "Métropole statutaire",
+        definition:
+          "Ville-centre dotée par la loi MAPTAM (2014) puis NOTRe (2015) du statut de « métropole », avec des compétences élargies (urbanisme, transports, déchets, développement économique). Il existe 22 métropoles en France, dont 3 à statut particulier (Grand Paris, Lyon, Aix-Marseille-Provence).",
+      },
+      {
+        terme: "M14",
+        definition:
+          "Instruction comptable et budgétaire applicable aux communes et à leurs établissements publics depuis 1997. Définit le plan de comptes, les règles de comptabilisation et la dualité section de fonctionnement / section d'investissement. Remplacée progressivement par la M57 (à terme commune à toutes les collectivités).",
+      },
+
+      // ----- Sources et acteurs -----
+      {
+        terme: "OFGL",
+        abbr: "Observatoire des Finances et de la Gestion publique Locales",
+        definition:
+          "Organisme officiel rattaché au Comité des finances locales (CFL) et à la DGCL. Diffuse les comptes individuels de toutes les collectivités françaises (35 062 communes, ~1 250 EPCI, 101 départements, 18 régions) sur une plateforme open data. Source des données affichées sur Budget France.",
+      },
+      {
+        terme: "DGFiP",
+        abbr: "Direction Générale des Finances Publiques",
+        definition:
+          "Administration de Bercy chargée de collecter les impôts ET de tenir la comptabilité de l'État et des collectivités. Pour chaque commune, le comptable public DGFiP (trésorerie locale) tient le « compte de gestion » qui sert de base aux comptes administratifs et aux statistiques OFGL.",
+      },
+      {
+        terme: "Chambre régionale des comptes",
+        abbr: "CRC",
+        definition:
+          "Juridiction financière régionale qui contrôle les comptes des collectivités, examine leur gestion (rapport d'observations définitives) et peut être saisie par le préfet en cas de difficultés graves (capacité de désendettement > 12 ans, déficit récurrent). 17 CRC en France métropolitaine + 5 en Outre-mer.",
+      },
+      {
+        terme: "Réseau d'alerte",
+        definition:
+          "Procédure de surveillance des communes en difficulté financière, déclenchée quand certains seuils sont franchis (taux d'épargne brute < 7 %, capacité de désendettement > 12 ans, déficit du compte administratif). La préfecture met alors en place un suivi renforcé avec la DGFiP et la CRC.",
+      },
+    ],
+  },
+  {
     titre: "Pour les élèves — notions de finance publique",
     description: "Concepts clés des cours de SES, prépa HEC, Sciences Po et fac d'économie.",
     entrees: [
