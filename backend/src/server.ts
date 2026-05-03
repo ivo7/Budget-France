@@ -128,6 +128,35 @@ async function main() {
     return { ok: true };
   });
 
+  // Import DGFiP : lance l'import des comptes individuels des collectivités.
+  // Pour ne pas bloquer le serveur, on retourne immédiatement et on lance
+  // l'import en arrière-plan (fire-and-forget). Pour suivre la progression,
+  // consulter les logs : docker compose logs backend -f
+  app.post("/api/admin/run/import-dgfip", async (req, reply) => {
+    if (!isAdminAuthenticated(req)) {
+      return reply.code(401).send({ error: "unauthorized" });
+    }
+    const { annee } = (req.body as { annee?: number }) ?? {};
+    const year = typeof annee === "number" && annee > 2000 ? annee : 2023;
+
+    // Lance en arrière-plan
+    setImmediate(async () => {
+      try {
+        const { runDgfipImport } = await import("./seed/importDgfip.ts");
+        const result = await runDgfipImport(year);
+        app.log.info({ result }, "[dgfip] import terminé");
+      } catch (e) {
+        app.log.error(e, "[dgfip] import échec");
+      }
+    });
+
+    return {
+      ok: true,
+      message: `Import DGFiP ${year} lancé en arrière-plan. Vérifie les logs dans 5-30 min.`,
+      year,
+    };
+  });
+
   const emailStatus = await verifyEmailTransport();
   app.log.info({ emailStatus }, "email transport");
 
