@@ -116,6 +116,7 @@ export function registerCommunesRoutes(app: FastifyInstance) {
       budgetTotalEur: bn(f.budgetTotalEur),
       detteEncoursEur: bn(f.detteEncoursEur),
       chargeDetteEur: bn(f.chargeDetteEur),
+      amortissementCapitalEur: bn(f.amortissementCapitalEur),
       capaciteAutofinancementEur: bn(f.capaciteAutofinancementEur),
       depensesPersonnelEur: bn(f.depensesPersonnelEur),
       depensesChargesGeneralesEur: bn(f.depensesChargesGeneralesEur),

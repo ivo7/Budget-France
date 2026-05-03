@@ -167,7 +167,8 @@ export interface BudgetSnapshot {
         soldeBudgetaireEur: number;
         detteEncoursEur: number;
         capaciteAutofinancementEur: number;
-        chargeDetteEur: number;
+        chargeDetteEur: number;          // intérêts seuls (charges financières)
+        amortissementCapitalEur: number;  // remboursement annuel du capital
         depensesInvestissementEur: number;
         depensesPersonnelEur: number;
       }[];

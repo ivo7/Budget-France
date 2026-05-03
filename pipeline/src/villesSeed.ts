@@ -714,7 +714,8 @@ interface VilleAnnee {
   soldeBudgetaireEur: number;
   detteEncoursEur: number;
   capaciteAutofinancementEur: number;
-  chargeDetteEur: number;
+  chargeDetteEur: number;            // INTÉRÊTS seuls
+  amortissementCapitalEur: number;   // remboursement annuel du capital
   depensesInvestissementEur: number;
   depensesPersonnelEur: number;
 }
@@ -732,6 +733,10 @@ function generateAnnees(a: VilleAncrage): VilleAnnee[] {
     const detteEur = a.dette2024 * detteCoef * 1e6;
     const cafEur = a.caf2024 * inflateCoef * 1e6;
     const chargeDetteEur = a.chargeDette2024 * inflateCoef * 1e6;
+    // Amortissement annuel du capital = ~1/15 de l'encours (durée moyenne
+    // d'amortissement OAT communale). C'est la sortie de trésorerie pour
+    // rembourser le capital, distincte des intérêts.
+    const amortissementCapitalEur = detteEur / 15;
     const investEur = a.invest2024 * inflateCoef * 1e6;
     const personnelEur = a.personnel2024 * inflateCoef * 1e6;
     annees.push({
@@ -743,6 +748,7 @@ function generateAnnees(a: VilleAncrage): VilleAnnee[] {
       detteEncoursEur: Math.round(detteEur),
       capaciteAutofinancementEur: Math.round(cafEur),
       chargeDetteEur: Math.round(chargeDetteEur),
+      amortissementCapitalEur: Math.round(amortissementCapitalEur),
       depensesInvestissementEur: Math.round(investEur),
       depensesPersonnelEur: Math.round(personnelEur),
     });

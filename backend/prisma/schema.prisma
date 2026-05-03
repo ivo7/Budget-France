@@ -459,7 +459,9 @@ model CommuneFinanciere {
 
   // Dette
   detteEncoursEur             BigInt
-  chargeDetteEur              BigInt    // intérêts versés dans l'année
+  chargeDetteEur              BigInt    // INTÉRÊTS seuls (compte 661 M14)
+  amortissementCapitalEur     BigInt    @default(0)  // remboursement annuel capital
+  // Service de la dette (calculé) = chargeDette + amortissementCapital
 
   // Marge
   capaciteAutofinancementEur  BigInt    // CAF brute

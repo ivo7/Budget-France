@@ -29,6 +29,7 @@ interface SnapshotVille {
     detteEncoursEur: number;
     capaciteAutofinancementEur: number;
     chargeDetteEur: number;
+    amortissementCapitalEur?: number;  // optionnel pour rétrocompat avec snapshots anciens
     depensesInvestissementEur: number;
     depensesPersonnelEur: number;
   }[];
@@ -234,6 +235,13 @@ export async function loadCommunesIfNeeded(log: (msg: string) => void) {
           budgetTotalEur: BigInt(Math.round(a.budgetTotalEur)),
           detteEncoursEur: BigInt(Math.round(a.detteEncoursEur)),
           chargeDetteEur: BigInt(Math.round(a.chargeDetteEur)),
+          // Si le snapshot ne fournit pas l'amortissement, on le calcule sur place
+          // (1/15 de l'encours = durée moyenne d'amortissement OAT communale).
+          amortissementCapitalEur: BigInt(
+            Math.round(
+              a.amortissementCapitalEur ?? a.detteEncoursEur / 15,
+            ),
+          ),
           capaciteAutofinancementEur: BigInt(Math.round(a.capaciteAutofinancementEur)),
           depensesPersonnelEur: BigInt(Math.round(a.depensesPersonnelEur)),
           depensesChargesGeneralesEur: BigInt(Math.round(depensesGenerales)),

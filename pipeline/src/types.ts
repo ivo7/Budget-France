@@ -226,7 +226,11 @@ export interface BudgetSnapshot {
         soldeBudgetaireEur: number;      // = recettes - dépenses
         detteEncoursEur: number;
         capaciteAutofinancementEur: number;
-        chargeDetteEur: number;          // intérêts versés
+        // INTÉRÊTS seuls (compte 661 M14, charges financières au sens OFGL).
+        chargeDetteEur: number;
+        // Remboursement annuel du capital (compte 16 M14, sortie de trésorerie).
+        // Service de la dette = chargeDetteEur + amortissementCapitalEur.
+        amortissementCapitalEur: number;
         depensesInvestissementEur: number;
         depensesPersonnelEur: number;
       }[];

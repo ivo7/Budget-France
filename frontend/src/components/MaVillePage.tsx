@@ -151,7 +151,14 @@ function SubSynthese({
 }) {
   const budgetParHab = lastYear.budgetTotalEur / ville.population;
   const detteParHab = lastYear.detteEncoursEur / ville.population;
+  // 3 mesures distinctes liées à la dette (toutes utiles, normes M14/OFGL) :
+  //   - chargeDetteParHab = INTÉRÊTS annuels seuls (compte 661, charges fin.)
+  //   - amortissementParHab = remboursement annuel du capital (compte 16)
+  //   - serviceDetteParHab = annuité totale = intérêts + capital
   const chargeDetteParHab = lastYear.chargeDetteEur / ville.population;
+  const amortissementParHab =
+    (lastYear.amortissementCapitalEur ?? lastYear.detteEncoursEur / 15) / ville.population;
+  const serviceDetteParHab = chargeDetteParHab + amortissementParHab;
   const cafParHab = lastYear.capaciteAutofinancementEur / ville.population;
 
   return (
@@ -174,7 +181,7 @@ function SubSynthese({
           higherIsBad
         />
         <KpiCard
-          label="Charge dette / hab"
+          label="Intérêts dette / hab"
           value={`${Math.round(chargeDetteParHab).toLocaleString("fr-FR")} €`}
           comparison={chargeDetteParHab - moyennes.chargeDetteParHabitant}
           color="text-amber-700"
@@ -186,6 +193,72 @@ function SubSynthese({
           comparison={cafParHab - moyennes.cafParHabitant}
           color="text-money"
         />
+      </section>
+
+      {/* Décomposition pédagogique de la dette */}
+      <section className="mt-4">
+        <div className="card p-5 md:p-6">
+          <div className="text-xs uppercase tracking-widest text-muted">
+            🔍 Comprendre la dette de {ville.nom}
+          </div>
+          <h3 className="font-display text-lg font-semibold text-slate-900 mt-1">
+            3 façons de mesurer la dette par habitant
+          </h3>
+          <p className="text-xs text-slate-500 mt-1 max-w-3xl leading-relaxed">
+            Les 3 indicateurs ci-dessous sont tous justes — ils mesurent simplement
+            des choses différentes. Selon les sources que tu lis ailleurs, tu trouveras
+            l'un ou l'autre.
+          </p>
+
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="rounded-lg border border-flag-red/30 bg-red-50/40 p-4">
+              <div className="text-[10px] uppercase tracking-widest text-flag-red font-semibold">
+                Encours total
+              </div>
+              <div className="font-display text-2xl font-bold text-flag-red tabular-nums mt-1">
+                {Math.round(detteParHab).toLocaleString("fr-FR")} €/hab
+              </div>
+              <p className="text-[11px] text-slate-600 mt-2 leading-relaxed">
+                Le <strong>capital total</strong> que la commune doit rembourser à terme.
+                Montant divisé par la population.
+              </p>
+            </div>
+
+            <div className="rounded-lg border border-amber-300 bg-amber-50/40 p-4">
+              <div className="text-[10px] uppercase tracking-widest text-amber-700 font-semibold">
+                Intérêts annuels
+              </div>
+              <div className="font-display text-2xl font-bold text-amber-700 tabular-nums mt-1">
+                {Math.round(chargeDetteParHab).toLocaleString("fr-FR")} €/hab
+              </div>
+              <p className="text-[11px] text-slate-600 mt-2 leading-relaxed">
+                Les <strong>seuls intérêts</strong> versés cette année (compte 661 M14).
+                C'est la « charge financière » au sens OFGL/Cour des comptes.
+              </p>
+            </div>
+
+            <div className="rounded-lg border border-purple-300 bg-purple-50/40 p-4">
+              <div className="text-[10px] uppercase tracking-widest text-purple-700 font-semibold">
+                Service annuel total
+              </div>
+              <div className="font-display text-2xl font-bold text-purple-700 tabular-nums mt-1">
+                {Math.round(serviceDetteParHab).toLocaleString("fr-FR")} €/hab
+              </div>
+              <p className="text-[11px] text-slate-600 mt-2 leading-relaxed">
+                <strong>Intérêts + remboursement du capital</strong>. C'est ce que la
+                commune sort de sa caisse chaque année pour sa dette (annuité totale).
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-3 text-[11px] text-slate-500 leading-relaxed">
+            <strong>Note méthodologique :</strong> sur un emprunt typique sur 15 ans,
+            chaque année la commune rembourse environ <code className="font-mono bg-slate-100 px-1 rounded">1/15</code>
+            {" "}du capital + les intérêts du restant dû. C'est ce qu'on appelle l'<em>annuité</em>.
+            Selon ce qu'on cherche à mesurer (poids comptable, sortie cash, ou stock total),
+            on regarde l'un ou l'autre des 3 chiffres.
+          </div>
+        </div>
       </section>
 
       {/* Liens vers les sub-pages */}
@@ -654,13 +727,41 @@ const RANKINGS: RankingDef[] = [
   },
   {
     id: "dette-hab",
-    label: "Dette par habitant",
+    label: "Encours de dette par habitant",
     shortLabel: "Dette/hab",
     unit: "€",
     isManagement: false,
     higherIsBad: true,
-    description: "Encours de dette divisé par la population. Les enfants en font partie — ce sont eux qui rembourseront.",
+    description: "Capital total de la dette ÷ population. Les enfants en font partie — ce sont eux qui rembourseront.",
     compute: (v) => lastYearOf(v).detteEncoursEur / v.population,
+    format: (n) => `${Math.round(n).toLocaleString("fr-FR")} €`,
+  },
+  {
+    id: "interets-hab",
+    label: "Intérêts annuels de la dette / hab",
+    shortLabel: "Intérêts/hab",
+    unit: "€",
+    isManagement: false,
+    higherIsBad: true,
+    description:
+      "Charges financières annuelles seules (compte 661 M14). C'est le coût pur de l'endettement, hors remboursement du capital.",
+    compute: (v) => lastYearOf(v).chargeDetteEur / v.population,
+    format: (n) => `${Math.round(n).toLocaleString("fr-FR")} €`,
+  },
+  {
+    id: "service-dette-hab",
+    label: "Service annuel de la dette / hab",
+    shortLabel: "Service/hab",
+    unit: "€",
+    isManagement: false,
+    higherIsBad: true,
+    description:
+      "Annuité totale = intérêts + remboursement du capital. C'est le cash que la commune sort chaque année pour sa dette.",
+    compute: (v) => {
+      const last = lastYearOf(v);
+      const amort = last.amortissementCapitalEur ?? last.detteEncoursEur / 15;
+      return (last.chargeDetteEur + amort) / v.population;
+    },
     format: (n) => `${Math.round(n).toLocaleString("fr-FR")} €`,
   },
   {
