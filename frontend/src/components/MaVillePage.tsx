@@ -901,9 +901,15 @@ function SubComparaison({
   const lastYear = ville.annees[ville.annees.length - 1]!;
   const villeSlug = slugify(ville.nom);
 
+  // Si la ville courante n'est pas dans le snapshot des 40 villes (cas
+  // d'une commune chargée via l'API OFGL), on l'ajoute au set comparé
+  // pour que findIndex la trouve et que les rangs soient corrects.
+  const inSnapshot = villes.some((v) => v.codeInsee === ville.codeInsee);
+  const comparees = inSnapshot ? villes : [...villes, ville];
+
   // Pour chaque ranking, calcule la valeur de chaque ville et trie.
   const rankings = RANKINGS.map((r) => {
-    const rows = villes
+    const rows = comparees
       .map((v) => ({
         slug: slugify(v.nom),
         nom: v.nom,
@@ -961,7 +967,7 @@ function SubComparaison({
       <section className="mt-4">
         <div className="card p-5 md:p-6">
           <div className="text-xs uppercase tracking-widest text-muted">
-            Synthèse {ville.nom} — résumé sur {villes.length} villes
+            Synthèse {ville.nom} — résumé sur {comparees.length} villes
           </div>
           <h2 className="font-display text-xl font-semibold text-slate-900 mt-1">
             Position de {ville.nom} dans les classements
@@ -986,7 +992,7 @@ function SubComparaison({
                   {r.def.format(r.myValue)}
                 </div>
                 <div className="text-[11px] text-slate-500 mt-0.5">
-                  rang {r.myRank} / {villes.length}
+                  rang {r.myRank} / {comparees.length}
                 </div>
               </div>
             ))}
@@ -1040,7 +1046,7 @@ function SubComparaison({
                 <strong>{ville.nom}</strong> :{" "}
                 <span className="font-semibold text-brand">{r.def.format(r.myValue)}</span>
                 {" — rang "}
-                <strong>{r.myRank}<sup>e</sup></strong> sur {villes.length}.
+                <strong>{r.myRank}<sup>e</sup></strong> sur {comparees.length}.
                 {" Médiane : "}
                 <span className="text-slate-700">{r.def.format(r.median)}</span>.
                 {r.def.higherIsBad
