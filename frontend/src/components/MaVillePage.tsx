@@ -195,6 +195,9 @@ function SubSynthese({
         />
       </section>
 
+      {/* Encart BP année en cours — actualisé dès qu'OFGL publie le BP */}
+      <BudgetPrimitifTeaser ville={ville} lastCAYear={lastYear.annee} />
+
       {/* Décomposition pédagogique de la dette */}
       <section className="mt-4">
         <div className="card p-5 md:p-6">
@@ -1289,8 +1292,118 @@ function VilleHero({
             </span>
           )}
         </div>
+
+        {/* Bandeau pédagogique : pourquoi les données s'arrêtent à N-2 */}
+        <DataLagBanner lastYear={lastYear.annee} />
       </div>
     </section>
+  );
+}
+
+/**
+ * Encart "Budget primitif (BP) année en cours" — pédagogique.
+ *
+ * Affiché sur la page Synthèse pour donner aux citoyens une vue sur l'année
+ * EN COURS, et pas seulement sur le compte administratif (CA) clos il y a
+ * 12-18 mois. Le BP est voté avant le 15 avril N par le conseil municipal
+ * et est PRÉVISIONNEL — il ne reflète pas les exécutions réelles.
+ *
+ * Quand OFGL publie le dataset `ofgl-base-communes-budget-principal` pour
+ * l'année courante (typiquement été N), on remplacera ce placeholder par
+ * les vrais chiffres prévisionnels.
+ */
+function BudgetPrimitifTeaser({
+  ville,
+  lastCAYear,
+}: {
+  ville: Ville;
+  lastCAYear: number;
+}) {
+  const currentYear = new Date().getFullYear();
+  // Si la dernière année CA dispo est l'année actuelle ou antérieure de 0,
+  // pas de teaser BP utile (la donnée CA elle-même est déjà fraîche).
+  if (lastCAYear >= currentYear) return null;
+
+  const bpYear = currentYear; // BP de l'année en cours
+
+  return (
+    <section className="mt-4">
+      <div className="card p-5 md:p-6 border-dashed border-slate-300 bg-slate-50/50">
+        <div className="flex items-start gap-3">
+          <span className="text-2xl" aria-hidden>
+            📋
+          </span>
+          <div className="flex-1">
+            <div className="text-xs uppercase tracking-widest text-slate-500">
+              Budget primitif {bpYear} — prévisionnel
+            </div>
+            <h3 className="font-display text-lg font-semibold text-slate-900 mt-1">
+              Le budget {bpYear} de {ville.nom} en attente de publication
+            </h3>
+            <p className="text-sm text-slate-700 mt-2 leading-relaxed">
+              Le conseil municipal a voté le <strong>budget primitif {bpYear}</strong>{" "}
+              (BP) avant le 15 avril {bpYear}. Ce document fixe les recettes et
+              dépenses <em>prévisionnelles</em> de l'exercice en cours — c'est
+              l'autorisation officielle de dépenser pour l'année.
+            </p>
+            <p className="text-sm text-slate-600 mt-2 leading-relaxed">
+              OFGL publie l'agrégation nationale des budgets primitifs typiquement
+              à l'été {bpYear}. Dès qu'il sera disponible, nous afficherons ici les
+              prévisions de {ville.nom} pour {bpYear}, avec comparaison au compte
+              administratif {lastCAYear} ci-dessous (réalisé).
+            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
+              <span className="text-slate-500">
+                Pour l'instant, les chiffres ci-dessous sont issus du{" "}
+                <strong>compte administratif {lastCAYear}</strong> — dernier
+                exercice clos officiellement.
+              </span>
+              <a
+                href="#/donnees-publiques"
+                className="text-brand hover:underline font-medium whitespace-nowrap"
+              >
+                Calendrier de la donnée publique →
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * Bandeau explicatif sur le décalage temporel de la donnée publique communale.
+ * Les comptes administratifs (CA) sont votés avant le 30 juin N+1, puis
+ * collectés par la DGFiP et harmonisés par OFGL — publication open data
+ * typiquement automne N+1 / début N+2.
+ *
+ * Affiche un message contextuel selon l'année actuelle vs l'année des données.
+ */
+function DataLagBanner({ lastYear }: { lastYear: number }) {
+  const currentYear = new Date().getFullYear();
+  const lag = currentYear - lastYear;
+  const nextYearAvailable = lastYear + 1;
+
+  // Pas de message si la donnée est très fraîche (lag <= 1)
+  if (lag < 1) return null;
+
+  return (
+    <div className="mt-4 flex items-start gap-2 text-[11px] leading-relaxed text-slate-600 bg-white/60 border border-slate-200 rounded-lg p-2.5">
+      <span aria-hidden className="mt-0.5">📅</span>
+      <div>
+        <strong className="text-slate-800">Données du compte administratif {lastYear}</strong>{" "}
+        — dernier exercice clos publié officiellement par OFGL/DGFiP.{" "}
+        Le compte {nextYearAvailable} sera disponible à l'automne {nextYearAvailable + 1} (les communes
+        votent leur CA avant le 30 juin {nextYearAvailable + 1}, OFGL le publie ensuite).{" "}
+        <a
+          href="#/donnees-publiques"
+          className="text-brand hover:underline font-medium"
+        >
+          Comprendre le calendrier de la donnée publique →
+        </a>
+      </div>
+    </div>
   );
 }
 

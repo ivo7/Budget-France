@@ -21,6 +21,7 @@ import { GlossaryTerm } from "./components/GlossaryTerm";
 import { Linkify } from "./components/Linkify";
 import { ChartCitizenImpact } from "./components/ChartCitizenImpact";
 import { InstitutionsPage } from "./components/InstitutionsPage";
+import { DonneesPubliquesPage } from "./components/DonneesPubliquesPage";
 import { MaVillePage } from "./components/MaVillePage";
 import { BudgetBreakdown } from "./components/BudgetBreakdown";
 import { Glossary } from "./components/Glossary";
@@ -63,6 +64,7 @@ const PREMIUM_ENABLED = false;
 type Page =
   | "dashboard" | "europe" | "historique" | "fraudes" | "mes-impots"
   | "pedagogie" | "secu-collec" | "sources" | "glossaire" | "institutions"
+  | "donnees-publiques"
   | "tarifs" | "paiement-reussi" | "compte" | "admin"
   | "ville-synthese" | "ville-recettes" | "ville-depenses"
   | "ville-historique" | "ville-comparaison" | "ville-sources";
@@ -114,6 +116,7 @@ function resolveRoute(hash: string): RouteResolution {
   else if (hash.startsWith("sources")) page = "sources";
   else if (hash.startsWith("glossaire") || hash.startsWith("fiches")) page = "glossaire";
   else if (hash.startsWith("institutions")) page = "institutions";
+  else if (hash.startsWith("donnees-publiques") || hash.startsWith("calendrier-donnees")) page = "donnees-publiques";
   return { page, villeSlug: null };
 }
 
@@ -161,6 +164,7 @@ export default function App() {
           {data && page === "secu-collec" && <SecuCollectivitesPage data={data} />}
           {data && page === "sources" && <SourcesOnlyPage data={data} />}
           {page === "institutions" && <InstitutionsPage />}
+          {page === "donnees-publiques" && <DonneesPubliquesPage />}
 
           {/* Pages ville (sub-tabs au sein du contexte ville) */}
           {data && isVillePage && (
