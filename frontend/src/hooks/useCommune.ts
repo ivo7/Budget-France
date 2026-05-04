@@ -52,6 +52,7 @@ export interface CommuneDetail {
     budgetTotalEur: number;
     detteEncoursEur: number;
     chargeDetteEur: number;
+    amortissementCapitalEur: number;
     capaciteAutofinancementEur: number;
     depensesPersonnelEur: number;
     depensesChargesGeneralesEur: number;

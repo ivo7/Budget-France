@@ -37,6 +37,7 @@ import type { BudgetSnapshot } from "../types";
 import { DownloadableCard } from "./DownloadableCard";
 import { ChartCitizenImpact } from "./ChartCitizenImpact";
 import { objectsToCsv, timeseriesToCsv } from "../lib/csvExport";
+import { useCommuneDetail, type CommuneDetail } from "../hooks/useCommune";
 
 interface Props {
   data: BudgetSnapshot;
@@ -67,15 +68,80 @@ function slugify(s: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
+/**
+ * Convertit un CommuneDetail (réponse API /api/communes/[slug]) vers le
+ * format Ville utilisé par le snapshot statique des 40 villes Phase 1.
+ *
+ * Permet à MaVillePage d'afficher n'importe laquelle des 35 000 communes
+ * OFGL/DGFiP avec les mêmes composants graphiques que les 40 villes seed.
+ */
+function adaptCommuneDetailToVille(detail: CommuneDetail): Ville {
+  // Trier les années par ordre croissant (la timeline du frontend l'attend)
+  const sortedFinances = [...detail.finances].sort((a, b) => a.annee - b.annee);
+
+  const annees = sortedFinances.map((f) => ({
+    annee: f.annee,
+    budgetTotalEur: f.budgetTotalEur,
+    recettesTotalesEur: f.recettesTotalesEur,
+    depensesTotalesEur: f.depensesTotalesEur,
+    soldeBudgetaireEur: f.soldeBudgetaireEur,
+    detteEncoursEur: f.detteEncoursEur,
+    capaciteAutofinancementEur: f.capaciteAutofinancementEur,
+    chargeDetteEur: f.chargeDetteEur,
+    amortissementCapitalEur: f.amortissementCapitalEur,
+    depensesInvestissementEur: f.depensesInvestEur,
+    depensesPersonnelEur: f.depensesPersonnelEur,
+  }));
+
+  // Composition basée sur la dernière année disponible
+  const latest = sortedFinances[sortedFinances.length - 1]!;
+
+  return {
+    codeInsee: detail.commune.codeInsee,
+    nom: detail.commune.nom,
+    departement: detail.commune.departement,
+    population: detail.commune.population,
+    annees,
+    compositionRecettes: {
+      impotsLocauxPct: latest.compoRecettesImpotsPct,
+      dotationsEtatPct: latest.compoRecettesDotationsPct,
+      subventionsPct: latest.compoRecettesSubvPct,
+      recettesServicesPct: latest.compoRecettesServicesPct,
+      autresPct: latest.compoRecettesAutresPct,
+    },
+    compositionDepenses: {
+      personnelPct: latest.compoDepensesPersonnelPct,
+      chargesGeneralesPct: latest.compoDepensesGeneralesPct,
+      subventionsVerseesPct: latest.compoDepensesSubvPct,
+      chargesFinancieresPct: latest.compoDepensesFinancieresPct,
+      investissementPct: latest.compoDepensesInvestPct,
+    },
+  };
+}
+
 export function MaVillePage({ data, subPage, villeSlug }: Props) {
   const villes = data.villes?.items ?? [];
 
   // Tous les hooks DOIVENT être appelés avant les early returns (rules of hooks).
-  const ville = useMemo(() => {
+  const villeFromSnapshot = useMemo(() => {
     if (!villeSlug) return null;
     return villes.find((v) => slugify(v.nom) === villeSlug) ?? null;
   }, [villes, villeSlug]);
 
+  // Fallback API : si le slug n'est pas dans le snapshot des 40 villes,
+  // on appelle /api/communes/[slug] pour aller chercher la commune dans
+  // la DB Postgres (qui contient les ~35 000 communes OFGL).
+  const apiSlug = !villeFromSnapshot && villeSlug ? villeSlug : null;
+  const { data: apiData, loading: apiLoading, error: apiError } = useCommuneDetail(apiSlug);
+
+  // Adapter le format API → format snapshot Ville pour que le rendu inchangé
+  // marche pour les deux sources.
+  const villeFromApi = useMemo<Ville | null>(() => {
+    if (!apiData) return null;
+    return adaptCommuneDetailToVille(apiData);
+  }, [apiData]);
+
+  const ville = villeFromSnapshot ?? villeFromApi;
   const moyennes = useMemo(() => calcMoyennes(villes), [villes]);
 
   if (!data.villes || villes.length === 0) {
@@ -89,6 +155,22 @@ export function MaVillePage({ data, subPage, villeSlug }: Props) {
   }
 
   if (!ville) {
+    if (apiLoading) {
+      return (
+        <section className="mt-6">
+          <div className="card p-8 text-center">
+            <div className="text-3xl mb-3 animate-pulse" aria-hidden="true">🔄</div>
+            <h2 className="font-display text-xl font-semibold text-slate-900">
+              Chargement de la fiche budgétaire…
+            </h2>
+            <p className="text-sm text-slate-600 mt-2">
+              Récupération des comptes officiels DGFiP/OFGL pour
+              « {villeSlug} ».
+            </p>
+          </div>
+        </section>
+      );
+    }
     return (
       <section className="mt-6">
         <div className="card p-8 text-center">
@@ -101,6 +183,11 @@ export function MaVillePage({ data, subPage, villeSlug }: Props) {
             Utilise la <strong>loupe en haut à droite</strong> pour rechercher
             une autre commune.
           </p>
+          {apiError && apiError !== "not_found" && (
+            <p className="text-xs text-slate-400 mt-3">
+              Détail technique : {apiError}
+            </p>
+          )}
         </div>
       </section>
     );
