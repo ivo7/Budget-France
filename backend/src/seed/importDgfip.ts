@@ -98,6 +98,54 @@ const DEPT_TO_REGION: Record<string, string> = {
   "974": "La Réunion", "976": "Mayotte",
 };
 
+// Codes INSEE des 40 villes du seed historique : pour ces communes-là, on
+// garantit qu'elles gardent leur slug « propre » (ex. saint-denis = 93066,
+// pas la commune homonyme à La Réunion).
+// Si un autre commune homonyme essaie de prendre le même slug, elle sera
+// suffixée par son code département.
+const SEED_SLUG_PRIORITIES: Record<string, string> = {
+  "75056": "paris",
+  "13055": "marseille",
+  "69123": "lyon",
+  "31555": "toulouse",
+  "06088": "nice",
+  "44109": "nantes",
+  "34172": "montpellier",
+  "67482": "strasbourg",
+  "33063": "bordeaux",
+  "59350": "lille",
+  "35238": "rennes",
+  "51454": "reims",
+  "76351": "le-havre",
+  "42218": "saint-etienne",
+  "83137": "toulon",
+  "38185": "grenoble",
+  "21231": "dijon",
+  "49007": "angers",
+  "63113": "clermont-ferrand",
+  "29019": "brest",
+  "30189": "nimes",
+  "13001": "aix-en-provence",
+  "37261": "tours",
+  "87085": "limoges",
+  "80021": "amiens",
+  "69266": "villeurbanne",
+  "57463": "metz",
+  "25056": "besancon",
+  "66136": "perpignan",
+  "92012": "boulogne-billancourt",
+  "45234": "orleans",
+  "76540": "rouen",
+  "68224": "mulhouse",
+  "14118": "caen",
+  "54395": "nancy",
+  "93066": "saint-denis",
+  "95018": "argenteuil",
+  "72181": "le-mans",
+  "59512": "roubaix",
+  "59599": "tourcoing",
+};
+
 const METROPOLES_STATUTAIRES: Record<string, string> = {
   "75056": "Métropole du Grand Paris",
   "13055": "Métropole d'Aix-Marseille-Provence",
@@ -292,6 +340,7 @@ async function downloadCsv(year: number): Promise<string> {
 interface PivotedCommune {
   insee: string;
   nom: string;
+  slug: string;            // calculé après pivot (gestion conflits homonymes)
   depCode: string;
   depName: string;
   regName: string;
@@ -329,6 +378,7 @@ function emptyPivot(insee: string, annee: number): PivotedCommune {
   return {
     insee, annee,
     nom: `Commune ${insee}`,
+    slug: "",
     depCode: "00", depName: "", regName: "",
     epciName: null,
     population: 0, trancheOfgl: "",
@@ -426,6 +476,76 @@ function parseAndPivot(content: string, fallbackYear: number): PivotedCommune[] 
 }
 
 // ----------------------------------------------------------------------------
+// Résolution des conflits de slugs (communes homonymes)
+// ----------------------------------------------------------------------------
+//
+// Beaucoup de noms de communes se répètent à travers la France (Saint-Martin,
+// La Chapelle, Sainte-Marie…). Slugifiés à l'identique, ils violent la
+// contrainte d'unicité. On résout par cette logique :
+//   1. Les communes du seed historique (40 grandes villes) gardent toujours
+//      leur slug propre (priorité absolue, listée dans SEED_SLUG_PRIORITIES).
+//   2. Pour les autres conflits, la commune ayant la plus grande population
+//      garde le slug « propre » (saint-martin), les autres sont suffixées
+//      par leur code département (saint-martin-32, saint-martin-54…).
+//   3. En cas de conflit résiduel (même nom, même département, ce qui est
+//      possible mais rare), on suffixe par le code INSEE complet.
+
+function assignUniqueSlugs(rows: PivotedCommune[]): void {
+  // Étape 1 : grouper par slug de base
+  const byBaseSlug = new Map<string, PivotedCommune[]>();
+  for (const r of rows) {
+    const base = slugify(r.nom);
+    if (!byBaseSlug.has(base)) byBaseSlug.set(base, []);
+    byBaseSlug.get(base)!.push(r);
+  }
+
+  // Étape 2 : pour chaque groupe, attribuer les slugs
+  for (const [base, group] of byBaseSlug.entries()) {
+    if (group.length === 1) {
+      // Pas de conflit : slug propre
+      group[0]!.slug = base;
+      continue;
+    }
+
+    // Conflit : on cherche d'abord un membre du seed prioritaire
+    const seedWinner = group.find((r) => SEED_SLUG_PRIORITIES[r.insee] === base);
+
+    // Sinon : la plus grosse population gagne
+    const sortedByPop = [...group].sort(
+      (a, b) => (b.population || 0) - (a.population || 0),
+    );
+    const winner = seedWinner ?? sortedByPop[0]!;
+    winner.slug = base;
+
+    // Pour les autres, suffixe par département (puis insee si encore conflit)
+    const used = new Set<string>([base]);
+    for (const r of group) {
+      if (r === winner) continue;
+      let candidate = `${base}-${r.depCode}`;
+      if (used.has(candidate)) {
+        candidate = `${base}-${r.insee}`;
+      }
+      used.add(candidate);
+      r.slug = candidate;
+    }
+  }
+
+  // Étape 3 : seed overrides — si un membre du seed n'a pas obtenu son slug
+  // (cas d'une mauvaise attribution), on force.
+  for (const r of rows) {
+    const wanted = SEED_SLUG_PRIORITIES[r.insee];
+    if (wanted && r.slug !== wanted) {
+      // Trouver qui occupe ce slug et le renommer
+      const occupier = rows.find((x) => x !== r && x.slug === wanted);
+      if (occupier) {
+        occupier.slug = `${wanted}-${occupier.depCode}`;
+      }
+      r.slug = wanted;
+    }
+  }
+}
+
+// ----------------------------------------------------------------------------
 // UPSERT dans Postgres
 // ----------------------------------------------------------------------------
 
@@ -462,7 +582,7 @@ async function upsertCommune(r: PivotedCommune): Promise<void> {
     create: {
       codeInsee: r.insee,
       nom: r.nom,
-      slug: slugify(r.nom),
+      slug: r.slug || slugify(r.nom),
       departement,
       departementCode: r.depCode,
       region,
@@ -472,7 +592,7 @@ async function upsertCommune(r: PivotedCommune): Promise<void> {
     },
     update: {
       nom: r.nom,
-      slug: slugify(r.nom),
+      slug: r.slug || slugify(r.nom),
       departement,
       departementCode: r.depCode,
       region,
@@ -559,6 +679,12 @@ export async function runDgfipImport(year: number = DEFAULT_YEAR): Promise<{
   console.log(`[ofgl] parsing + pivot…`);
   const rows = parseAndPivot(csvContent, year);
   console.log(`[ofgl] ${rows.length} communes à upserter.`);
+
+  // 2bis. Résoudre les conflits de slugs (communes homonymes)
+  console.log(`[ofgl] résolution conflits de slugs…`);
+  assignUniqueSlugs(rows);
+  const conflicts = rows.filter((r) => r.slug.includes("-") && /\d/.test(r.slug.split("-").pop()!));
+  console.log(`[ofgl] ${conflicts.length} communes ont un slug suffixé par département (homonymes).`);
 
   // 3. Upsert par batches
   let inserted = 0;
