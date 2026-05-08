@@ -114,7 +114,10 @@ function resolveRoute(hash: string): RouteResolution {
   else if (hash.startsWith("europe")) page = "europe";
   else if (hash.startsWith("historique")) page = "historique";
   else if (hash.startsWith("fraudes")) page = "fraudes";
-  else if (hash.startsWith("secu") || hash.startsWith("collectivites") || hash.startsWith("secu-collec")) page = "secu-collec";
+  // ⚠ Ordre important : `securite-sociale` doit être testé AVANT `secu` car
+  // les deux commencent par "secu" et la 1ʳᵉ règle qui matche gagne.
+  else if (hash.startsWith("securite-sociale") || hash.startsWith("secu-detail") || hash.startsWith("secu-branches")) page = "securite-sociale";
+  else if (hash.startsWith("secu-collec") || hash.startsWith("secu") || hash.startsWith("collectivites")) page = "secu-collec";
   else if (hash.startsWith("mes-impots") || hash.startsWith("impots")) page = "mes-impots";
   else if (hash.startsWith("pedagogie") || hash.startsWith("eleves") || hash.startsWith("comprendre")) page = "pedagogie";
   else if (hash.startsWith("sources")) page = "sources";
@@ -123,7 +126,6 @@ function resolveRoute(hash: string): RouteResolution {
   else if (hash.startsWith("donnees-publiques") || hash.startsWith("calendrier-donnees")) page = "donnees-publiques";
   else if (hash.startsWith("niches-fiscales") || hash.startsWith("niches") || hash.startsWith("depenses-fiscales")) page = "niches-fiscales";
   else if (hash.startsWith("salaires-elus") || hash.startsWith("indemnites-elus") || hash.startsWith("remunerations-elus")) page = "salaires-elus";
-  else if (hash.startsWith("securite-sociale") || hash.startsWith("secu-detail") || hash.startsWith("secu-branches")) page = "securite-sociale";
   return { page, villeSlug: null };
 }
 
