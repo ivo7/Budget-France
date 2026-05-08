@@ -1211,23 +1211,65 @@ function Header({ page, ville, allVilles }: HeaderProps) {
     setSearchOpen(false);
   }, [page, ville?.nom]);
 
-  // Items du burger national
-  const NAV_ITEMS_NATIONAL: { href: string; label: string; target: Page; description: string }[] = [
-    { href: "#/",              label: "Tableau de bord",          target: "dashboard",   description: "Vue d'ensemble temps réel" },
-    { href: "#/historique",    label: "Historique",               target: "historique",  description: "Évolution 1945 → 2025" },
-    { href: "#/secu-collec",   label: "Sécu et Collectivités",    target: "secu-collec", description: "Les 2 autres sphères publiques" },
-    { href: "#/fraudes",       label: "Fraudes",                  target: "fraudes",     description: "Fiscale et sociale" },
-    { href: "#/mes-impots",    label: "Mes impôts",               target: "mes-impots",  description: "Simulateur personnel" },
-    { href: "#/europe",        label: "Europe",                   target: "europe",      description: "Comparaisons UE + ratings" },
-    { href: "#/pedagogie",     label: "Comprendre",               target: "pedagogie",   description: "Parcours en 10 étapes" },
-    { href: "#/glossaire",     label: "Fiches pédagogiques",      target: "glossaire",   description: "Glossaire complet" },
-    { href: "#/institutions",  label: "Institutions",             target: "institutions", description: "Qui décide, exécute, contrôle" },
-    { href: "#/sources",       label: "Sources",                  target: "sources",     description: "Traçabilité des données" },
-    ...(PREMIUM_ENABLED ? [
-      { href: "#/tarifs",   label: "Premium",     target: "tarifs" as Page, description: "Bulletin hebdo · 7 jours offerts" },
-      { href: "#/compte",   label: "Mon compte",  target: "compte" as Page, description: "Gérer mon abonnement" },
-    ] : []),
+  // Items du burger national, organisés en catégories pour la lisibilité.
+  // Chaque catégorie a un titre court et regroupe 1 à 4 items thématiquement
+  // proches. L'ordre suit la progression naturelle de l'utilisateur :
+  // d'abord ce qui le concerne directement (Vue d'ensemble, Mes finances),
+  // puis le contexte (Sphères, Comparaisons), puis l'apprentissage et la
+  // transparence.
+  type NavItem = { href: string; label: string; target: Page; description: string };
+  type NavCategory = { title: string; items: NavItem[] };
+
+  const NAV_CATEGORIES_NATIONAL: NavCategory[] = [
+    {
+      title: "Vue d'ensemble",
+      items: [
+        { href: "#/",            label: "Tableau de bord", target: "dashboard",  description: "Dette, déficit, OAT en temps réel" },
+        { href: "#/historique",  label: "Historique",      target: "historique", description: "Évolution 1945 → 2025" },
+      ],
+    },
+    {
+      title: "Mes finances",
+      items: [
+        { href: "#/mes-impots",  label: "Mes impôts",      target: "mes-impots", description: "Simulateur perso : où va vraiment ton argent" },
+        ...(PREMIUM_ENABLED ? [
+          { href: "#/tarifs",  label: "Premium",    target: "tarifs" as Page, description: "Bulletin hebdo · 7 jours offerts" },
+          { href: "#/compte",  label: "Mon compte", target: "compte" as Page, description: "Gérer mon abonnement" },
+        ] : []),
+      ],
+    },
+    {
+      title: "Sphères publiques",
+      items: [
+        { href: "#/secu-collec", label: "Sécu et Collectivités", target: "secu-collec", description: "Les 2 autres sphères publiques" },
+        { href: "#/fraudes",     label: "Fraudes",               target: "fraudes",     description: "Fiscale et sociale" },
+      ],
+    },
+    {
+      title: "Comparaisons & contexte",
+      items: [
+        { href: "#/europe",       label: "Europe",       target: "europe",       description: "UE + ratings souverains" },
+        { href: "#/institutions", label: "Institutions", target: "institutions", description: "Qui décide, exécute, contrôle" },
+      ],
+    },
+    {
+      title: "Apprendre",
+      items: [
+        { href: "#/pedagogie",   label: "Comprendre",          target: "pedagogie", description: "Parcours pédagogique en 10 étapes" },
+        { href: "#/glossaire",   label: "Fiches pédagogiques", target: "glossaire", description: "Glossaire complet, ~120 termes" },
+      ],
+    },
+    {
+      title: "Transparence des données",
+      items: [
+        { href: "#/sources",            label: "Sources",                 target: "sources",          description: "Traçabilité de chaque chiffre" },
+        { href: "#/donnees-publiques",  label: "État de la donnée publique", target: "donnees-publiques", description: "Calendrier de publication officielle" },
+      ],
+    },
   ];
+
+  // Liste plate utilisée pour le breadcrumb / titre courant
+  const NAV_ITEMS_NATIONAL: NavItem[] = NAV_CATEGORIES_NATIONAL.flatMap((c) => c.items);
 
   // Items du burger ville (sub-tabs)
   const villeSlug = ville ? slugify(ville.nom) : "";
@@ -1241,7 +1283,6 @@ function Header({ page, ville, allVilles }: HeaderProps) {
   ];
 
   const isVilleContext = Boolean(ville);
-  const navItems = isVilleContext ? NAV_ITEMS_VILLE : NAV_ITEMS_NATIONAL;
 
   // Couleurs/initiale pour l'emblème ville (placeholder en attendant SVG officiels)
   const villeInitial = ville ? ville.nom.charAt(0).toUpperCase() : "";
@@ -1301,20 +1342,21 @@ function Header({ page, ville, allVilles }: HeaderProps) {
             </a>
           )}
 
-          {/* Icône recherche ville */}
+          {/* Bouton recherche ville — loupe + label « Ma ville » sur écran moyen+ */}
           <button
             type="button"
             onClick={() => setSearchOpen((v) => !v)}
             aria-label="Rechercher ma ville"
-            title="Rechercher ma ville"
+            title="Rechercher ma ville parmi les 35 000 communes françaises"
             aria-expanded={searchOpen}
-            className={`inline-flex items-center justify-center w-9 h-9 rounded-lg border transition ${
+            className={`inline-flex items-center gap-1.5 px-2 sm:px-3 h-9 rounded-lg border transition text-sm ${
               searchOpen
                 ? "bg-brand text-white border-brand"
-                : "border-slate-200 text-slate-500 hover:border-brand hover:text-brand"
+                : "border-slate-200 text-slate-700 hover:border-brand hover:text-brand"
             }`}
           >
             <SearchIcon />
+            <span className="hidden sm:inline font-medium">Ma ville</span>
           </button>
 
           {/* Lien admin discret — icône cadenas */}
@@ -1372,40 +1414,70 @@ function Header({ page, ville, allVilles }: HeaderProps) {
             onClick={() => setMenuOpen(false)}
             aria-hidden="true"
           />
-          <div className="absolute top-full left-0 right-0 bg-white border-b border-slate-200 shadow-xl z-[6]">
-            <nav className="mx-auto max-w-7xl px-4 md:px-6 py-4">
-              {isVilleContext && ville && (
-                <div className="mb-3 pb-3 border-b border-slate-100 text-xs uppercase tracking-widest text-muted">
-                  Navigation Budget {ville.nom}
-                </div>
-              )}
-              <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                {navItems.map((item) => (
-                  <li key={item.target}>
+          <div className="absolute top-full left-0 right-0 bg-white border-b border-slate-200 shadow-xl z-[6] max-h-[calc(100vh-80px)] overflow-y-auto">
+            <nav className="mx-auto max-w-7xl px-4 md:px-6 py-5">
+              {isVilleContext && ville ? (
+                /* Menu ville : 6 sub-tabs, pas besoin de catégories */
+                <>
+                  <div className="mb-3 pb-3 border-b border-slate-100 text-xs uppercase tracking-widest text-muted">
+                    Navigation Budget {ville.nom}
+                  </div>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                    {NAV_ITEMS_VILLE.map((item) => (
+                      <li key={item.target}>
+                        <a
+                          href={item.href}
+                          onClick={() => setMenuOpen(false)}
+                          className={`block p-3 rounded-lg border transition-colors ${
+                            page === item.target
+                              ? "bg-brand-soft border-brand/30 text-brand"
+                              : "bg-white border-slate-200 text-slate-700 hover:border-brand/40 hover:bg-brand-soft/40 hover:text-brand"
+                          }`}
+                        >
+                          <div className="font-semibold text-sm">{item.label}</div>
+                          <div className="text-[11px] text-slate-500 mt-0.5">{item.description}</div>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-4 pt-3 border-t border-slate-100">
                     <a
-                      href={item.href}
+                      href="#/"
                       onClick={() => setMenuOpen(false)}
-                      className={`block p-3 rounded-lg border transition-colors ${
-                        page === item.target
-                          ? "bg-brand-soft border-brand/30 text-brand"
-                          : "bg-white border-slate-200 text-slate-700 hover:border-brand/40 hover:bg-brand-soft/40 hover:text-brand"
-                      }`}
+                      className="inline-flex items-center gap-1.5 text-xs text-brand hover:underline"
                     >
-                      <div className="font-semibold text-sm">{item.label}</div>
-                      <div className="text-[11px] text-slate-500 mt-0.5">{item.description}</div>
+                      ← Retour à Budget France (vue nationale)
                     </a>
-                  </li>
-                ))}
-              </ul>
-              {isVilleContext && (
-                <div className="mt-4 pt-3 border-t border-slate-100">
-                  <a
-                    href="#/"
-                    onClick={() => setMenuOpen(false)}
-                    className="inline-flex items-center gap-1.5 text-xs text-brand hover:underline"
-                  >
-                    ← Retour à Budget France (vue nationale)
-                  </a>
+                  </div>
+                </>
+              ) : (
+                /* Menu national : organisé en catégories */
+                <div className="space-y-5">
+                  {NAV_CATEGORIES_NATIONAL.map((cat) => (
+                    <div key={cat.title}>
+                      <div className="mb-2 text-[11px] uppercase tracking-widest text-slate-500 font-semibold">
+                        {cat.title}
+                      </div>
+                      <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                        {cat.items.map((item) => (
+                          <li key={item.target}>
+                            <a
+                              href={item.href}
+                              onClick={() => setMenuOpen(false)}
+                              className={`block p-3 rounded-lg border transition-colors ${
+                                page === item.target
+                                  ? "bg-brand-soft border-brand/30 text-brand"
+                                  : "bg-white border-slate-200 text-slate-700 hover:border-brand/40 hover:bg-brand-soft/40 hover:text-brand"
+                              }`}
+                            >
+                              <div className="font-semibold text-sm">{item.label}</div>
+                              <div className="text-[11px] text-slate-500 mt-0.5">{item.description}</div>
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
                 </div>
               )}
             </nav>
