@@ -23,6 +23,7 @@ import { ChartCitizenImpact } from "./components/ChartCitizenImpact";
 import { InstitutionsPage } from "./components/InstitutionsPage";
 import { DonneesPubliquesPage } from "./components/DonneesPubliquesPage";
 import { NichesFiscalesPage } from "./components/NichesFiscalesPage";
+import { SalairesElusPage } from "./components/SalairesElusPage";
 import { MaVillePage } from "./components/MaVillePage";
 import { BudgetBreakdown } from "./components/BudgetBreakdown";
 import { Glossary } from "./components/Glossary";
@@ -65,7 +66,7 @@ const PREMIUM_ENABLED = false;
 type Page =
   | "dashboard" | "europe" | "historique" | "fraudes" | "mes-impots"
   | "pedagogie" | "secu-collec" | "sources" | "glossaire" | "institutions"
-  | "donnees-publiques" | "niches-fiscales"
+  | "donnees-publiques" | "niches-fiscales" | "salaires-elus"
   | "tarifs" | "paiement-reussi" | "compte" | "admin"
   | "ville-synthese" | "ville-recettes" | "ville-depenses"
   | "ville-historique" | "ville-comparaison" | "ville-sources";
@@ -119,6 +120,7 @@ function resolveRoute(hash: string): RouteResolution {
   else if (hash.startsWith("institutions")) page = "institutions";
   else if (hash.startsWith("donnees-publiques") || hash.startsWith("calendrier-donnees")) page = "donnees-publiques";
   else if (hash.startsWith("niches-fiscales") || hash.startsWith("niches") || hash.startsWith("depenses-fiscales")) page = "niches-fiscales";
+  else if (hash.startsWith("salaires-elus") || hash.startsWith("indemnites-elus") || hash.startsWith("remunerations-elus")) page = "salaires-elus";
   return { page, villeSlug: null };
 }
 
@@ -168,6 +170,7 @@ export default function App() {
           {page === "institutions" && <InstitutionsPage />}
           {page === "donnees-publiques" && <DonneesPubliquesPage />}
           {page === "niches-fiscales" && <NichesFiscalesPage />}
+          {page === "salaires-elus" && <SalairesElusPage />}
 
           {/* Pages ville (sub-tabs au sein du contexte ville) */}
           {data && isVillePage && (
@@ -1251,7 +1254,8 @@ function Header({ page, ville, allVilles }: HeaderProps) {
     {
       title: "Angles morts",
       items: [
-        { href: "#/niches-fiscales", label: "Niches fiscales", target: "niches-fiscales", description: "~95 Md€/an de manque à gagner" },
+        { href: "#/niches-fiscales", label: "Niches fiscales",  target: "niches-fiscales", description: "~95 Md€/an de manque à gagner" },
+        { href: "#/salaires-elus",   label: "Salaires des élus", target: "salaires-elus",   description: "Indemnités, frais, retraites" },
       ],
     },
     {
