@@ -747,29 +747,18 @@ function MesImpotsPage({ data }: { data: BudgetSnapshot }) {
       <section className="mt-6">
         <div className="text-xs uppercase tracking-widest text-muted">Pour la population</div>
         <h1 className="font-display text-3xl font-bold text-slate-900 mt-1">
-          Où vont mes impôts ?
+          Où vont vraiment mes impôts ?
         </h1>
-        <p className="text-sm text-slate-600 mt-2 max-w-2xl">
-          Ta contribution annuelle au budget de l'État, répartie sur les grandes missions
-          (Éducation, Défense, Santé, Charge de la dette…). Calcul pédagogique — pas un
-          avis d'imposition officiel.
+        <p className="text-sm text-slate-600 mt-2 max-w-2xl leading-relaxed">
+          Tous les prélèvements payés sur ton salaire — impôts directs (IR), indirects
+          (TVA, TICPE), cotisations sociales (salariales + patronales), CSG/CRDS, taxe
+          foncière — et où ils vont vraiment : État, Sécurité sociale (5 branches),
+          Unédic, ta commune. Calcul pédagogique — pas un avis d'imposition officiel.
         </p>
       </section>
 
       <section className="mt-6">
         <MesImpotsSimulator data={data} />
-        <ChartCitizenImpact
-          text={
-            <>
-              <strong>Tu n'imagines pas combien tu donnes vraiment à l'État.</strong>{" "}
-              Au-delà de l'impôt sur le revenu, tu paies aussi : ~20 % de TVA sur tout ce
-              que tu achètes, des taxes carburant (TICPE), des cotisations sociales sur
-              ton salaire (~22 % salarial + ~42 % patronal). Cumulé, le « taux de
-              prélèvements obligatoires » français est de ~46 % du PIB — l'un des plus
-              élevés au monde. Ce graphe te montre où va concrètement chaque euro.
-            </>
-          }
-        />
       </section>
     </>
   );
