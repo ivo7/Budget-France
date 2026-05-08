@@ -24,6 +24,7 @@ import { InstitutionsPage } from "./components/InstitutionsPage";
 import { DonneesPubliquesPage } from "./components/DonneesPubliquesPage";
 import { NichesFiscalesPage } from "./components/NichesFiscalesPage";
 import { SalairesElusPage } from "./components/SalairesElusPage";
+import { SecuSocialeDetailleePage } from "./components/SecuSocialeDetailleePage";
 import { MaVillePage } from "./components/MaVillePage";
 import { BudgetBreakdown } from "./components/BudgetBreakdown";
 import { Glossary } from "./components/Glossary";
@@ -67,6 +68,7 @@ type Page =
   | "dashboard" | "europe" | "historique" | "fraudes" | "mes-impots"
   | "pedagogie" | "secu-collec" | "sources" | "glossaire" | "institutions"
   | "donnees-publiques" | "niches-fiscales" | "salaires-elus"
+  | "securite-sociale"
   | "tarifs" | "paiement-reussi" | "compte" | "admin"
   | "ville-synthese" | "ville-recettes" | "ville-depenses"
   | "ville-historique" | "ville-comparaison" | "ville-sources";
@@ -121,6 +123,7 @@ function resolveRoute(hash: string): RouteResolution {
   else if (hash.startsWith("donnees-publiques") || hash.startsWith("calendrier-donnees")) page = "donnees-publiques";
   else if (hash.startsWith("niches-fiscales") || hash.startsWith("niches") || hash.startsWith("depenses-fiscales")) page = "niches-fiscales";
   else if (hash.startsWith("salaires-elus") || hash.startsWith("indemnites-elus") || hash.startsWith("remunerations-elus")) page = "salaires-elus";
+  else if (hash.startsWith("securite-sociale") || hash.startsWith("secu-detail") || hash.startsWith("secu-branches")) page = "securite-sociale";
   return { page, villeSlug: null };
 }
 
@@ -171,6 +174,7 @@ export default function App() {
           {page === "donnees-publiques" && <DonneesPubliquesPage />}
           {page === "niches-fiscales" && <NichesFiscalesPage />}
           {page === "salaires-elus" && <SalairesElusPage />}
+          {page === "securite-sociale" && <SecuSocialeDetailleePage />}
 
           {/* Pages ville (sub-tabs au sein du contexte ville) */}
           {data && isVillePage && (
@@ -1247,8 +1251,9 @@ function Header({ page, ville, allVilles }: HeaderProps) {
     {
       title: "Sphères publiques",
       items: [
-        { href: "#/secu-collec", label: "Sécu et Collectivités", target: "secu-collec", description: "Les 2 autres sphères publiques" },
-        { href: "#/fraudes",     label: "Fraudes",               target: "fraudes",     description: "Fiscale et sociale" },
+        { href: "#/secu-collec",      label: "Sécu et Collectivités",  target: "secu-collec",      description: "Vue d'ensemble des 3 sphères" },
+        { href: "#/securite-sociale", label: "Sécu en détail",         target: "securite-sociale", description: "5 branches + Unédic, déficits depuis 2000" },
+        { href: "#/fraudes",          label: "Fraudes",                target: "fraudes",          description: "Fiscale et sociale" },
       ],
     },
     {
