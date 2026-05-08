@@ -22,6 +22,7 @@ import { Linkify } from "./components/Linkify";
 import { ChartCitizenImpact } from "./components/ChartCitizenImpact";
 import { InstitutionsPage } from "./components/InstitutionsPage";
 import { DonneesPubliquesPage } from "./components/DonneesPubliquesPage";
+import { NichesFiscalesPage } from "./components/NichesFiscalesPage";
 import { MaVillePage } from "./components/MaVillePage";
 import { BudgetBreakdown } from "./components/BudgetBreakdown";
 import { Glossary } from "./components/Glossary";
@@ -64,7 +65,7 @@ const PREMIUM_ENABLED = false;
 type Page =
   | "dashboard" | "europe" | "historique" | "fraudes" | "mes-impots"
   | "pedagogie" | "secu-collec" | "sources" | "glossaire" | "institutions"
-  | "donnees-publiques"
+  | "donnees-publiques" | "niches-fiscales"
   | "tarifs" | "paiement-reussi" | "compte" | "admin"
   | "ville-synthese" | "ville-recettes" | "ville-depenses"
   | "ville-historique" | "ville-comparaison" | "ville-sources";
@@ -117,6 +118,7 @@ function resolveRoute(hash: string): RouteResolution {
   else if (hash.startsWith("glossaire") || hash.startsWith("fiches")) page = "glossaire";
   else if (hash.startsWith("institutions")) page = "institutions";
   else if (hash.startsWith("donnees-publiques") || hash.startsWith("calendrier-donnees")) page = "donnees-publiques";
+  else if (hash.startsWith("niches-fiscales") || hash.startsWith("niches") || hash.startsWith("depenses-fiscales")) page = "niches-fiscales";
   return { page, villeSlug: null };
 }
 
@@ -165,6 +167,7 @@ export default function App() {
           {data && page === "sources" && <SourcesOnlyPage data={data} />}
           {page === "institutions" && <InstitutionsPage />}
           {page === "donnees-publiques" && <DonneesPubliquesPage />}
+          {page === "niches-fiscales" && <NichesFiscalesPage />}
 
           {/* Pages ville (sub-tabs au sein du contexte ville) */}
           {data && isVillePage && (
@@ -1243,6 +1246,12 @@ function Header({ page, ville, allVilles }: HeaderProps) {
       items: [
         { href: "#/secu-collec", label: "Sécu et Collectivités", target: "secu-collec", description: "Les 2 autres sphères publiques" },
         { href: "#/fraudes",     label: "Fraudes",               target: "fraudes",     description: "Fiscale et sociale" },
+      ],
+    },
+    {
+      title: "Angles morts",
+      items: [
+        { href: "#/niches-fiscales", label: "Niches fiscales", target: "niches-fiscales", description: "~95 Md€/an de manque à gagner" },
       ],
     },
     {

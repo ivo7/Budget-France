@@ -310,29 +310,31 @@ export function DonneesPubliquesPage() {
       </section>
 
       {/* À retenir */}
-      <section className="card p-5 md:p-6 bg-slate-900 text-slate-50 border-slate-800">
-        <h2 className="font-display text-xl font-semibold mb-3">À retenir</h2>
-        <ul className="space-y-2 text-sm leading-relaxed">
+      <section className="rounded-2xl p-5 md:p-6 bg-slate-900 text-slate-50 border border-slate-800 shadow-card">
+        <h2 className="font-display text-xl font-semibold mb-3 text-white">
+          À retenir
+        </h2>
+        <ul className="space-y-2.5 text-sm leading-relaxed text-slate-100">
           <li>
-            • Le décalage de <strong>12 à 18 mois</strong> sur les comptes
-            communaux n'est pas une lacune de Budget France — c'est la limite
-            de la donnée publique elle-même.
+            • Le décalage de <strong className="text-white">12 à 18 mois</strong> sur
+            les comptes communaux n'est pas une lacune de Budget France — c'est la
+            limite de la donnée publique elle-même.
           </li>
           <li>
-            • Pour <strong>l'année en cours</strong>, on regarde les
-            indicateurs en temps réel (OAT, BCE, déficit live) et le scénario
-            voté en LFI.
+            • Pour <strong className="text-white">l'année en cours</strong>, on
+            regarde les indicateurs en temps réel (OAT, BCE, déficit live) et le
+            scénario voté en LFI.
           </li>
           <li>
-            • Pour <strong>les comptes définitifs</strong>, il faut accepter
-            d'attendre que les 35 062 communes aient voté, transmis,
-            consolidé. C'est le prix d'une donnée vérifiable et certifiée par
-            la DGFiP.
+            • Pour <strong className="text-white">les comptes définitifs</strong>,
+            il faut accepter d'attendre que les 35 062 communes aient voté,
+            transmis, consolidé. C'est le prix d'une donnée vérifiable et
+            certifiée par la DGFiP.
           </li>
           <li>
-            • Toute source qui prétend afficher des comptes définitifs en
-            temps réel (« la commune X dépense Y € en ce moment »)
-            <strong> ment ou bricole</strong>.
+            • Toute source qui prétend afficher des comptes définitifs en temps
+            réel (« la commune X dépense Y € en ce moment »){" "}
+            <strong className="text-white">ment ou bricole</strong>.
           </li>
         </ul>
       </section>
