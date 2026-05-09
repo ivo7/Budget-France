@@ -25,6 +25,7 @@ import { DonneesPubliquesPage } from "./components/DonneesPubliquesPage";
 import { NichesFiscalesPage } from "./components/NichesFiscalesPage";
 import { SalairesElusPage } from "./components/SalairesElusPage";
 import { SecuSocialeDetailleePage } from "./components/SecuSocialeDetailleePage";
+import { RegalienPage } from "./components/RegalienPage";
 import { MaVillePage } from "./components/MaVillePage";
 import { BudgetBreakdown } from "./components/BudgetBreakdown";
 import { Glossary } from "./components/Glossary";
@@ -68,7 +69,7 @@ type Page =
   | "dashboard" | "europe" | "historique" | "fraudes" | "mes-impots"
   | "pedagogie" | "secu-collec" | "sources" | "glossaire" | "institutions"
   | "donnees-publiques" | "niches-fiscales" | "salaires-elus"
-  | "securite-sociale"
+  | "securite-sociale" | "regalien"
   | "tarifs" | "paiement-reussi" | "compte" | "admin"
   | "ville-synthese" | "ville-recettes" | "ville-depenses"
   | "ville-historique" | "ville-comparaison" | "ville-voisines" | "ville-sources";
@@ -127,6 +128,7 @@ function resolveRoute(hash: string): RouteResolution {
   else if (hash.startsWith("donnees-publiques") || hash.startsWith("calendrier-donnees")) page = "donnees-publiques";
   else if (hash.startsWith("niches-fiscales") || hash.startsWith("niches") || hash.startsWith("depenses-fiscales")) page = "niches-fiscales";
   else if (hash.startsWith("salaires-elus") || hash.startsWith("indemnites-elus") || hash.startsWith("remunerations-elus")) page = "salaires-elus";
+  else if (hash.startsWith("regalien") || hash.startsWith("police-justice") || hash.startsWith("police") || hash.startsWith("justice-prisons")) page = "regalien";
   return { page, villeSlug: null };
 }
 
@@ -178,6 +180,7 @@ export default function App() {
           {page === "niches-fiscales" && <NichesFiscalesPage />}
           {page === "salaires-elus" && <SalairesElusPage />}
           {page === "securite-sociale" && <SecuSocialeDetailleePage />}
+          {page === "regalien" && <RegalienPage />}
 
           {/* Pages ville (sub-tabs au sein du contexte ville) */}
           {data && isVillePage && (
@@ -1439,6 +1442,7 @@ function Header({ page, ville, allVilles }: HeaderProps) {
       items: [
         { href: "#/secu-collec",      label: "Sécu et Collectivités",  target: "secu-collec",      description: "Vue d'ensemble des 3 sphères" },
         { href: "#/securite-sociale", label: "Sécu en détail",         target: "securite-sociale", description: "5 branches + Unédic, déficits depuis 2000" },
+        { href: "#/regalien",         label: "Police, Justice, Prisons", target: "regalien",       description: "Missions régaliennes : ~35 Md€/an" },
         { href: "#/fraudes",          label: "Fraudes",                target: "fraudes",          description: "Fiscale et sociale" },
       ],
     },
