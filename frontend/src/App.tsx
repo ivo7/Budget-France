@@ -26,6 +26,7 @@ import { NichesFiscalesPage } from "./components/NichesFiscalesPage";
 import { SalairesElusPage } from "./components/SalairesElusPage";
 import { SecuSocialeDetailleePage } from "./components/SecuSocialeDetailleePage";
 import { RegalienPage } from "./components/RegalienPage";
+import { MarchesPublicsPage } from "./components/MarchesPublicsPage";
 import { MaVillePage } from "./components/MaVillePage";
 import { BudgetBreakdown } from "./components/BudgetBreakdown";
 import { Glossary } from "./components/Glossary";
@@ -69,7 +70,7 @@ type Page =
   | "dashboard" | "europe" | "historique" | "fraudes" | "mes-impots"
   | "pedagogie" | "secu-collec" | "sources" | "glossaire" | "institutions"
   | "donnees-publiques" | "niches-fiscales" | "salaires-elus"
-  | "securite-sociale" | "regalien"
+  | "securite-sociale" | "regalien" | "marches-publics"
   | "tarifs" | "paiement-reussi" | "compte" | "admin"
   | "ville-synthese" | "ville-recettes" | "ville-depenses"
   | "ville-historique" | "ville-comparaison" | "ville-voisines" | "ville-sources";
@@ -129,6 +130,7 @@ function resolveRoute(hash: string): RouteResolution {
   else if (hash.startsWith("niches-fiscales") || hash.startsWith("niches") || hash.startsWith("depenses-fiscales")) page = "niches-fiscales";
   else if (hash.startsWith("salaires-elus") || hash.startsWith("indemnites-elus") || hash.startsWith("remunerations-elus")) page = "salaires-elus";
   else if (hash.startsWith("regalien") || hash.startsWith("police-justice") || hash.startsWith("police") || hash.startsWith("justice-prisons")) page = "regalien";
+  else if (hash.startsWith("marches-publics") || hash.startsWith("commande-publique") || hash.startsWith("decp") || hash.startsWith("boamp")) page = "marches-publics";
   return { page, villeSlug: null };
 }
 
@@ -181,6 +183,7 @@ export default function App() {
           {page === "salaires-elus" && <SalairesElusPage />}
           {page === "securite-sociale" && <SecuSocialeDetailleePage />}
           {page === "regalien" && <RegalienPage />}
+          {page === "marches-publics" && <MarchesPublicsPage />}
 
           {/* Pages ville (sub-tabs au sein du contexte ville) */}
           {data && isVillePage && (
@@ -1451,6 +1454,12 @@ function Header({ page, ville, allVilles }: HeaderProps) {
       items: [
         { href: "#/niches-fiscales", label: "Niches fiscales",  target: "niches-fiscales", description: "~95 Md€/an de manque à gagner" },
         { href: "#/salaires-elus",   label: "Salaires des élus", target: "salaires-elus",   description: "Indemnités, frais, retraites" },
+      ],
+    },
+    {
+      title: "Pour les entreprises",
+      items: [
+        { href: "#/marches-publics", label: "Marchés publics", target: "marches-publics", description: "~120 Md€/an, qui achète, qui vend" },
       ],
     },
     {
