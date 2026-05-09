@@ -1208,7 +1208,7 @@ function SubVoisines({ ville }: { ville: Ville }) {
             <li>
               • <strong className="text-slate-800">Strate similaire</strong> :
               12 communes de la classification «{" "}
-              {data?.meta.classification ?? ville.classification ?? "—"} » dans
+              {data?.meta.classification ?? "—"} » dans
               d'autres départements. Comparable structurellement.
             </li>
           </ul>
@@ -1384,12 +1384,16 @@ function VoisinsBarChart({
   const data = useMemo(() => {
     const allRows = moi ? [moi, ...voisines] : voisines;
     return allRows
-      .map((c) => ({
-        nom: c.nom,
-        slug: c.slug,
-        value: Number(c[indicateurId]) ?? 0,
-        isMoi: moi ? c.codeInsee === moi.codeInsee : false,
-      }))
+      .map((c) => {
+        const raw = c[indicateurId];
+        const numeric = typeof raw === "number" ? raw : Number(raw ?? 0);
+        return {
+          nom: c.nom,
+          slug: c.slug,
+          value: Number.isFinite(numeric) ? numeric : 0,
+          isMoi: moi ? c.codeInsee === moi.codeInsee : false,
+        };
+      })
       .sort((a, b) => (higherIsBad ? a.value - b.value : b.value - a.value));
   }, [moi, voisines, indicateurId, higherIsBad]);
 
