@@ -6,141 +6,155 @@
 // listant les top 100 fournisseurs nationaux par montant total de marchés
 // publics gagnés.
 //
-// Source : data.gouv.fr — DECP fichiers consolidés (CSV)
+// Source : data.gouv.fr — DECP fichiers consolidés (JSON)
 //   https://www.data.gouv.fr/fr/datasets/donnees-essentielles-de-la-commande-publique-fichiers-consolides/
+//
+// Format des fichiers DECP :
+//   - decp-global.json (~854 Mo) : tous les marchés depuis 2018 — TROP GROS pour JSON.parse
+//   - decp-AAAA.json (~250 Mo)   : tous les marchés d'une année
+//   - decp-AAAA-MM.json (~50 Mo) : marchés d'un mois — RECOMMANDÉ
 //
 // Procédure d'utilisation :
 //
-//   1. Récupérer le lien de téléchargement direct du fichier consolidé CSV
-//      sur data.gouv.fr (l'URL change à chaque mise à jour). Format attendu :
-//      decp-2025.csv ou decp-augmente.csv.
+//   1. Télécharger les fichiers mensuels désirés depuis data.gouv.fr.
+//      Pour 2024 entier (recommandé pour le top 100), il faut les 12 fichiers
+//      mensuels decp-2024-01.json à decp-2024-12.json.
+//      Les URLs directes sont dispo sur la page :
+//      https://www.data.gouv.fr/fr/datasets/donnees-essentielles-de-la-commande-publique-fichiers-consolides/
 //
-//   2. Télécharger localement (ou sur le VPS) :
-//      curl -L 'https://www.data.gouv.fr/fr/datasets/r/<id>' -o /tmp/decp.csv
+//   2. Sur le VPS, créer un dossier dédié et télécharger :
+//        mkdir -p /tmp/decp && cd /tmp/decp
+//        # Récupérer les liens directs depuis la page data.gouv.fr et :
+//        curl -L 'https://www.data.gouv.fr/fr/datasets/r/<id-2024-01>' -o decp-2024-01.json
+//        curl -L 'https://www.data.gouv.fr/fr/datasets/r/<id-2024-02>' -o decp-2024-02.json
+//        # ... etc
 //
-//   3. Lancer ce script :
-//      docker compose exec backend npx tsx /app/pipeline/src/aggregateDecp.ts /tmp/decp.csv
-//      ou en local : cd pipeline && npx tsx src/aggregateDecp.ts /tmp/decp.csv
+//   3. Lancer le script avec tous les fichiers :
+//        docker compose exec backend npx tsx /app/pipeline/src/aggregateDecp.ts /tmp/decp/decp-2024-*.json
 //
 //   4. Le script génère :
-//      frontend/src/data/topFournisseursMarches.json
+//        frontend/src/data/topFournisseursMarches.json
 //      Contenu : top 100 par montant total + métadonnées globales.
 //
 // Le script est idempotent : on peut le re-lancer à volonté pour rafraîchir.
 //
-// ⚠ Volume : DECP consolidé fait typiquement 1-3 Go. Le parsing est streamé
-// ligne par ligne pour ne pas saturer la mémoire (max ~500 Mo de RAM utilisée
-// pour la map d'agrégation).
+// ⚠ Mémoire : chaque fichier mensuel est chargé entièrement en RAM
+// (JSON.parse). Pour les fichiers ≤300 Mo, l'usage RAM pic ≈ 1-2 Go (string
+// + objects). Le fichier global decp-global.json (854 Mo) ne peut PAS être
+// chargé ainsi — utiliser les mensuels ou annuels.
 // ============================================================================
 
 import * as fs from "node:fs";
 import * as path from "node:path";
-import * as readline from "node:readline";
 
 // ----------------------------------------------------------------------------
 // Mapping SIREN → groupe-mère (consolidation des filiales)
 // À enrichir au fur et à mesure pour améliorer la lisibilité des résultats.
+// SIREN = 9 premiers chiffres du SIRET.
 // ----------------------------------------------------------------------------
 
 const SIREN_VERS_GROUPE: Record<string, string> = {
-  // Vinci et filiales
+  // --- Vinci et filiales ---
   "552037806": "Vinci",            // Vinci SA
   "395080011": "Vinci",            // Vinci Construction
   "799100600": "Vinci",            // Vinci Energies
   "320229939": "Vinci",            // Eurovia
-  "775652497": "Vinci",            // ASF (Autoroutes du Sud de la France)
-  // Bouygues et filiales
+  "775652497": "Vinci",            // ASF
+  // --- Bouygues et filiales ---
   "352170161": "Bouygues",         // Bouygues SA
   "562145487": "Bouygues",         // Bouygues Construction
   "552069477": "Bouygues",         // Bouygues Bâtiment
   "552143511": "Bouygues",         // Colas
   "397480930": "Bouygues",         // Bouygues Telecom
-  // Eiffage
-  "709802094": "Eiffage",          // Eiffage SA
-  "711901435": "Eiffage",          // Eiffage Construction
+  // --- Eiffage ---
+  "709802094": "Eiffage",
+  "711901435": "Eiffage",
   "542070416": "Eiffage",          // APRR
-  // Spie
-  "455003766": "Spie",             // Spie SA
-  // Veolia
-  "403210032": "Veolia",           // Veolia SA
-  "562003157": "Veolia",           // Veolia Eau
-  // Engie
-  "542107651": "Engie",            // Engie (ex-GDF Suez)
-  // Orange
+  // --- Spie ---
+  "455003766": "Spie",
+  // --- Veolia ---
+  "403210032": "Veolia",
+  "562003157": "Veolia",
+  // --- Engie ---
+  "542107651": "Engie",
+  // --- Orange ---
   "380129866": "Orange",
-  // Sodexo
+  // --- Sodexo ---
   "301940219": "Sodexo",
-  // Capgemini
+  // --- Capgemini ---
   "330703844": "Capgemini",
-  // Atos / Eviden
+  // --- Atos / Eviden ---
   "323623603": "Atos",
-  // Suez (rachat partiel par Veolia 2022)
+  // --- Suez ---
   "410118608": "Suez",
 };
 
 // ----------------------------------------------------------------------------
-// Helpers
+// Types DECP (structure typique des fichiers consolidés data.gouv.fr)
 // ----------------------------------------------------------------------------
 
+interface DecpTitulaire {
+  id?: string;          // SIRET du titulaire (ou typeIdentifiant + identifiant selon variante)
+  identifiant?: string;
+  typeIdentifiant?: string;
+  denominationSociale?: string;
+  denomination?: string;
+}
+
+interface DecpAcheteur {
+  id?: string;
+  identifiant?: string;
+  nom?: string;
+  denomination?: string;
+}
+
+interface DecpMarche {
+  id?: string;
+  objet?: string;
+  montant?: number | string;
+  valeurGlobale?: number | string;
+  dateNotification?: string;
+  datePublicationDonnees?: string;
+  nature?: string;
+  type?: string;
+  acheteur?: DecpAcheteur;
+  titulaires?: DecpTitulaire[];
+  // Anciennes variantes plates : titulaire_id, titulaire_denominationSociale, etc.
+  [key: string]: unknown;
+}
+
+// Helper pour extraire un SIRET / SIREN de différentes variantes de format
+function extractTitulaireSiret(t: DecpTitulaire | undefined): string | null {
+  if (!t) return null;
+  const raw =
+    (t.id as string | undefined) ??
+    (t.identifiant as string | undefined) ??
+    null;
+  if (!raw) return null;
+  const cleaned = String(raw).replace(/\D/g, "");
+  return cleaned.length >= 9 ? cleaned : null;
+}
+
+function extractTitulaireNom(t: DecpTitulaire | undefined): string {
+  if (!t) return "";
+  return String(
+    t.denominationSociale ??
+      t.denomination ??
+      "",
+  ).trim();
+}
+
+function extractMontant(m: DecpMarche): number {
+  const raw = m.montant ?? m.valeurGlobale;
+  if (raw == null) return 0;
+  if (typeof raw === "number") return Number.isFinite(raw) ? raw : 0;
+  const s = String(raw).replace(/\s/g, "").replace(",", ".");
+  const n = Number.parseFloat(s);
+  return Number.isFinite(n) ? n : 0;
+}
+
 function sirenFromSiret(siret: string): string {
-  const cleaned = siret.replace(/\D/g, "");
-  return cleaned.length >= 9 ? cleaned.slice(0, 9) : cleaned;
-}
-
-function parseCsvLine(line: string): string[] {
-  const out: string[] = [];
-  let cur = "";
-  let inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    const c = line[i];
-    if (c === '"') {
-      if (inQuotes && line[i + 1] === '"') {
-        cur += '"';
-        i++;
-      } else {
-        inQuotes = !inQuotes;
-      }
-    } else if (c === "," && !inQuotes) {
-      out.push(cur);
-      cur = "";
-    } else {
-      cur += c;
-    }
-  }
-  out.push(cur);
-  return out;
-}
-
-function detectSeparator(header: string): string {
-  const semicolons = (header.match(/;/g) ?? []).length;
-  const commas = (header.match(/,/g) ?? []).length;
-  return semicolons > commas ? ";" : ",";
-}
-
-function parseLineWithSep(line: string, sep: string): string[] {
-  if (sep === ",") return parseCsvLine(line);
-  // Réutilise la même logique mais avec un séparateur custom
-  const out: string[] = [];
-  let cur = "";
-  let inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    const c = line[i];
-    if (c === '"') {
-      if (inQuotes && line[i + 1] === '"') {
-        cur += '"';
-        i++;
-      } else {
-        inQuotes = !inQuotes;
-      }
-    } else if (c === sep && !inQuotes) {
-      out.push(cur);
-      cur = "";
-    } else {
-      cur += c;
-    }
-  }
-  out.push(cur);
-  return out;
+  return siret.slice(0, 9);
 }
 
 // ----------------------------------------------------------------------------
@@ -151,7 +165,6 @@ interface AggData {
   raisonSociale: string;
   totalMontantEur: number;
   nbMarches: number;
-  acheteurs: Map<string, number>;
   natures: Map<string, number>;
   premiereDate: string;
   derniereDate: string;
@@ -162,181 +175,167 @@ function emptyAgg(name: string): AggData {
     raisonSociale: name,
     totalMontantEur: 0,
     nbMarches: 0,
-    acheteurs: new Map(),
     natures: new Map(),
     premiereDate: "9999-99-99",
     derniereDate: "0000-00-00",
   };
 }
 
+/**
+ * Charge un fichier DECP JSON et retourne le tableau de marchés.
+ * Gère plusieurs structures possibles : tableau racine, ou objet avec
+ * une clé `marches`, `data`, ou `results`.
+ */
+function loadDecpFile(filePath: string): DecpMarche[] {
+  const buf = fs.readFileSync(filePath, "utf-8");
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(buf);
+  } catch (e) {
+    // Tentative NDJSON (un objet JSON par ligne)
+    const lines = buf.split(/\r?\n/).filter((l) => l.trim());
+    const out: DecpMarche[] = [];
+    for (const line of lines) {
+      try {
+        out.push(JSON.parse(line) as DecpMarche);
+      } catch {
+        // ligne malformée, on ignore
+      }
+    }
+    if (out.length > 0) return out;
+    throw new Error(
+      `Fichier ${filePath} ni JSON valide ni NDJSON valide : ${(e as Error).message}`,
+    );
+  }
+
+  if (Array.isArray(parsed)) return parsed as DecpMarche[];
+  if (parsed && typeof parsed === "object") {
+    const obj = parsed as Record<string, unknown>;
+    for (const key of ["marches", "data", "results", "records"]) {
+      if (Array.isArray(obj[key])) return obj[key] as DecpMarche[];
+    }
+  }
+  throw new Error(
+    `Fichier ${filePath} : structure JSON inconnue (ni tableau ni { marches: [...] }).`,
+  );
+}
+
+// ----------------------------------------------------------------------------
+// Main
+// ----------------------------------------------------------------------------
+
 async function main() {
-  const inputPath = process.argv[2];
-  if (!inputPath) {
+  const inputs = process.argv.slice(2);
+  if (inputs.length === 0) {
     console.error(
-      "Usage: npx tsx aggregateDecp.ts <chemin-vers-decp.csv>\n\n" +
-        "Télécharge d'abord le fichier DECP consolidé depuis data.gouv.fr :\n" +
-        "  https://www.data.gouv.fr/fr/datasets/donnees-essentielles-de-la-commande-publique-fichiers-consolides/",
+      "Usage: npx tsx aggregateDecp.ts <fichier1.json> [<fichier2.json> ...]\n\n" +
+        "Recommandé : les 12 fichiers mensuels d'une année.\n" +
+        "  npx tsx aggregateDecp.ts /tmp/decp/decp-2024-*.json\n\n" +
+        "Source : data.gouv.fr — DECP fichiers consolidés.",
     );
     process.exit(1);
   }
-  if (!fs.existsSync(inputPath)) {
-    console.error(`[decp] fichier introuvable : ${inputPath}`);
-    process.exit(1);
+  for (const f of inputs) {
+    if (!fs.existsSync(f)) {
+      console.error(`[decp] fichier introuvable : ${f}`);
+      process.exit(1);
+    }
   }
 
   const start = Date.now();
-  const sizeMo = (fs.statSync(inputPath).size / 1e6).toFixed(0);
-  console.log(`[decp] début agrégation : ${inputPath} (${sizeMo} Mo)`);
+  const totalMo = inputs.reduce(
+    (acc, f) => acc + fs.statSync(f).size / 1e6,
+    0,
+  );
+  console.log(
+    `[decp] début agrégation : ${inputs.length} fichier${inputs.length > 1 ? "s" : ""} (${totalMo.toFixed(0)} Mo total)`,
+  );
 
-  const stream = fs.createReadStream(inputPath, { encoding: "utf-8" });
-  const rl = readline.createInterface({ input: stream });
-
-  // Map siren-canonique → données agrégées
+  // siren-canonique → données agrégées
   const agg = new Map<string, AggData>();
-  let header: string[] = [];
-  let sep = ",";
-  let lineNum = 0;
   let processed = 0;
   let skipped = 0;
+  let multipleTitulaires = 0;
 
-  // Index des colonnes (calculés après lecture du header)
-  const idx: Record<string, number> = {};
+  for (const file of inputs) {
+    const fileMo = (fs.statSync(file).size / 1e6).toFixed(1);
+    console.log(`[decp] lecture ${path.basename(file)} (${fileMo} Mo)…`);
+    const t0 = Date.now();
 
-  for await (const rawLine of rl) {
-    lineNum++;
-    if (!rawLine.trim()) continue;
+    const marches = loadDecpFile(file);
+    console.log(
+      `[decp]   → ${marches.length.toLocaleString("fr-FR")} marchés trouvés (${((Date.now() - t0) / 1000).toFixed(1)}s)`,
+    );
 
-    if (lineNum === 1) {
-      sep = detectSeparator(rawLine);
-      header = parseLineWithSep(rawLine, sep).map((h) =>
-        h.trim().toLowerCase().replace(/^"|"$/g, ""),
-      );
-      // Cherche les colonnes utiles (tolérant aux variations de format DECP)
-      const find = (...names: string[]) => {
-        for (const n of names) {
-          const i = header.indexOf(n);
-          if (i >= 0) return i;
-        }
-        return -1;
-      };
-      idx.titulaireSiret = find(
-        "titulaire_id",
-        "titulaires.0.id",
-        "titulaire.id",
-        "titulaires_id",
-        "id_titulaire",
-      );
-      idx.titulaireNom = find(
-        "titulaire_denominationsociale",
-        "titulaire_denomination",
-        "titulaires.0.denominationsociale",
-        "titulaires_denomination",
-        "denomination_titulaire",
-      );
-      idx.montant = find("montant", "valeur", "valeurglobale");
-      idx.acheteurSiret = find(
-        "acheteur_id",
-        "acheteur.id",
-        "id_acheteur",
-        "siret_acheteur",
-      );
-      idx.acheteurNom = find(
-        "acheteur_nom",
-        "acheteur.nom",
-        "nom_acheteur",
-      );
-      idx.nature = find("nature", "natureitulaire", "type");
-      idx.dateNotification = find(
-        "datenotification",
-        "datenotification_str",
-        "datepublicationdonnees",
-      );
-
-      console.log(`[decp] séparateur : "${sep}", colonnes détectées :`);
-      console.log(
-        `  titulaire_siret=${idx.titulaireSiret} ` +
-          `titulaire_nom=${idx.titulaireNom} ` +
-          `montant=${idx.montant} ` +
-          `acheteur_siret=${idx.acheteurSiret} ` +
-          `nature=${idx.nature}`,
-      );
-
-      if (
-        idx.titulaireSiret < 0 ||
-        idx.montant < 0
-      ) {
-        console.error(
-          "[decp] ERREUR : colonnes essentielles introuvables. " +
-            "Format DECP non reconnu. Voici les en-têtes lus :",
-        );
-        console.error(header.slice(0, 30).join(" | "));
-        process.exit(2);
+    for (const marche of marches) {
+      const montant = extractMontant(marche);
+      if (montant <= 0) {
+        skipped++;
+        continue;
       }
-      continue;
-    }
+      // Date de notification (privilégiée) ou de publication (fallback)
+      const date = String(
+        marche.dateNotification ?? marche.datePublicationDonnees ?? "",
+      ).slice(0, 10);
+      const dateValid = /^\d{4}-\d{2}-\d{2}$/.test(date);
+      const nature = String(marche.nature ?? marche.type ?? "").trim();
 
-    const cols = parseLineWithSep(rawLine, sep);
-    const titulaireSiret = (cols[idx.titulaireSiret] ?? "").trim();
-    if (!titulaireSiret || titulaireSiret.length < 9) {
-      skipped++;
-      continue;
-    }
+      // Liste des titulaires (cas typique : 1 titulaire par marché, parfois 2-3)
+      const titulaires = Array.isArray(marche.titulaires)
+        ? marche.titulaires
+        : [];
+      const titulaire = titulaires[0]; // mandataire = titulaire[0]
+      if (titulaires.length > 1) multipleTitulaires++;
 
-    const montantStr = (cols[idx.montant] ?? "").trim().replace(/[^\d.,-]/g, "").replace(",", ".");
-    const montant = Number.parseFloat(montantStr);
-    if (!Number.isFinite(montant) || montant <= 0) {
-      skipped++;
-      continue;
-    }
-
-    const titulaireNom = ((idx.titulaireNom >= 0 ? cols[idx.titulaireNom] : "") ?? "").trim();
-    const siren = sirenFromSiret(titulaireSiret);
-    const groupe = SIREN_VERS_GROUPE[siren];
-    const aggKey = groupe ?? siren;
-
-    let entry = agg.get(aggKey);
-    if (!entry) {
-      const displayName = groupe ?? titulaireNom ?? `SIREN ${siren}`;
-      entry = emptyAgg(displayName);
-      agg.set(aggKey, entry);
-    }
-
-    entry.totalMontantEur += montant;
-    entry.nbMarches++;
-
-    if (idx.acheteurSiret >= 0) {
-      const acheteur = (cols[idx.acheteurSiret] ?? "").trim();
-      if (acheteur) {
-        entry.acheteurs.set(acheteur, (entry.acheteurs.get(acheteur) ?? 0) + 1);
+      const siret = extractTitulaireSiret(titulaire);
+      if (!siret) {
+        skipped++;
+        continue;
       }
-    }
-    if (idx.nature >= 0) {
-      const nature = (cols[idx.nature] ?? "").trim();
+      const nom = extractTitulaireNom(titulaire);
+      const siren = sirenFromSiret(siret);
+      const groupe = SIREN_VERS_GROUPE[siren];
+      const aggKey = groupe ?? siren;
+
+      let entry = agg.get(aggKey);
+      if (!entry) {
+        const displayName = groupe ?? nom ?? `SIREN ${siren}`;
+        entry = emptyAgg(displayName);
+        agg.set(aggKey, entry);
+      } else if (groupe && entry.raisonSociale !== groupe) {
+        // Force le nom canonique pour les groupes
+        entry.raisonSociale = groupe;
+      }
+
+      // Attribution : on attribue le montant total au mandataire (titulaire[0]).
+      // C'est imparfait pour les groupements (2-3 % des marchés) mais largement
+      // suffisant pour un top 100 où les écarts sont en ordres de grandeur.
+      entry.totalMontantEur += montant;
+      entry.nbMarches++;
       if (nature) {
         entry.natures.set(nature, (entry.natures.get(nature) ?? 0) + 1);
       }
-    }
-    if (idx.dateNotification >= 0) {
-      const date = (cols[idx.dateNotification] ?? "").trim().slice(0, 10);
-      if (date && date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      if (dateValid) {
         if (date < entry.premiereDate) entry.premiereDate = date;
         if (date > entry.derniereDate) entry.derniereDate = date;
       }
-    }
 
-    processed++;
-    if (processed % 200_000 === 0) {
-      const sec = ((Date.now() - start) / 1000).toFixed(0);
-      console.log(
-        `[decp] ${processed.toLocaleString("fr-FR")} marchés traités, ` +
-          `${agg.size.toLocaleString("fr-FR")} fournisseurs uniques (${sec}s)`,
-      );
+      processed++;
+      if (processed % 200_000 === 0) {
+        const sec = ((Date.now() - start) / 1000).toFixed(0);
+        console.log(
+          `[decp] ${processed.toLocaleString("fr-FR")} marchés agrégés, ` +
+            `${agg.size.toLocaleString("fr-FR")} fournisseurs uniques (${sec}s)`,
+        );
+      }
     }
   }
 
   console.log(
     `[decp] fin parsing : ${processed.toLocaleString("fr-FR")} marchés valides, ` +
-      `${skipped.toLocaleString("fr-FR")} skippés, ${agg.size.toLocaleString("fr-FR")} fournisseurs.`,
+      `${skipped.toLocaleString("fr-FR")} skippés, ` +
+      `${multipleTitulaires.toLocaleString("fr-FR")} groupements détectés, ` +
+      `${agg.size.toLocaleString("fr-FR")} fournisseurs.`,
   );
 
   // Top 100 par montant total
@@ -359,7 +358,6 @@ async function main() {
     .slice(0, 100)
     .map((f, i) => ({ rang: i + 1, ...f }));
 
-  // Total général
   const totalGeneral = Array.from(agg.values()).reduce(
     (acc, d) => acc + d.totalMontantEur,
     0,
@@ -367,15 +365,14 @@ async function main() {
 
   const output = {
     generatedAt: new Date().toISOString(),
-    sourceFile: path.basename(inputPath),
+    sourceFiles: inputs.map((f) => path.basename(f)),
     totalMarches: processed,
     totalFournisseurs: agg.size,
     totalMontantEur: Math.round(totalGeneral),
     top100,
   };
 
-  // Trouver le bon chemin de sortie : remonter au workspace BudgetFrance/
-  // (on peut être lancé depuis pipeline/, depuis backend/, depuis /app/, etc.)
+  // Trouver frontend/src/data depuis n'importe quel CWD
   const candidatesOutDir = [
     path.resolve(process.cwd(), "frontend/src/data"),
     path.resolve(process.cwd(), "../frontend/src/data"),
@@ -405,8 +402,20 @@ async function main() {
     `[decp] OK : ${top100.length} top fournisseurs écrits dans ${outPath} (${sec}s)`,
   );
   console.log(
-    `[decp] Total agrégé : ${(totalGeneral / 1e9).toFixed(1)} Md€ sur ${processed.toLocaleString("fr-FR")} marchés.`,
+    `[decp] Total agrégé : ${(totalGeneral / 1e9).toFixed(2)} Md€ sur ${processed.toLocaleString("fr-FR")} marchés.`,
   );
+
+  if (top100.length > 0) {
+    console.log(`\n[decp] Top 5 :`);
+    for (let i = 0; i < Math.min(5, top100.length); i++) {
+      const f = top100[i]!;
+      console.log(
+        `  #${f.rang.toString().padStart(2, " ")} ${f.raisonSociale.padEnd(30, " ")} ` +
+          `${(f.totalMontantEur / 1e6).toFixed(1).padStart(8, " ")} M€ ` +
+          `(${f.nbMarches.toLocaleString("fr-FR")} marchés)`,
+      );
+    }
+  }
 }
 
 main().catch((e) => {
