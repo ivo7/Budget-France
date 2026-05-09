@@ -161,3 +161,60 @@ bâtiments, voirie cyclable, végétalisation). Sujet 2026 par excellence.
 - Activer le glossaire avec `<GlossaryTerm/>` partout dans MaVillePage pour tooltips inline
 - Tâche planifiée mensuelle qui ré-importe automatiquement OFGL dès qu'une nouvelle année est publiée
 - Espace de communication payant pour mairies (idée discutée, à creuser en Phase 2 — voir notes session)
+- Roll-out cadres « À retenir » + « Méthodologie » sur les pages historiques (Dashboard, Europe, Historique, Fraudes, Mes impôts, Sécu-Collec, Institutions) — mécanique mais à faire en batch dédié
+
+---
+
+## Marchés publics — feuille de route progressive
+
+Phase 1 livrée (top 100 fournisseurs nationaux statique). Pour aller plus loin :
+
+### Phase 2 — Import DB par commune (~2-3 jours de dev)
+
+Objectif : permettre l'affichage *« Top 10 fournisseurs de Marseille en 2024 »* sur
+chaque fiche commune, parmi les 35 000 communes en base.
+
+Étapes techniques :
+
+- Schema Prisma `Marche { id, acheteurSiret, acheteurNom, acheteurInsee, titulaireSiret, titulaireSiren, titulaireNom, montantEur, objet, dateNotification, dureeMois, nature, codeCpv }`
+- Table `SiretInsee { siret, codeInsee }` enrichie depuis la base SIRENE de l'INSEE (pour mapper les SIRET acheteurs aux codes INSEE des communes)
+- Script d'import mensuel via cron : download DECP fichiers consolidés → parse CSV streamé → UPSERT batché par lots de 1 000
+- Endpoint `/api/communes/[slug]/marches` retournant top 10 fournisseurs + 20 derniers marchés
+- Section « Marchés publics passés par {commune} » sur la page synthèse de chaque commune
+- Bouton « Voir tous les marchés » → page dédiée par commune avec recherche
+
+Volume estimé : ~7 millions de marchés × ~30 colonnes = ~3-5 Go de données en base
+après indexation. Postgres encaisse facilement avec les bons index sur (acheteurInsee,
+dateNotification) et (titulaireSiren, montantEur).
+
+Difficultés à anticiper :
+
+- SIRET → INSEE n'est pas direct, nécessite une table SIRENE (~10 millions de
+  lignes pour les entités juridiques publiques, plus léger à charger)
+- Données DECP incomplètes pour certains acheteurs (taux de complétude DECP estimé à
+  ~75 % par l'OECP)
+- Filiales : les groupes (Vinci, Bouygues…) répondent via des dizaines de SIREN
+  différents. Une table de mapping `SIREN → groupeMere` à enrichir manuellement
+  améliore la consolidation
+
+### Phase 3 — Plateforme marchés publics complète (~1 semaine)
+
+Une fois la Phase 2 stable :
+
+- **Recherche full-text** sur l'objet du marché (Postgres `tsvector` ou
+  Elasticsearch si volume) : « tous les marchés contenant 'rénovation école' »
+- **Profil entreprise** : page dédiée par titulaire avec historique complet de ses
+  marchés publics gagnés + carte géo des acheteurs
+- **Alertes pour TPE/PME** (futur produit Premium) : notification email quand un
+  nouveau marché matchant des critères (secteur, géo, montant) est publié — base
+  d'un futur plan Pro à 49-99 €/mois
+- **Open API** : endpoint authentifié pour les journalistes / consultants /
+  associations (Anticor, Transparency International) souhaitant analyser la
+  commande publique
+- **Comparaisons** : tarifs moyens par CPV (« combien coûte un marché de
+  rénovation en moyenne en France ? »), durée moyenne, taux de mise en
+  concurrence par strate de commune
+
+Ce module deviendrait un **business à part entière** dans Budget France — équivalent
+gratuit/freemium d'outils payants type Direct'INFO ou Vecteur Plus (qui facturent
+~200-2 000 €/mois aux entreprises pour la veille marchés publics).

@@ -29,9 +29,33 @@ import {
   TOP_FOURNISSEURS,
   TOTAL_COMMANDE_PUBLIQUE_MD_EUR,
 } from "../data/marchesPublics";
+import topReelData from "../data/topFournisseursMarches.json";
 import { ARetenir, Methodologie } from "./PageBlocks";
 import { DownloadableCard } from "./DownloadableCard";
 import { objectsToCsv } from "../lib/csvExport";
+
+interface TopReelFournisseur {
+  rang: number;
+  siren: string;
+  raisonSociale: string;
+  totalMontantEur: number;
+  nbMarches: number;
+  ticketMoyenEur: number;
+  topNatures: string[];
+  premiereDate: string | null;
+  derniereDate: string | null;
+}
+
+interface TopReelData {
+  generatedAt: string | null;
+  sourceFile: string | null;
+  totalMarches: number;
+  totalFournisseurs: number;
+  totalMontantEur: number;
+  top100: TopReelFournisseur[];
+}
+
+const TOP_REEL = topReelData as TopReelData;
 
 const COLORS_CAT = ["#0055A4", "#16a34a", "#d97706"];
 
@@ -291,6 +315,9 @@ export function MarchesPublicsPage() {
         </ul>
       </DownloadableCard>
 
+      {/* Top 100 réel issu de DECP (si disponible) */}
+      <TopReelSection />
+
       {/* Seuils légaux */}
       <section className="card p-5 md:p-6 bg-amber-50/30 border-amber-200/60">
         <h2 className="font-display text-xl font-semibold text-slate-900 mb-1">
@@ -492,6 +519,136 @@ export function MarchesPublicsPage() {
         miseAJour="OECP 2023 (publication 2024). DECP : flux continu sur data.gouv.fr."
       />
     </div>
+  );
+}
+
+// ============================================================================
+// TopReelSection — affichage des données DECP réelles
+// ============================================================================
+//
+// Cette section n'apparaît qu'une fois le JSON `topFournisseursMarches.json`
+// peuplé par le script `pipeline/src/aggregateDecp.ts`. Tant que le top100
+// est vide, on affiche un message expliquant la procédure à l'admin.
+
+function TopReelSection() {
+  const isPopulated = TOP_REEL.top100.length > 0;
+  const totalMd = TOP_REEL.totalMontantEur / 1e9;
+  const generatedAt = TOP_REEL.generatedAt
+    ? new Date(TOP_REEL.generatedAt).toLocaleDateString("fr-FR", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : null;
+
+  if (!isPopulated) {
+    return (
+      <section className="rounded-2xl p-5 md:p-6 bg-slate-50 border-2 border-dashed border-slate-300 text-center">
+        <div className="text-2xl mb-2">📊</div>
+        <h2 className="font-display text-lg font-semibold text-slate-700">
+          Top 100 réel des fournisseurs DECP — bientôt disponible
+        </h2>
+        <p className="text-xs text-slate-500 mt-2 max-w-2xl mx-auto leading-relaxed">
+          Cette section affichera le classement réel issu des Données Essentielles
+          de la Commande Publique (data.gouv.fr) — agrégation des marchés gagnés
+          par chaque entreprise. La donnée sera générée par exécution du script
+          d'agrégation côté serveur (lancement mensuel).
+        </p>
+      </section>
+    );
+  }
+
+  return (
+    <DownloadableCard
+      filename="top-100-fournisseurs-decp"
+      shareTitle="Budget France — Top 100 fournisseurs marchés publics (DECP)"
+      className="card p-5 md:p-6 bg-emerald-50/30 border-emerald-200/60"
+      getCsvData={() =>
+        objectsToCsv(
+          TOP_REEL.top100.map((f) => ({
+            rang: f.rang,
+            raison_sociale: f.raisonSociale,
+            siren: f.siren,
+            total_montant_eur: f.totalMontantEur,
+            nb_marches: f.nbMarches,
+            ticket_moyen_eur: f.ticketMoyenEur,
+            premiere_date: f.premiereDate ?? "",
+            derniere_date: f.derniereDate ?? "",
+          })),
+        )
+      }
+    >
+      <div className="flex items-baseline justify-between gap-3 flex-wrap mb-1">
+        <h2 className="font-display text-xl font-semibold text-slate-900">
+          🎯 Top 100 réel — données DECP officielles
+        </h2>
+        <span className="text-[10px] uppercase tracking-wider text-emerald-700 font-semibold">
+          {TOP_REEL.totalMarches.toLocaleString("fr-FR")} marchés agrégés ·{" "}
+          {totalMd.toFixed(1)} Md€
+        </span>
+      </div>
+      <p className="text-xs text-slate-600 mb-4 leading-relaxed">
+        Classement issu de l'agrégation des Données Essentielles de la Commande
+        Publique (data.gouv.fr). Filiales consolidées au niveau groupe-mère
+        quand connu (Vinci, Bouygues, Eiffage…).
+        {generatedAt && (
+          <span className="block text-[11px] text-slate-500 mt-1">
+            Mis à jour le {generatedAt}.
+          </span>
+        )}
+      </p>
+
+      <div className="overflow-x-auto -mx-2 px-2">
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="text-left text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-200">
+              <th className="py-2 pr-2 font-semibold">Rang</th>
+              <th className="py-2 pr-2 font-semibold">Fournisseur</th>
+              <th className="py-2 pr-2 font-semibold tabular-nums text-right">
+                Total marchés
+              </th>
+              <th className="py-2 pr-2 font-semibold tabular-nums text-right">
+                Nb
+              </th>
+              <th className="py-2 pr-2 font-semibold tabular-nums text-right">
+                Ticket moyen
+              </th>
+              <th className="py-2 pr-2 font-semibold">SIREN</th>
+            </tr>
+          </thead>
+          <tbody className="text-slate-700">
+            {TOP_REEL.top100.map((f) => (
+              <tr key={f.rang} className="border-b border-slate-100">
+                <td className="py-2 pr-2 font-mono text-slate-400">
+                  #{String(f.rang).padStart(3, "0")}
+                </td>
+                <td className="py-2 pr-2 font-semibold text-slate-900">
+                  {f.raisonSociale}
+                </td>
+                <td className="py-2 pr-2 tabular-nums text-right font-semibold">
+                  {(f.totalMontantEur / 1e6).toLocaleString("fr-FR", {
+                    maximumFractionDigits: 1,
+                  })}{" "}
+                  M€
+                </td>
+                <td className="py-2 pr-2 tabular-nums text-right">
+                  {f.nbMarches.toLocaleString("fr-FR")}
+                </td>
+                <td className="py-2 pr-2 tabular-nums text-right text-slate-500">
+                  {(f.ticketMoyenEur / 1000).toLocaleString("fr-FR", {
+                    maximumFractionDigits: 0,
+                  })}{" "}
+                  K€
+                </td>
+                <td className="py-2 pr-2 font-mono text-[10px] text-slate-500">
+                  {f.siren}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </DownloadableCard>
   );
 }
 
