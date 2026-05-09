@@ -749,6 +749,55 @@ function PedagogyPage({ data }: { data: BudgetSnapshot }) {
       <section className="mt-4">
         <DefautSouverainExplainer />
       </section>
+
+      {/* 6. Aller plus loin — pointe vers les pages thématiques approfondies */}
+      <section className="mt-6">
+        <div className="mb-3">
+          <div className="text-xs uppercase tracking-widest text-muted">
+            Aller plus loin · pages d'approfondissement
+          </div>
+          <h2 className="font-display text-2xl font-semibold text-slate-900 mt-1">
+            Pour creuser un sujet en particulier
+          </h2>
+          <p className="text-sm text-slate-600 mt-1 max-w-2xl">
+            Au-delà du parcours en 10 étapes, Budget France propose des dossiers
+            thématiques détaillés sur les angles morts du débat public.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <PageLink
+            href="#/mes-impots"
+            title="🧮 Mon impôt va où ?"
+            subtitle="Simulateur perso : sur ton salaire net, ce que tu paies vraiment (IR, TVA, cotisations, CSG, foncier) et où ça va — État, Sécu, Unédic, ta commune."
+          />
+          <PageLink
+            href="#/niches-fiscales"
+            title="💸 Niches fiscales"
+            subtitle="~95 Md€/an de manque à gagner pour l'État. Top 25 par coût, qui en profite, ce qu'en disent la Cour des comptes et l'IPP."
+          />
+          <PageLink
+            href="#/salaires-elus"
+            title="🏛️ Salaires des élus"
+            subtitle="Indemnités du Président, ministres, parlementaires, maires — en € constants, comparé au SMIC, au médian, et à l'Allemagne, UK, Italie. 5 mythes démontés."
+          />
+          <PageLink
+            href="#/securite-sociale"
+            title="🏥 Sécu en détail"
+            subtitle="Les 5 branches (Maladie, Retraite, Famille, AT/MP, Autonomie) + Unédic. Recettes, dépenses, déficits depuis 2000, enjeux par branche."
+          />
+          <PageLink
+            href="#/donnees-publiques"
+            title="📅 État de la donnée publique"
+            subtitle="Pourquoi les comptes communaux ont 12-18 mois de retard. Calendrier officiel, comparaison avec l'Allemagne, l'Italie. Comment Budget France compense."
+          />
+          <PageLink
+            href="#/glossaire"
+            title="📚 Fiches pédagogiques"
+            subtitle="Glossaire complet de ~120 termes : PIB, OAT, CSG, CADES, RRF, capacité de désendettement, métropole statutaire… Pour comprendre tout ce qu'on lit ailleurs."
+          />
+        </div>
+      </section>
     </>
   );
 }
@@ -1163,6 +1212,95 @@ function SourcesOnlyPage({ data }: { data: BudgetSnapshot }) {
         <SourcesPanel sources={data.sources} generatedAt={data.generatedAt} />
       </section>
 
+      {/* Sources thématiques utilisées par les pages dossiers */}
+      <section className="mt-6">
+        <div className="card p-5 md:p-6">
+          <div className="text-xs uppercase tracking-widest text-muted">
+            Sources des pages thématiques
+          </div>
+          <h2 className="font-display text-xl font-semibold text-slate-900 mt-1">
+            Sources spécifiques des dossiers approfondis
+          </h2>
+          <p className="text-sm text-slate-600 mt-2 max-w-3xl leading-relaxed">
+            Au-delà des séries chronologiques nationales (Eurostat, INSEE, BCE), les
+            pages dossiers de Budget France s'appuient sur des sources spécialisées,
+            toutes publiques, listées ci-dessous par thématique.
+          </p>
+
+          <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <SourceTheme
+              titre="🏛️ Communes (35 062)"
+              page="/villes/[ville]"
+              sources={[
+                { nom: "OFGL — base communes consolidée", url: "https://data.ofgl.fr", desc: "Comptes individuels DGFiP harmonisés (8 ans)" },
+                { nom: "DGFiP comptes individuels", url: "https://www.collectivites-locales.gouv.fr", desc: "Source primaire avant agrégation OFGL" },
+                { nom: "Code général des collectivités territoriales", url: "https://www.legifrance.gouv.fr", desc: "Cadre légal des indemnités et fonctionnement" },
+              ]}
+            />
+            <SourceTheme
+              titre="🏥 Sécurité sociale"
+              page="/securite-sociale"
+              sources={[
+                { nom: "LFSS 2025 (votée 12/2024)", url: "https://www.securite-sociale.fr", desc: "Loi de financement de la Sécu, recettes et dépenses prévisionnelles" },
+                { nom: "Commission des Comptes Sécu (CCSS)", url: "https://www.securite-sociale.fr/la-secu-cest-quoi/comptes", desc: "Rapports semestriels sur les soldes" },
+                { nom: "DREES — protection sociale", url: "https://drees.solidarites-sante.gouv.fr", desc: "Comptes de la protection sociale, périmètre étendu" },
+                { nom: "COR — Conseil orientation retraites", url: "https://www.cor-retraites.fr", desc: "Projections retraites long terme" },
+                { nom: "Cour des comptes — RALFSS", url: "https://www.ccomptes.fr", desc: "Rapport annuel sur la Sécurité sociale" },
+                { nom: "Unédic", url: "https://www.unedic.org", desc: "Rapport financier annuel chômage" },
+              ]}
+            />
+            <SourceTheme
+              titre="💸 Niches fiscales (~95 Md€/an)"
+              page="/niches-fiscales"
+              sources={[
+                { nom: "Voies et moyens — Tome II PLF 2025", url: "https://www.budget.gouv.fr", desc: "Document officiel listant les 470 dépenses fiscales avec coût" },
+                { nom: "Cour des comptes", url: "https://www.ccomptes.fr", desc: "Évaluations dispositif par dispositif" },
+                { nom: "France Stratégie", url: "https://www.strategie.gouv.fr", desc: "Évaluations de politiques publiques" },
+                { nom: "Institut des Politiques Publiques (IPP)", url: "https://www.ipp.eu", desc: "Évaluations économétriques indépendantes" },
+                { nom: "Conseil des Prélèvements Obligatoires (CPO)", url: "https://www.ccomptes.fr/fr/cpo", desc: "Rapports thématiques sur la fiscalité" },
+              ]}
+            />
+            <SourceTheme
+              titre="🏛️ Salaires des élus"
+              page="/salaires-elus"
+              sources={[
+                { nom: "Assemblée nationale", url: "https://www.assemblee-nationale.fr/dyn/le-depute", desc: "Indemnités députés, IRFM, crédit collaborateurs" },
+                { nom: "Sénat", url: "https://www.senat.fr/role/fiches/indem.html", desc: "Brochure officielle indemnités sénateurs" },
+                { nom: "DGCL — Code général collectivités", url: "https://www.collectivites-locales.gouv.fr", desc: "Indemnités élus locaux (CGCT art. L. 2123-23 et s.)" },
+                { nom: "HATVP", url: "https://www.hatvp.fr", desc: "Déclarations patrimoine et intérêts des élus" },
+                { nom: "Parlement européen — statut financier", url: "https://www.europarl.europa.eu", desc: "Rémunération des eurodéputés" },
+              ]}
+            />
+            <SourceTheme
+              titre="📅 Calendrier données publiques"
+              page="/donnees-publiques"
+              sources={[
+                { nom: "DGFiP — calendrier collecte communes", url: "https://www.collectivites-locales.gouv.fr", desc: "Délais de remontée des comptes administratifs" },
+                { nom: "INSEE — calendrier de publication", url: "https://www.insee.fr/fr/information/2014257", desc: "Rythmes des comptes nationaux et régionaux" },
+                { nom: "Eurostat — release calendar", url: "https://ec.europa.eu/eurostat/news/release-calendar", desc: "Notifications dette/déficit semestrielles" },
+              ]}
+            />
+            <SourceTheme
+              titre="🧮 Mon impôt va où ?"
+              page="/mes-impots"
+              sources={[
+                { nom: "Barème IR officiel", url: "https://www.impots.gouv.fr", desc: "5 tranches 2024, abattement 10 %, plafond QF" },
+                { nom: "URSSAF — taux cotisations", url: "https://www.urssaf.fr", desc: "Cotisations salariales / patronales 2024-2025" },
+                { nom: "INSEE — comptes des ménages", url: "https://www.insee.fr", desc: "Pondération TVA effective par décile" },
+                { nom: "DGFiP — taxe foncière", url: "https://www.collectivites-locales.gouv.fr", desc: "Statistique nationale taxe foncière" },
+              ]}
+            />
+          </div>
+
+          <div className="mt-5 p-3 rounded-lg bg-emerald-50/60 border border-emerald-200/60 text-xs text-slate-700 leading-relaxed">
+            <strong>Toutes les sources sont publiques.</strong> Budget France ne dispose
+            d'aucun accès privilégié. Tu peux vérifier toi-même chaque chiffre en
+            cliquant sur les liens ci-dessus, ou nous signaler une erreur via le
+            formulaire de contact.
+          </div>
+        </div>
+      </section>
+
       <section className="mt-6">
         <div className="card p-5 md:p-6 bg-brand-soft/30 border-brand/20">
           <div className="text-xs uppercase tracking-widest text-brand">Une question, un signalement ?</div>
@@ -1182,6 +1320,51 @@ function SourcesOnlyPage({ data }: { data: BudgetSnapshot }) {
         </div>
       </section>
     </>
+  );
+}
+
+/**
+ * Petit composant utilisé sur la page Sources pour regrouper les sources
+ * spécifiques d'un dossier thématique (Communes, Sécu, Niches, Élus…).
+ */
+function SourceTheme({
+  titre,
+  page,
+  sources,
+}: {
+  titre: string;
+  page: string;
+  sources: { nom: string; url: string; desc: string }[];
+}) {
+  return (
+    <div className="border border-slate-200 rounded-xl p-4">
+      <div className="flex items-baseline justify-between gap-2 mb-2">
+        <h3 className="font-display text-sm font-semibold text-slate-900">
+          {titre}
+        </h3>
+        <a
+          href={`#${page}`}
+          className="text-[10px] font-mono text-brand hover:underline shrink-0"
+        >
+          {page} →
+        </a>
+      </div>
+      <ul className="space-y-1.5">
+        {sources.map((s, i) => (
+          <li key={i} className="text-xs leading-relaxed">
+            <a
+              href={s.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-brand hover:underline font-medium"
+            >
+              {s.nom}
+            </a>
+            <span className="text-slate-500"> — {s.desc}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
