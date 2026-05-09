@@ -17,7 +17,7 @@
 // Phase 2 prévue : import automatique data.gouv.fr pour 100+ villes.
 // ============================================================================
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   Bar,
   BarChart,
@@ -37,7 +37,12 @@ import type { BudgetSnapshot } from "../types";
 import { DownloadableCard } from "./DownloadableCard";
 import { ChartCitizenImpact } from "./ChartCitizenImpact";
 import { objectsToCsv, timeseriesToCsv } from "../lib/csvExport";
-import { useCommuneDetail, type CommuneDetail } from "../hooks/useCommune";
+import {
+  useCommuneDetail,
+  useCommuneVoisines,
+  type CommuneDetail,
+  type CommuneVoisine,
+} from "../hooks/useCommune";
 
 interface Props {
   data: BudgetSnapshot;
@@ -206,6 +211,8 @@ export function MaVillePage({ data, subPage, villeSlug }: Props) {
       return <SubHistorique ville={ville} sourceLabel={data.villes.source.label} />;
     case "ville-comparaison":
       return <SubComparaison ville={ville} villes={villes} />;
+    case "ville-voisines":
+      return <SubVoisines ville={ville} />;
     case "ville-sources":
       return <SubSources ville={ville} sourceLabel={data.villes.source.label} />;
     case "ville-synthese":
@@ -1137,6 +1144,402 @@ function computeMedian(values: number[]): number {
 }
 
 // ============================================================================
+// SubVoisines — comparaison vs voisines géographiques + même strate
+// ============================================================================
+//
+// Affiche deux tableaux :
+//   1. Voisines du même département (les ~12 plus peuplées)
+//   2. Communes de la même strate (classification OFGL) hors département
+// Pour chacune : population + dette/hab + CAF/hab + capacité désendettement.
+// La commune courante apparaît en haut, surlignée.
+//
+// Données fetchées via /api/communes/[slug]/voisines (backend Postgres).
+
+function SubVoisines({ ville }: { ville: Ville }) {
+  const villeSlug = slugify(ville.nom);
+  const { data, loading, error } = useCommuneVoisines(villeSlug, 12);
+
+  // Indicateur sélectionné pour le bar chart
+  const INDICATEURS_VOISINS = [
+    { id: "detteParHab",            label: "Dette/hab",                   unit: "€/hab", higherIsBad: true },
+    { id: "cafParHab",              label: "CAF/hab (épargne brute)",     unit: "€/hab", higherIsBad: false },
+    { id: "personnelParHab",        label: "Personnel/hab",               unit: "€/hab", higherIsBad: true },
+    { id: "investParHab",           label: "Investissement/hab",          unit: "€/hab", higherIsBad: false },
+    { id: "impotsLocauxParHab",     label: "Impôts locaux/hab",           unit: "€/hab", higherIsBad: true },
+    { id: "tauxEpargneBrute",       label: "Taux d'épargne brute",        unit: "%",     higherIsBad: false },
+    { id: "capaciteDesendettement", label: "Capacité de désendettement",  unit: "ans",   higherIsBad: true },
+  ] as const;
+  const [indicateurId, setIndicateurId] = useState<typeof INDICATEURS_VOISINS[number]["id"]>(
+    "detteParHab",
+  );
+  const indicateur = INDICATEURS_VOISINS.find((i) => i.id === indicateurId)!;
+  const [vue, setVue] = useState<"departement" | "strate">("departement");
+
+  return (
+    <>
+      <VilleHero ville={ville} lastYear={ville.annees[ville.annees.length - 1]!} subtitle="Voisines — comparaison de proximité" />
+      <section className="mt-6">
+        <SubPageLinks villeSlug={villeSlug} active="voisines" />
+      </section>
+
+      {/* Encart pédagogique */}
+      <section className="mt-4">
+        <div className="card p-5 md:p-6 bg-emerald-50/30 border-emerald-200/60">
+          <div className="text-xs uppercase tracking-widest text-emerald-700 font-semibold">
+            Comparaison de proximité
+          </div>
+          <h3 className="font-display text-lg font-semibold text-slate-900 mt-1">
+            {ville.nom} comparée à ses voisines et à sa strate
+          </h3>
+          <p className="text-sm text-slate-700 mt-2 leading-relaxed">
+            Comparer une commune à des moyennes nationales a peu de sens — une
+            grande métropole n'a pas la même structure budgétaire qu'un village.
+            Plus pertinent : <strong>comparer à ses voisines</strong> (même
+            département) et à <strong>sa strate démographique</strong> (communes
+            de taille équivalente partout en France). C'est la méthode officielle
+            OFGL/DGCL.
+          </p>
+          <ul className="mt-3 space-y-1.5 text-xs text-slate-600">
+            <li>
+              • <strong className="text-slate-800">Voisines géographiques</strong> :
+              les 12 plus peuplées du département, hors {ville.nom}. Profil
+              économique souvent proche.
+            </li>
+            <li>
+              • <strong className="text-slate-800">Strate similaire</strong> :
+              12 communes de la classification «{" "}
+              {data?.meta.classification ?? ville.classification ?? "—"} » dans
+              d'autres départements. Comparable structurellement.
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      {/* Loader / erreur */}
+      {loading && (
+        <section className="mt-4 card p-8 text-center text-sm text-slate-500">
+          🔄 Chargement des voisines de {ville.nom}…
+        </section>
+      )}
+      {error && error !== "not_found" && (
+        <section className="mt-4 card p-8 text-center text-sm text-red-600">
+          Erreur de chargement : {error}
+        </section>
+      )}
+
+      {/* Sélecteur d'indicateur + de vue */}
+      {data && (
+        <section className="mt-4 card p-5 md:p-6">
+          <div className="flex flex-wrap items-baseline gap-3 mb-4">
+            <h3 className="font-display text-lg font-semibold text-slate-900">
+              Comparaison sur :
+            </h3>
+            <span className="text-xs text-slate-500">
+              indicateur clé · choisis ci-dessous
+            </span>
+          </div>
+
+          {/* Filtres indicateurs */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {INDICATEURS_VOISINS.map((ind) => (
+              <button
+                key={ind.id}
+                type="button"
+                onClick={() => setIndicateurId(ind.id)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition ${
+                  indicateurId === ind.id
+                    ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                    : "bg-white text-slate-700 border-slate-200 hover:border-emerald-400"
+                }`}
+              >
+                {ind.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Toggle dépt vs strate */}
+          <div className="flex gap-2 mb-4">
+            <button
+              type="button"
+              onClick={() => setVue("departement")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition ${
+                vue === "departement"
+                  ? "bg-brand text-white border-brand"
+                  : "bg-white text-slate-700 border-slate-200 hover:border-brand/40"
+              }`}
+            >
+              📍 Voisines du département ({data.voisinesDept.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setVue("strate")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition ${
+                vue === "strate"
+                  ? "bg-brand text-white border-brand"
+                  : "bg-white text-slate-700 border-slate-200 hover:border-brand/40"
+              }`}
+            >
+              🏛️ Même strate ({data.voisinesStrate.length})
+            </button>
+          </div>
+
+          {/* Bar chart sur l'indicateur sélectionné */}
+          <VoisinsBarChart
+            moi={data.moi}
+            voisines={vue === "departement" ? data.voisinesDept : data.voisinesStrate}
+            indicateurId={indicateurId}
+            indicateurLabel={indicateur.label}
+            indicateurUnit={indicateur.unit}
+            higherIsBad={indicateur.higherIsBad}
+          />
+        </section>
+      )}
+
+      {/* Tableau dépt */}
+      {data && (
+        <DownloadableCard
+          filename={`voisines-departement-${villeSlug}`}
+          shareTitle={`Budget France — Voisines de ${ville.nom}`}
+          className="card p-5 md:p-6 mt-4"
+          getCsvData={() =>
+            objectsToCsv(
+              [data.moi, ...data.voisinesDept].filter((c): c is CommuneVoisine => c !== null).map((c) => ({
+                commune: c.nom,
+                population: c.population,
+                annee: c.annee,
+                dette_par_hab: c.detteParHab,
+                caf_par_hab: c.cafParHab,
+                personnel_par_hab: c.personnelParHab,
+                impots_locaux_par_hab: c.impotsLocauxParHab,
+                taux_epargne_pct: c.tauxEpargneBrute,
+                desendettement_ans: c.capaciteDesendettement,
+              })),
+            )
+          }
+        >
+          <h3 className="font-display text-lg font-semibold text-slate-900 mb-1">
+            📍 Voisines du département {data.meta.departementCode}
+          </h3>
+          <p className="text-xs text-slate-600 mb-3">
+            Les 12 communes les plus peuplées du département, hors {ville.nom}.
+          </p>
+          <VoisinsTable moi={data.moi} voisines={data.voisinesDept} />
+        </DownloadableCard>
+      )}
+
+      {/* Tableau strate */}
+      {data && (
+        <DownloadableCard
+          filename={`voisines-strate-${villeSlug}`}
+          shareTitle={`Budget France — Communes de strate ${data.meta.classification}`}
+          className="card p-5 md:p-6 mt-4"
+          getCsvData={() =>
+            objectsToCsv(
+              [data.moi, ...data.voisinesStrate].filter((c): c is CommuneVoisine => c !== null).map((c) => ({
+                commune: c.nom,
+                departement: c.departement,
+                population: c.population,
+                annee: c.annee,
+                dette_par_hab: c.detteParHab,
+                caf_par_hab: c.cafParHab,
+                taux_epargne_pct: c.tauxEpargneBrute,
+                desendettement_ans: c.capaciteDesendettement,
+              })),
+            )
+          }
+        >
+          <h3 className="font-display text-lg font-semibold text-slate-900 mb-1">
+            🏛️ Strate similaire : {data.meta.classification}
+          </h3>
+          <p className="text-xs text-slate-600 mb-3">
+            12 autres communes de la même strate démographique OFGL, dans
+            d'autres départements. Permet de comparer structurellement.
+          </p>
+          <VoisinsTable moi={data.moi} voisines={data.voisinesStrate} showDepartement />
+        </DownloadableCard>
+      )}
+    </>
+  );
+}
+
+// ----------------------------------------------------------------------------
+// Bar chart pour comparaison voisines
+// ----------------------------------------------------------------------------
+
+function VoisinsBarChart({
+  moi,
+  voisines,
+  indicateurId,
+  indicateurLabel,
+  indicateurUnit,
+  higherIsBad,
+}: {
+  moi: CommuneVoisine | null;
+  voisines: CommuneVoisine[];
+  indicateurId: keyof CommuneVoisine;
+  indicateurLabel: string;
+  indicateurUnit: string;
+  higherIsBad: boolean;
+}) {
+  const data = useMemo(() => {
+    const allRows = moi ? [moi, ...voisines] : voisines;
+    return allRows
+      .map((c) => ({
+        nom: c.nom,
+        slug: c.slug,
+        value: Number(c[indicateurId]) ?? 0,
+        isMoi: moi ? c.codeInsee === moi.codeInsee : false,
+      }))
+      .sort((a, b) => (higherIsBad ? a.value - b.value : b.value - a.value));
+  }, [moi, voisines, indicateurId, higherIsBad]);
+
+  if (data.length === 0) return null;
+
+  return (
+    <div className="h-[400px] w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart
+          data={data}
+          layout="vertical"
+          margin={{ top: 8, right: 32, left: 130, bottom: 8 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+          <XAxis
+            type="number"
+            tickFormatter={(v: number) =>
+              indicateurUnit === "€/hab"
+                ? `${Math.round(v).toLocaleString("fr-FR")}`
+                : indicateurUnit === "%"
+                ? `${v.toFixed(1)}`
+                : `${v.toFixed(1)}`
+            }
+            stroke="#64748b"
+            tick={{ fontSize: 11 }}
+          />
+          <YAxis
+            type="category"
+            dataKey="nom"
+            stroke="#475569"
+            tick={{ fontSize: 11 }}
+            width={120}
+            interval={0}
+          />
+          <Tooltip
+            formatter={(value: number) => [
+              `${value.toLocaleString("fr-FR")} ${indicateurUnit}`,
+              indicateurLabel,
+            ]}
+            contentStyle={{
+              background: "white",
+              border: "1px solid #e2e8f0",
+              borderRadius: 8,
+              fontSize: 12,
+            }}
+          />
+          <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+            {data.map((d, i) => (
+              <Cell key={i} fill={d.isMoi ? "#0055A4" : "#94a3b8"} />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+// ----------------------------------------------------------------------------
+// Tableau voisines (réutilisé pour Dépt et Strate)
+// ----------------------------------------------------------------------------
+
+function VoisinsTable({
+  moi,
+  voisines,
+  showDepartement = false,
+}: {
+  moi: CommuneVoisine | null;
+  voisines: CommuneVoisine[];
+  showDepartement?: boolean;
+}) {
+  const allRows: { row: CommuneVoisine; isMoi: boolean }[] = [
+    ...(moi ? [{ row: moi, isMoi: true }] : []),
+    ...voisines.map((v) => ({ row: v, isMoi: false })),
+  ];
+
+  if (allRows.length === 0) {
+    return (
+      <div className="text-sm text-slate-500 italic py-4">
+        Aucune voisine trouvée.
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto -mx-2 px-2">
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="text-left text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-200">
+            <th className="py-2 pr-2 font-semibold">Commune</th>
+            {showDepartement && (
+              <th className="py-2 pr-2 font-semibold">Dépt</th>
+            )}
+            <th className="py-2 pr-2 font-semibold tabular-nums text-right">Population</th>
+            <th className="py-2 pr-2 font-semibold tabular-nums text-right">Dette/hab</th>
+            <th className="py-2 pr-2 font-semibold tabular-nums text-right">CAF/hab</th>
+            <th className="py-2 pr-2 font-semibold tabular-nums text-right">Taux épargne</th>
+            <th className="py-2 pr-2 font-semibold tabular-nums text-right">Désendet.</th>
+            <th className="py-2 pr-2 font-semibold"></th>
+          </tr>
+        </thead>
+        <tbody className="text-slate-700">
+          {allRows.map(({ row, isMoi }) => {
+            const desend = row.capaciteDesendettement >= 999 ? "—" : `${row.capaciteDesendettement} ans`;
+            return (
+              <tr
+                key={row.codeInsee}
+                className={`border-b border-slate-100 ${
+                  isMoi ? "bg-brand-soft/40 font-semibold" : ""
+                }`}
+              >
+                <td className="py-2 pr-2">
+                  {isMoi && <span className="mr-1.5">⭐</span>}
+                  {row.nom}
+                </td>
+                {showDepartement && (
+                  <td className="py-2 pr-2 text-[10px] font-mono text-slate-500">
+                    {row.departementCode}
+                  </td>
+                )}
+                <td className="py-2 pr-2 tabular-nums text-right">
+                  {row.population.toLocaleString("fr-FR")}
+                </td>
+                <td className="py-2 pr-2 tabular-nums text-right">
+                  {row.detteParHab.toLocaleString("fr-FR")} €
+                </td>
+                <td className="py-2 pr-2 tabular-nums text-right">
+                  {row.cafParHab.toLocaleString("fr-FR")} €
+                </td>
+                <td className="py-2 pr-2 tabular-nums text-right">
+                  {row.tauxEpargneBrute.toFixed(1)} %
+                </td>
+                <td className="py-2 pr-2 tabular-nums text-right">{desend}</td>
+                <td className="py-2 pr-2">
+                  <a
+                    href={`#/villes/${row.slug}`}
+                    className="text-brand hover:underline text-[11px]"
+                  >
+                    Voir →
+                  </a>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ============================================================================
 // SubSources
 // ============================================================================
 
@@ -1505,7 +1908,14 @@ function SubPageLinks({
   active,
 }: {
   villeSlug: string;
-  active: "synthese" | "recettes" | "depenses" | "historique" | "comparaison" | "sources";
+  active:
+    | "synthese"
+    | "recettes"
+    | "depenses"
+    | "historique"
+    | "comparaison"
+    | "voisines"
+    | "sources";
 }) {
   const tabs = [
     { id: "synthese", label: "Synthèse", href: `#/villes/${villeSlug}` },
@@ -1513,6 +1923,7 @@ function SubPageLinks({
     { id: "depenses", label: "Dépenses", href: `#/villes/${villeSlug}/depenses` },
     { id: "historique", label: "Historique", href: `#/villes/${villeSlug}/historique` },
     { id: "comparaison", label: "Comparaison", href: `#/villes/${villeSlug}/comparaison` },
+    { id: "voisines", label: "Voisines", href: `#/villes/${villeSlug}/voisines` },
     { id: "sources", label: "Sources", href: `#/villes/${villeSlug}/sources` },
   ];
 

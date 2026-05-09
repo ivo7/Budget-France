@@ -122,6 +122,82 @@ export function useCommuneSearch(query: string, limit: number = 20) {
 // useCommuneDetail — fetch d'une commune complète via son code/slug
 // ----------------------------------------------------------------------------
 
+// ----------------------------------------------------------------------------
+// useCommuneVoisines — fetch voisines géographiques + strate similaire
+// ----------------------------------------------------------------------------
+
+export interface CommuneVoisine {
+  codeInsee: string;
+  slug: string;
+  nom: string;
+  departement: string;
+  departementCode: string;
+  population: number;
+  classification: string;
+  annee: number;
+  budgetParHab: number;
+  recettesParHab: number;
+  depensesParHab: number;
+  detteParHab: number;
+  chargeDetteParHab: number;
+  cafParHab: number;
+  personnelParHab: number;
+  investParHab: number;
+  impotsLocauxParHab: number;
+  tauxEpargneBrute: number;
+  capaciteDesendettement: number;
+}
+
+export interface CommuneVoisinesResponse {
+  moi: CommuneVoisine | null;
+  meta: {
+    departement: string;
+    departementCode: string;
+    classification: string;
+    nbVoisinesDept: number;
+    nbVoisinesStrate: number;
+  };
+  voisinesDept: CommuneVoisine[];
+  voisinesStrate: CommuneVoisine[];
+}
+
+export function useCommuneVoisines(slugOrCode: string | null, limit: number = 12) {
+  const [data, setData] = useState<CommuneVoisinesResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!slugOrCode) {
+      setData(null);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    fetch(`/api/communes/${encodeURIComponent(slugOrCode)}/voisines?limit=${limit}`)
+      .then((res) => {
+        if (res.status === 404) throw new Error("not_found");
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((d: CommuneVoisinesResponse) => {
+        if (cancelled) return;
+        setData(d);
+        setLoading(false);
+      })
+      .catch((e: Error) => {
+        if (cancelled) return;
+        setError(e.message);
+        setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [slugOrCode, limit]);
+
+  return { data, loading, error };
+}
+
 export function useCommuneDetail(slugOrCode: string | null) {
   const [data, setData] = useState<CommuneDetail | null>(null);
   const [loading, setLoading] = useState(false);

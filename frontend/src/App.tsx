@@ -71,7 +71,7 @@ type Page =
   | "securite-sociale"
   | "tarifs" | "paiement-reussi" | "compte" | "admin"
   | "ville-synthese" | "ville-recettes" | "ville-depenses"
-  | "ville-historique" | "ville-comparaison" | "ville-sources";
+  | "ville-historique" | "ville-comparaison" | "ville-voisines" | "ville-sources";
 
 interface RouteResolution {
   page: Page;
@@ -101,6 +101,7 @@ function resolveRoute(hash: string): RouteResolution {
     else if (sub === "depenses") page = "ville-depenses";
     else if (sub === "historique") page = "ville-historique";
     else if (sub === "comparaison" || sub === "compare") page = "ville-comparaison";
+    else if (sub === "voisines" || sub === "voisin") page = "ville-voisines";
     else if (sub === "sources") page = "ville-sources";
     return { page, villeSlug: slug || null };
   }
@@ -1481,7 +1482,8 @@ function Header({ page, ville, allVilles }: HeaderProps) {
     { href: `#/villes/${villeSlug}/recettes`,    label: "Recettes",     target: "ville-recettes",     description: "D'où vient l'argent" },
     { href: `#/villes/${villeSlug}/depenses`,    label: "Dépenses",     target: "ville-depenses",     description: "Où va l'argent" },
     { href: `#/villes/${villeSlug}/historique`,  label: "Historique",   target: "ville-historique",   description: "Évolution 2014 → 2024" },
-    { href: `#/villes/${villeSlug}/comparaison`, label: "Comparaison",  target: "ville-comparaison",  description: "vs strate + national" },
+    { href: `#/villes/${villeSlug}/comparaison`, label: "Comparaison",  target: "ville-comparaison",  description: "vs 40 grandes villes" },
+    { href: `#/villes/${villeSlug}/voisines`,    label: "Voisines",     target: "ville-voisines",     description: "vs voisines du département + strate" },
     { href: `#/villes/${villeSlug}/sources`,     label: "Sources",      target: "ville-sources",      description: "Traçabilité des données" },
   ];
 

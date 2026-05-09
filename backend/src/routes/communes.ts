@@ -225,6 +225,127 @@ export function registerCommunesRoutes(app: FastifyInstance) {
   });
 
   // --------------------------------------------------------------------------
+  // GET /api/communes/:code/voisines
+  // Communes voisines (même département) ou de strate similaire (classification)
+  // pour une commune donnée. Retourne les indicateurs essentiels en €/hab.
+  // --------------------------------------------------------------------------
+  app.get("/api/communes/:code/voisines", async (req, reply) => {
+    const { code } = req.params as { code: string };
+    const limit = Math.min(
+      Math.max(
+        parseInt((req.query as { limit?: string }).limit ?? "12", 10) || 12,
+        1,
+      ),
+      30,
+    );
+
+    // 1. Trouver la commune courante (par insee ou slug)
+    const me = await prisma.commune.findFirst({
+      where: { OR: [{ codeInsee: code }, { slug: code }] },
+    });
+    if (!me) {
+      return reply.code(404).send({ error: "not_found" });
+    }
+
+    // 2. Voisines géographiques = même département (exclut self)
+    //    Trie par population décroissante puis prend les `limit` premières.
+    const voisinesDept = await prisma.commune.findMany({
+      where: {
+        departementCode: me.departementCode,
+        codeInsee: { not: me.codeInsee },
+      },
+      orderBy: { population: "desc" },
+      take: limit,
+      include: {
+        finances: { orderBy: { annee: "desc" }, take: 1 },
+      },
+    });
+
+    // 3. Communes de la même strate (classification) — choisit dans le pays
+    //    (hors département de la commune pour avoir un échantillon distinct).
+    const voisinesStrate = await prisma.commune.findMany({
+      where: {
+        classification: me.classification,
+        codeInsee: { not: me.codeInsee },
+        departementCode: { not: me.departementCode },
+      },
+      orderBy: [{ population: "desc" }],
+      take: limit,
+      include: {
+        finances: { orderBy: { annee: "desc" }, take: 1 },
+      },
+    });
+
+    // Helper : transforme une commune + sa dernière année en ligne API
+    const toRow = (
+      c: typeof voisinesDept[number] | typeof voisinesStrate[number],
+    ) => {
+      const f = c.finances[0];
+      if (!f || c.population <= 0) return null;
+      return {
+        codeInsee: c.codeInsee,
+        slug: c.slug,
+        nom: c.nom,
+        departement: c.departement,
+        departementCode: c.departementCode,
+        population: c.population,
+        classification: c.classification,
+        annee: f.annee,
+        budgetParHab: Math.round(bn(f.budgetTotalEur) / c.population),
+        recettesParHab: Math.round(bn(f.recettesTotalesEur) / c.population),
+        depensesParHab: Math.round(bn(f.depensesTotalesEur) / c.population),
+        detteParHab: Math.round(bn(f.detteEncoursEur) / c.population),
+        chargeDetteParHab: Math.round(bn(f.chargeDetteEur) / c.population),
+        cafParHab: Math.round(bn(f.capaciteAutofinancementEur) / c.population),
+        personnelParHab: Math.round(bn(f.depensesPersonnelEur) / c.population),
+        investParHab: Math.round(bn(f.depensesInvestEur) / c.population),
+        impotsLocauxParHab: Math.round(bn(f.recettesImpotsLocauxEur) / c.population),
+        tauxEpargneBrute:
+          bn(f.recettesTotalesEur) > 0
+            ? Math.round(
+                (bn(f.capaciteAutofinancementEur) / bn(f.recettesTotalesEur)) *
+                  10000,
+              ) / 100
+            : 0,
+        capaciteDesendettement:
+          bn(f.capaciteAutofinancementEur) > 0
+            ? Math.round(
+                (bn(f.detteEncoursEur) / bn(f.capaciteAutofinancementEur)) * 10,
+              ) / 10
+            : 999,
+      };
+    };
+
+    const voisinesDeptRows = voisinesDept.map(toRow).filter((r) => r !== null);
+    const voisinesStrateRows = voisinesStrate.map(toRow).filter((r) => r !== null);
+
+    // 4. La commune courante elle-même (pour comparaison)
+    const myFinance = await prisma.communeFinanciere.findFirst({
+      where: { codeInsee: me.codeInsee },
+      orderBy: { annee: "desc" },
+    });
+    const moi = myFinance && me.population > 0
+      ? toRow({
+          ...me,
+          finances: [myFinance],
+        } as typeof voisinesDept[number])
+      : null;
+
+    return {
+      moi,
+      meta: {
+        departement: me.departement,
+        departementCode: me.departementCode,
+        classification: me.classification,
+        nbVoisinesDept: voisinesDeptRows.length,
+        nbVoisinesStrate: voisinesStrateRows.length,
+      },
+      voisinesDept: voisinesDeptRows,
+      voisinesStrate: voisinesStrateRows,
+    };
+  });
+
+  // --------------------------------------------------------------------------
   // GET /api/communes/stats
   // Stats globales : nombre de communes en base, dernière année, etc.
   // --------------------------------------------------------------------------
