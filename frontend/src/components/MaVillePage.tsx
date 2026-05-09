@@ -1202,8 +1202,16 @@ function SubVoisines({ ville }: { ville: Ville }) {
           <ul className="mt-3 space-y-1.5 text-xs text-slate-600">
             <li>
               • <strong className="text-slate-800">Voisines géographiques</strong> :
-              les 12 plus peuplées du département, hors {ville.nom}. Profil
-              économique souvent proche.
+              les 12 plus peuplées {data?.meta.voisinageType === "region"
+                ? `de la région ${data.meta.voisinageScope}`
+                : `du département ${data?.meta.voisinageScope ?? ""}`}, hors{" "}
+              {ville.nom}. Profil économique souvent proche.
+              {data?.meta.voisinageType === "region" && (
+                <em className="block mt-0.5 text-slate-500">
+                  ({ville.nom} est seule dans son département — élargissement
+                  automatique à la région.)
+                </em>
+              )}
             </li>
             <li>
               • <strong className="text-slate-800">Strate similaire</strong> :
@@ -1268,7 +1276,7 @@ function SubVoisines({ ville }: { ville: Ville }) {
                   : "bg-white text-slate-700 border-slate-200 hover:border-brand/40"
               }`}
             >
-              📍 Voisines du département ({data.voisinesDept.length})
+              📍 {data.meta.voisinageType === "region" ? "Voisines de la région" : "Voisines du département"} ({data.voisinesDept.length})
             </button>
             <button
               type="button"
@@ -1318,10 +1326,22 @@ function SubVoisines({ ville }: { ville: Ville }) {
           }
         >
           <h3 className="font-display text-lg font-semibold text-slate-900 mb-1">
-            📍 Voisines du département {data.meta.departementCode}
+            📍{" "}
+            {data.meta.voisinageType === "region"
+              ? `Voisines de la région ${data.meta.region}`
+              : `Voisines du département ${data.meta.departementCode}`}
           </h3>
           <p className="text-xs text-slate-600 mb-3">
-            Les 12 communes les plus peuplées du département, hors {ville.nom}.
+            Les 12 communes les plus peuplées{" "}
+            {data.meta.voisinageType === "region"
+              ? `de la région ${data.meta.region}`
+              : `du département ${data.meta.departementCode}`}
+            , hors {ville.nom}.
+            {data.meta.voisinageType === "region" && (
+              <em className="block mt-0.5 text-slate-500">
+                ({ville.nom} est seule dans son département.)
+              </em>
+            )}
           </p>
           <VoisinsTable moi={data.moi} voisines={data.voisinesDept} />
         </DownloadableCard>

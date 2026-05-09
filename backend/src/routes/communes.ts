@@ -249,7 +249,7 @@ export function registerCommunesRoutes(app: FastifyInstance) {
 
     // 2. Voisines géographiques = même département (exclut self)
     //    Trie par population décroissante puis prend les `limit` premières.
-    const voisinesDept = await prisma.commune.findMany({
+    let voisinesDept = await prisma.commune.findMany({
       where: {
         departementCode: me.departementCode,
         codeInsee: { not: me.codeInsee },
@@ -260,6 +260,26 @@ export function registerCommunesRoutes(app: FastifyInstance) {
         finances: { orderBy: { annee: "desc" }, take: 1 },
       },
     });
+
+    // Fallback : si la commune est seule dans son département (cas Paris,
+    // certaines DROM…), on élargit aux communes de la même région.
+    let voisinageType: "departement" | "region" = "departement";
+    let voisinageScope = me.departement;
+    if (voisinesDept.length < 3) {
+      voisinesDept = await prisma.commune.findMany({
+        where: {
+          region: me.region,
+          codeInsee: { not: me.codeInsee },
+        },
+        orderBy: { population: "desc" },
+        take: limit,
+        include: {
+          finances: { orderBy: { annee: "desc" }, take: 1 },
+        },
+      });
+      voisinageType = "region";
+      voisinageScope = me.region;
+    }
 
     // 3. Communes de la même strate (classification) — choisit dans le pays
     //    (hors département de la commune pour avoir un échantillon distinct).
@@ -336,7 +356,10 @@ export function registerCommunesRoutes(app: FastifyInstance) {
       meta: {
         departement: me.departement,
         departementCode: me.departementCode,
+        region: me.region,
         classification: me.classification,
+        voisinageType,
+        voisinageScope,
         nbVoisinesDept: voisinesDeptRows.length,
         nbVoisinesStrate: voisinesStrateRows.length,
       },

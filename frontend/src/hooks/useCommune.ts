@@ -153,7 +153,13 @@ export interface CommuneVoisinesResponse {
   meta: {
     departement: string;
     departementCode: string;
+    region: string;
     classification: string;
+    /** Indique si le voisinage est au niveau département ou élargi à la région
+     *  (cas Paris, DROM uniques dans leur département). */
+    voisinageType: "departement" | "region";
+    /** Libellé du périmètre géographique utilisé (ex. "Aube (10)" ou "Île-de-France"). */
+    voisinageScope: string;
     nbVoisinesDept: number;
     nbVoisinesStrate: number;
   };
