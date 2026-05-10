@@ -48,7 +48,7 @@ interface TopReelFournisseur {
 
 interface TopReelData {
   generatedAt: string | null;
-  sourceFile: string | null;
+  sourceFiles: string[] | null;
   totalMarches: number;
   totalFournisseurs: number;
   totalMontantEur: number;
