@@ -1,8 +1,1322 @@
 {
-  "generatedAt": null,
-  "sourceFile": null,
-  "totalMarches": 0,
-  "totalFournisseurs": 0,
-  "totalMontantEur": 0,
-  "top100": []
+  "generatedAt": "2026-05-10T21:44:58.242Z",
+  "sourceFiles": [
+    "decp-2025.ndjson",
+    "decp-2026.ndjson"
+  ],
+  "totalMarches": 440203,
+  "totalFournisseurs": 71972,
+  "totalMontantEur": 815404727068,
+  "top100": [
+    {
+      "rang": 1,
+      "siren": "476980321",
+      "raisonSociale": "SIREN 476980321",
+      "totalMontantEur": 21072379727,
+      "nbMarches": 561,
+      "ticketMoyenEur": 37562174,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "0205-04-25",
+      "derniereDate": "2026-04-01"
+    },
+    {
+      "rang": 2,
+      "siren": "343059564",
+      "raisonSociale": "SIREN 343059564",
+      "totalMontantEur": 16229887730,
+      "nbMarches": 494,
+      "ticketMoyenEur": 32854024,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2018-11-05",
+      "derniereDate": "2026-03-20"
+    },
+    {
+      "rang": 3,
+      "siren": "EDF",
+      "raisonSociale": "EDF",
+      "totalMontantEur": 15024520433,
+      "nbMarches": 883,
+      "ticketMoyenEur": 17015312,
+      "topNatures": [
+        "Marché",
+        "Marché de partenariat"
+      ],
+      "premiereDate": "2018-11-23",
+      "derniereDate": "2026-03-09"
+    },
+    {
+      "rang": 4,
+      "siren": "316807015",
+      "raisonSociale": "SIREN 316807015",
+      "totalMontantEur": 14957297282,
+      "nbMarches": 892,
+      "ticketMoyenEur": 16768270,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2021-01-06",
+      "derniereDate": "2028-01-28"
+    },
+    {
+      "rang": 5,
+      "siren": "424982650",
+      "raisonSociale": "SIREN 424982650",
+      "totalMontantEur": 14432194218,
+      "nbMarches": 476,
+      "ticketMoyenEur": 30319736,
+      "topNatures": [
+        "Marché",
+        "Marché de partenariat"
+      ],
+      "premiereDate": "2020-11-19",
+      "derniereDate": "2026-04-09"
+    },
+    {
+      "rang": 6,
+      "siren": "552044992",
+      "raisonSociale": "SIREN 552044992",
+      "totalMontantEur": 14111252908,
+      "nbMarches": 1239,
+      "ticketMoyenEur": 11389228,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2020-12-04",
+      "derniereDate": "2026-12-08"
+    },
+    {
+      "rang": 7,
+      "siren": "Engie",
+      "raisonSociale": "Engie",
+      "totalMontantEur": 13503792237,
+      "nbMarches": 1055,
+      "ticketMoyenEur": 12799803,
+      "topNatures": [
+        "Marché",
+        "Marché de partenariat"
+      ],
+      "premiereDate": "2002-02-09",
+      "derniereDate": "2026-06-02"
+    },
+    {
+      "rang": 8,
+      "siren": "382432722",
+      "raisonSociale": "SIREN 382432722",
+      "totalMontantEur": 13146463306,
+      "nbMarches": 83,
+      "ticketMoyenEur": 158391124,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2021-11-18",
+      "derniereDate": "2026-03-30"
+    },
+    {
+      "rang": 9,
+      "siren": "345039416",
+      "raisonSociale": "SIREN 345039416",
+      "totalMontantEur": 12640013424,
+      "nbMarches": 354,
+      "ticketMoyenEur": 35706253,
+      "topNatures": [
+        "Marché",
+        "Marché de partenariat"
+      ],
+      "premiereDate": "2017-07-27",
+      "derniereDate": "2026-03-30"
+    },
+    {
+      "rang": 10,
+      "siren": "331566430",
+      "raisonSociale": "SIREN 331566430",
+      "totalMontantEur": 11301687496,
+      "nbMarches": 328,
+      "ticketMoyenEur": 34456364,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2020-12-02",
+      "derniereDate": "2026-03-13"
+    },
+    {
+      "rang": 11,
+      "siren": "508513785",
+      "raisonSociale": "SIREN 508513785",
+      "totalMontantEur": 11108270539,
+      "nbMarches": 173,
+      "ticketMoyenEur": 64209656,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2020-12-24",
+      "derniereDate": "2026-03-02"
+    },
+    {
+      "rang": 12,
+      "siren": "869500223",
+      "raisonSociale": "SIREN 869500223",
+      "totalMontantEur": 10058918929,
+      "nbMarches": 83,
+      "ticketMoyenEur": 121191794,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2021-10-29",
+      "derniereDate": "2026-02-27"
+    },
+    {
+      "rang": 13,
+      "siren": "TotalEnergies",
+      "raisonSociale": "TotalEnergies",
+      "totalMontantEur": 9952947935,
+      "nbMarches": 1089,
+      "ticketMoyenEur": 9139530,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2021-10-01",
+      "derniereDate": "2026-03-12"
+    },
+    {
+      "rang": 14,
+      "siren": "329338883",
+      "raisonSociale": "SIREN 329338883",
+      "totalMontantEur": 8505808939,
+      "nbMarches": 4768,
+      "ticketMoyenEur": 1783936,
+      "topNatures": [
+        "Marché",
+        "Marché de partenariat"
+      ],
+      "premiereDate": "0240-02-19",
+      "derniereDate": "2029-03-19"
+    },
+    {
+      "rang": 15,
+      "siren": "Orange",
+      "raisonSociale": "Orange",
+      "totalMontantEur": 8221306640,
+      "nbMarches": 362,
+      "ticketMoyenEur": 22710792,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2000-09-15",
+      "derniereDate": "2026-04-01"
+    },
+    {
+      "rang": 16,
+      "siren": "502941479",
+      "raisonSociale": "SIREN 502941479",
+      "totalMontantEur": 7756164157,
+      "nbMarches": 469,
+      "ticketMoyenEur": 16537663,
+      "topNatures": [
+        "Marché",
+        "Marché de partenariat"
+      ],
+      "premiereDate": "0202-10-14",
+      "derniereDate": "2026-03-16"
+    },
+    {
+      "rang": 17,
+      "siren": "392975637",
+      "raisonSociale": "SIREN 392975637",
+      "totalMontantEur": 7236378374,
+      "nbMarches": 13,
+      "ticketMoyenEur": 556644490,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2025-06-18",
+      "derniereDate": "2025-10-17"
+    },
+    {
+      "rang": 18,
+      "siren": "385006234",
+      "raisonSociale": "SIREN 385006234",
+      "totalMontantEur": 6485531300,
+      "nbMarches": 585,
+      "ticketMoyenEur": 11086378,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2020-12-16",
+      "derniereDate": "2028-01-28"
+    },
+    {
+      "rang": 19,
+      "siren": "320774615",
+      "raisonSociale": "SIREN 320774615",
+      "totalMontantEur": 5015428328,
+      "nbMarches": 31,
+      "ticketMoyenEur": 161788011,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2021-12-21",
+      "derniereDate": "2026-03-04"
+    },
+    {
+      "rang": 20,
+      "siren": "086880036",
+      "raisonSociale": "SIREN 086880036",
+      "totalMontantEur": 4087439651,
+      "nbMarches": 51,
+      "ticketMoyenEur": 80145876,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2021-10-06",
+      "derniereDate": "2026-03-31"
+    },
+    {
+      "rang": 21,
+      "siren": "928161348",
+      "raisonSociale": "SIREN 928161348",
+      "totalMontantEur": 3881188300,
+      "nbMarches": 29,
+      "ticketMoyenEur": 133834079,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2022-01-03",
+      "derniereDate": "2026-03-05"
+    },
+    {
+      "rang": 22,
+      "siren": "305405045",
+      "raisonSociale": "SIREN 305405045",
+      "totalMontantEur": 3328425053,
+      "nbMarches": 77,
+      "ticketMoyenEur": 43226299,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2021-09-22",
+      "derniereDate": "2026-02-12"
+    },
+    {
+      "rang": 23,
+      "siren": "815109467",
+      "raisonSociale": "SIREN 815109467",
+      "totalMontantEur": 3264816382,
+      "nbMarches": 46,
+      "ticketMoyenEur": 70974269,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2019-09-25",
+      "derniereDate": "2026-03-09"
+    },
+    {
+      "rang": 24,
+      "siren": "343397782",
+      "raisonSociale": "SIREN 343397782",
+      "totalMontantEur": 3103615514,
+      "nbMarches": 136,
+      "ticketMoyenEur": 22820702,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2021-05-28",
+      "derniereDate": "2026-03-05"
+    },
+    {
+      "rang": 25,
+      "siren": "388734568",
+      "raisonSociale": "SIREN 388734568",
+      "totalMontantEur": 3062720094,
+      "nbMarches": 382,
+      "ticketMoyenEur": 8017592,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2020-10-20",
+      "derniereDate": "2028-10-19"
+    },
+    {
+      "rang": 26,
+      "siren": "508216686",
+      "raisonSociale": "SIREN 508216686",
+      "totalMontantEur": 3008811900,
+      "nbMarches": 46,
+      "ticketMoyenEur": 65408954,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2021-11-03",
+      "derniereDate": "2026-01-21"
+    },
+    {
+      "rang": 27,
+      "siren": "572079069",
+      "raisonSociale": "SIREN 572079069",
+      "totalMontantEur": 3005056647,
+      "nbMarches": 7,
+      "ticketMoyenEur": 429293807,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2025-02-26",
+      "derniereDate": "2026-01-01"
+    },
+    {
+      "rang": 28,
+      "siren": "323159715",
+      "raisonSociale": "SIREN 323159715",
+      "totalMontantEur": 2747024959,
+      "nbMarches": 128,
+      "ticketMoyenEur": 21461132,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2021-03-02",
+      "derniereDate": "2026-03-05"
+    },
+    {
+      "rang": 29,
+      "siren": "Bouygues",
+      "raisonSociale": "Bouygues",
+      "totalMontantEur": 2683857020,
+      "nbMarches": 183,
+      "ticketMoyenEur": 14665885,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2019-11-18",
+      "derniereDate": "2026-03-06"
+    },
+    {
+      "rang": 30,
+      "siren": "323540534",
+      "raisonSociale": "SIREN 323540534",
+      "totalMontantEur": 2514006152,
+      "nbMarches": 323,
+      "ticketMoyenEur": 7783301,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2022-09-20",
+      "derniereDate": "2026-04-03"
+    },
+    {
+      "rang": 31,
+      "siren": "722008232",
+      "raisonSociale": "SIREN 722008232",
+      "totalMontantEur": 2496102487,
+      "nbMarches": 502,
+      "ticketMoyenEur": 4972316,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2022-02-21",
+      "derniereDate": "2026-04-07"
+    },
+    {
+      "rang": 32,
+      "siren": "400734448",
+      "raisonSociale": "SIREN 400734448",
+      "totalMontantEur": 2470888082,
+      "nbMarches": 14,
+      "ticketMoyenEur": 176492006,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2024-07-17",
+      "derniereDate": "2026-03-10"
+    },
+    {
+      "rang": 33,
+      "siren": "803248467",
+      "raisonSociale": "SIREN 803248467",
+      "totalMontantEur": 2463633525,
+      "nbMarches": 306,
+      "ticketMoyenEur": 8051090,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2022-10-28",
+      "derniereDate": "2026-01-01"
+    },
+    {
+      "rang": 34,
+      "siren": "378370993",
+      "raisonSociale": "SIREN 378370993",
+      "totalMontantEur": 2411979996,
+      "nbMarches": 12,
+      "ticketMoyenEur": 200998333,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2021-11-19",
+      "derniereDate": "2026-03-09"
+    },
+    {
+      "rang": 35,
+      "siren": "324419282",
+      "raisonSociale": "SIREN 324419282",
+      "totalMontantEur": 2404007284,
+      "nbMarches": 15,
+      "ticketMoyenEur": 160267152,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2024-11-08",
+      "derniereDate": "2026-02-16"
+    },
+    {
+      "rang": 36,
+      "siren": "322408535",
+      "raisonSociale": "SIREN 322408535",
+      "totalMontantEur": 2400408200,
+      "nbMarches": 6,
+      "ticketMoyenEur": 400068033,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2025-01-07",
+      "derniereDate": "2025-07-23"
+    },
+    {
+      "rang": 37,
+      "siren": "130022718",
+      "raisonSociale": "SIREN 130022718",
+      "totalMontantEur": 2400138800,
+      "nbMarches": 4,
+      "ticketMoyenEur": 600034700,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2025-03-18",
+      "derniereDate": "2025-07-23"
+    },
+    {
+      "rang": 38,
+      "siren": "778113928",
+      "raisonSociale": "SIREN 778113928",
+      "totalMontantEur": 2400000000,
+      "nbMarches": 3,
+      "ticketMoyenEur": 800000000,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2025-07-23",
+      "derniereDate": "2025-08-04"
+    },
+    {
+      "rang": 39,
+      "siren": "592052302",
+      "raisonSociale": "SIREN 592052302",
+      "totalMontantEur": 2239485424,
+      "nbMarches": 387,
+      "ticketMoyenEur": 5786784,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2020-12-29",
+      "derniereDate": "2026-03-30"
+    },
+    {
+      "rang": 40,
+      "siren": "308335694",
+      "raisonSociale": "SIREN 308335694",
+      "totalMontantEur": 2149879540,
+      "nbMarches": 28,
+      "ticketMoyenEur": 76781412,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2024-03-13",
+      "derniereDate": "2026-04-25"
+    },
+    {
+      "rang": 41,
+      "siren": "333784262",
+      "raisonSociale": "SIREN 333784262",
+      "totalMontantEur": 2133465997,
+      "nbMarches": 131,
+      "ticketMoyenEur": 16286000,
+      "topNatures": [
+        "Marché",
+        "Marché de partenariat"
+      ],
+      "premiereDate": "2021-01-01",
+      "derniereDate": "2026-03-16"
+    },
+    {
+      "rang": 42,
+      "siren": "798562450",
+      "raisonSociale": "SIREN 798562450",
+      "totalMontantEur": 2132927981,
+      "nbMarches": 32,
+      "ticketMoyenEur": 66653999,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2022-11-22",
+      "derniereDate": "2026-03-16"
+    },
+    {
+      "rang": 43,
+      "siren": "130018435",
+      "raisonSociale": "SIREN 130018435",
+      "totalMontantEur": 2033528469,
+      "nbMarches": 33,
+      "ticketMoyenEur": 61622075,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2021-12-14",
+      "derniereDate": "2026-04-01"
+    },
+    {
+      "rang": 44,
+      "siren": "341434108",
+      "raisonSociale": "SIREN 341434108",
+      "totalMontantEur": 2028005745,
+      "nbMarches": 41,
+      "ticketMoyenEur": 49463555,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2021-05-05",
+      "derniereDate": "2026-01-01"
+    },
+    {
+      "rang": 45,
+      "siren": "339609661",
+      "raisonSociale": "SIREN 339609661",
+      "totalMontantEur": 2019158351,
+      "nbMarches": 1501,
+      "ticketMoyenEur": 1345209,
+      "topNatures": [
+        "Marché",
+        "Marché de partenariat"
+      ],
+      "premiereDate": "2018-05-16",
+      "derniereDate": "2026-04-03"
+    },
+    {
+      "rang": 46,
+      "siren": "410349070",
+      "raisonSociale": "SIREN 410349070",
+      "totalMontantEur": 1927743002,
+      "nbMarches": 49,
+      "ticketMoyenEur": 39341694,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2022-07-01",
+      "derniereDate": "2026-02-11"
+    },
+    {
+      "rang": 47,
+      "siren": "056800659",
+      "raisonSociale": "SIREN 056800659",
+      "totalMontantEur": 1872870954,
+      "nbMarches": 781,
+      "ticketMoyenEur": 2398042,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2020-10-12",
+      "derniereDate": "2026-04-01"
+    },
+    {
+      "rang": 48,
+      "siren": "410034607",
+      "raisonSociale": "SIREN 410034607",
+      "totalMontantEur": 1828646767,
+      "nbMarches": 228,
+      "ticketMoyenEur": 8020381,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2017-07-03",
+      "derniereDate": "2026-03-13"
+    },
+    {
+      "rang": 49,
+      "siren": "388055493",
+      "raisonSociale": "SIREN 388055493",
+      "totalMontantEur": 1814090734,
+      "nbMarches": 73,
+      "ticketMoyenEur": 24850558,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2023-05-09",
+      "derniereDate": "2026-03-17"
+    },
+    {
+      "rang": 50,
+      "siren": "757501028",
+      "raisonSociale": "SIREN 757501028",
+      "totalMontantEur": 1754047952,
+      "nbMarches": 397,
+      "ticketMoyenEur": 4418257,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2020-03-20",
+      "derniereDate": "2026-04-01"
+    },
+    {
+      "rang": 51,
+      "siren": "397767831",
+      "raisonSociale": "SIREN 397767831",
+      "totalMontantEur": 1682199072,
+      "nbMarches": 144,
+      "ticketMoyenEur": 11681938,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2022-01-12",
+      "derniereDate": "2026-03-03"
+    },
+    {
+      "rang": 52,
+      "siren": "572025526",
+      "raisonSociale": "SIREN 572025526",
+      "totalMontantEur": 1623931831,
+      "nbMarches": 357,
+      "ticketMoyenEur": 4548829,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2021-02-18",
+      "derniereDate": "2026-04-09"
+    },
+    {
+      "rang": 53,
+      "siren": "185921616",
+      "raisonSociale": "SIREN 185921616",
+      "totalMontantEur": 1611840000,
+      "nbMarches": 8,
+      "ticketMoyenEur": 201480000,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2023-10-24",
+      "derniereDate": "2026-01-06"
+    },
+    {
+      "rang": 54,
+      "siren": "318071453",
+      "raisonSociale": "SIREN 318071453",
+      "totalMontantEur": 1606280965,
+      "nbMarches": 18,
+      "ticketMoyenEur": 89237831,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2023-05-23",
+      "derniereDate": "2025-10-03"
+    },
+    {
+      "rang": 55,
+      "siren": "479474306",
+      "raisonSociale": "SIREN 479474306",
+      "totalMontantEur": 1605766755,
+      "nbMarches": 7,
+      "ticketMoyenEur": 229395251,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2024-07-25",
+      "derniereDate": "2026-03-20"
+    },
+    {
+      "rang": 56,
+      "siren": "978265858",
+      "raisonSociale": "SIREN 978265858",
+      "totalMontantEur": 1600000000,
+      "nbMarches": 2,
+      "ticketMoyenEur": 800000000,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2025-07-25",
+      "derniereDate": "2025-07-25"
+    },
+    {
+      "rang": 57,
+      "siren": "837655893",
+      "raisonSociale": "SIREN 837655893",
+      "totalMontantEur": 1600000000,
+      "nbMarches": 2,
+      "ticketMoyenEur": 800000000,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2025-07-23",
+      "derniereDate": "2025-07-23"
+    },
+    {
+      "rang": 58,
+      "siren": "662025196",
+      "raisonSociale": "SIREN 662025196",
+      "totalMontantEur": 1598594875,
+      "nbMarches": 129,
+      "ticketMoyenEur": 12392208,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2020-12-28",
+      "derniereDate": "2026-03-23"
+    },
+    {
+      "rang": 59,
+      "siren": "398762211",
+      "raisonSociale": "SIREN 398762211",
+      "totalMontantEur": 1597871845,
+      "nbMarches": 663,
+      "ticketMoyenEur": 2410063,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2018-08-23",
+      "derniereDate": "2026-03-19"
+    },
+    {
+      "rang": 60,
+      "siren": "834157513",
+      "raisonSociale": "SIREN 834157513",
+      "totalMontantEur": 1592636345,
+      "nbMarches": 382,
+      "ticketMoyenEur": 4169205,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2019-06-03",
+      "derniereDate": "2026-04-08"
+    },
+    {
+      "rang": 61,
+      "siren": "785750266",
+      "raisonSociale": "SIREN 785750266",
+      "totalMontantEur": 1583223336,
+      "nbMarches": 87,
+      "ticketMoyenEur": 18197969,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2021-11-25",
+      "derniereDate": "2026-03-20"
+    },
+    {
+      "rang": 62,
+      "siren": "804054930",
+      "raisonSociale": "SIREN 804054930",
+      "totalMontantEur": 1576669996,
+      "nbMarches": 12,
+      "ticketMoyenEur": 131389166,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2023-04-04",
+      "derniereDate": "2026-02-06"
+    },
+    {
+      "rang": 63,
+      "siren": "302695614",
+      "raisonSociale": "SIREN 302695614",
+      "totalMontantEur": 1559687728,
+      "nbMarches": 161,
+      "ticketMoyenEur": 9687501,
+      "topNatures": [
+        "Marché",
+        "Marché de partenariat"
+      ],
+      "premiereDate": "2020-06-09",
+      "derniereDate": "2026-03-23"
+    },
+    {
+      "rang": 64,
+      "siren": "892223801",
+      "raisonSociale": "SIREN 892223801",
+      "totalMontantEur": 1536347042,
+      "nbMarches": 2,
+      "ticketMoyenEur": 768173521,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2021-12-01",
+      "derniereDate": "2021-12-01"
+    },
+    {
+      "rang": 65,
+      "siren": "775592496",
+      "raisonSociale": "SIREN 775592496",
+      "totalMontantEur": 1532150476,
+      "nbMarches": 276,
+      "ticketMoyenEur": 5551270,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2019-04-04",
+      "derniereDate": "2026-03-13"
+    },
+    {
+      "rang": 66,
+      "siren": "642044366",
+      "raisonSociale": "SIREN 642044366",
+      "totalMontantEur": 1486666649,
+      "nbMarches": 350,
+      "ticketMoyenEur": 4247619,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "0206-01-01",
+      "derniereDate": "2026-03-31"
+    },
+    {
+      "rang": 67,
+      "siren": "478147564",
+      "raisonSociale": "SIREN 478147564",
+      "totalMontantEur": 1454858853,
+      "nbMarches": 42,
+      "ticketMoyenEur": 34639497,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2022-09-30",
+      "derniereDate": "2026-02-26"
+    },
+    {
+      "rang": 68,
+      "siren": "775664873",
+      "raisonSociale": "SIREN 775664873",
+      "totalMontantEur": 1378560947,
+      "nbMarches": 469,
+      "ticketMoyenEur": 2939362,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2019-10-21",
+      "derniereDate": "2026-04-02"
+    },
+    {
+      "rang": 69,
+      "siren": "490259405",
+      "raisonSociale": "SIREN 490259405",
+      "totalMontantEur": 1355804463,
+      "nbMarches": 22,
+      "ticketMoyenEur": 61627476,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2022-12-02",
+      "derniereDate": "2026-01-14"
+    },
+    {
+      "rang": 70,
+      "siren": "491371167",
+      "raisonSociale": "SIREN 491371167",
+      "totalMontantEur": 1343724364,
+      "nbMarches": 68,
+      "ticketMoyenEur": 19760652,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2022-11-25",
+      "derniereDate": "2026-01-13"
+    },
+    {
+      "rang": 71,
+      "siren": "302698873",
+      "raisonSociale": "SIREN 302698873",
+      "totalMontantEur": 1336413555,
+      "nbMarches": 357,
+      "ticketMoyenEur": 3743455,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2021-02-04",
+      "derniereDate": "2026-03-12"
+    },
+    {
+      "rang": 72,
+      "siren": "383939352",
+      "raisonSociale": "SIREN 383939352",
+      "totalMontantEur": 1299162380,
+      "nbMarches": 48,
+      "ticketMoyenEur": 27065883,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2022-12-02",
+      "derniereDate": "2026-01-13"
+    },
+    {
+      "rang": 73,
+      "siren": "303215123",
+      "raisonSociale": "SIREN 303215123",
+      "totalMontantEur": 1299121357,
+      "nbMarches": 70,
+      "ticketMoyenEur": 18558877,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2021-12-21",
+      "derniereDate": "2026-03-30"
+    },
+    {
+      "rang": 74,
+      "siren": "326180544",
+      "raisonSociale": "SIREN 326180544",
+      "totalMontantEur": 1264882915,
+      "nbMarches": 56,
+      "ticketMoyenEur": 22587195,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2020-08-31",
+      "derniereDate": "2026-03-16"
+    },
+    {
+      "rang": 75,
+      "siren": "456500537",
+      "raisonSociale": "SIREN 456500537",
+      "totalMontantEur": 1220419352,
+      "nbMarches": 650,
+      "ticketMoyenEur": 1877568,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "1992-10-01",
+      "derniereDate": "2026-03-27"
+    },
+    {
+      "rang": 76,
+      "siren": "824012173",
+      "raisonSociale": "SIREN 824012173",
+      "totalMontantEur": 1193732555,
+      "nbMarches": 206,
+      "ticketMoyenEur": 5794818,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2022-05-27",
+      "derniereDate": "2026-11-26"
+    },
+    {
+      "rang": 77,
+      "siren": "334055183",
+      "raisonSociale": "SIREN 334055183",
+      "totalMontantEur": 1187449094,
+      "nbMarches": 44,
+      "ticketMoyenEur": 26987479,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2019-11-18",
+      "derniereDate": "2026-01-14"
+    },
+    {
+      "rang": 78,
+      "siren": "434085395",
+      "raisonSociale": "SIREN 434085395",
+      "totalMontantEur": 1183782209,
+      "nbMarches": 530,
+      "ticketMoyenEur": 2233551,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2016-12-10",
+      "derniereDate": "2026-03-30"
+    },
+    {
+      "rang": 79,
+      "siren": "484223094",
+      "raisonSociale": "SIREN 484223094",
+      "totalMontantEur": 1166802046,
+      "nbMarches": 37,
+      "ticketMoyenEur": 31535190,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2021-07-22",
+      "derniereDate": "2025-09-16"
+    },
+    {
+      "rang": 80,
+      "siren": "312261894",
+      "raisonSociale": "SIREN 312261894",
+      "totalMontantEur": 1165368925,
+      "nbMarches": 104,
+      "ticketMoyenEur": 11205470,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2005-03-28",
+      "derniereDate": "2026-02-23"
+    },
+    {
+      "rang": 81,
+      "siren": "399295385",
+      "raisonSociale": "SIREN 399295385",
+      "totalMontantEur": 1141981222,
+      "nbMarches": 173,
+      "ticketMoyenEur": 6601048,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2021-11-25",
+      "derniereDate": "2026-02-11"
+    },
+    {
+      "rang": 82,
+      "siren": "612030619",
+      "raisonSociale": "SIREN 612030619",
+      "totalMontantEur": 1131878821,
+      "nbMarches": 235,
+      "ticketMoyenEur": 4816506,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2021-07-02",
+      "derniereDate": "2026-03-27"
+    },
+    {
+      "rang": 83,
+      "siren": "810794800",
+      "raisonSociale": "SIREN 810794800",
+      "totalMontantEur": 1122752929,
+      "nbMarches": 156,
+      "ticketMoyenEur": 7197134,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2021-11-03",
+      "derniereDate": "2026-05-28"
+    },
+    {
+      "rang": 84,
+      "siren": "998823504",
+      "raisonSociale": "SIREN 998823504",
+      "totalMontantEur": 1100132556,
+      "nbMarches": 38,
+      "ticketMoyenEur": 28950857,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2021-04-01",
+      "derniereDate": "2026-02-26"
+    },
+    {
+      "rang": 85,
+      "siren": "389675018",
+      "raisonSociale": "SIREN 389675018",
+      "totalMontantEur": 1095524865,
+      "nbMarches": 144,
+      "ticketMoyenEur": 7607812,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2019-05-02",
+      "derniereDate": "2026-04-07"
+    },
+    {
+      "rang": 86,
+      "siren": "493170252",
+      "raisonSociale": "SIREN 493170252",
+      "totalMontantEur": 1095430364,
+      "nbMarches": 43,
+      "ticketMoyenEur": 25475125,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2023-06-15",
+      "derniereDate": "2026-01-01"
+    },
+    {
+      "rang": 87,
+      "siren": "512664194",
+      "raisonSociale": "SIREN 512664194",
+      "totalMontantEur": 1092265286,
+      "nbMarches": 49,
+      "ticketMoyenEur": 22291128,
+      "topNatures": [
+        "Marché",
+        "Marché de partenariat"
+      ],
+      "premiereDate": "2020-12-02",
+      "derniereDate": "2026-03-19"
+    },
+    {
+      "rang": 88,
+      "siren": "432554996",
+      "raisonSociale": "SIREN 432554996",
+      "totalMontantEur": 1077767555,
+      "nbMarches": 43,
+      "ticketMoyenEur": 25064362,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2022-04-26",
+      "derniereDate": "2026-04-01"
+    },
+    {
+      "rang": 89,
+      "siren": "824363436",
+      "raisonSociale": "SIREN 824363436",
+      "totalMontantEur": 1074092069,
+      "nbMarches": 70,
+      "ticketMoyenEur": 15344172,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2024-07-17",
+      "derniereDate": "2025-10-08"
+    },
+    {
+      "rang": 90,
+      "siren": "332737394",
+      "raisonSociale": "SIREN 332737394",
+      "totalMontantEur": 1067862359,
+      "nbMarches": 39,
+      "ticketMoyenEur": 27381086,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2021-07-07",
+      "derniereDate": "2026-03-09"
+    },
+    {
+      "rang": 91,
+      "siren": "562033068",
+      "raisonSociale": "SIREN 562033068",
+      "totalMontantEur": 1051307264,
+      "nbMarches": 38,
+      "ticketMoyenEur": 27665981,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2021-11-25",
+      "derniereDate": "2026-06-01"
+    },
+    {
+      "rang": 92,
+      "siren": "901780221",
+      "raisonSociale": "SIREN 901780221",
+      "totalMontantEur": 1050800000,
+      "nbMarches": 4,
+      "ticketMoyenEur": 262700000,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2021-08-13",
+      "derniereDate": "2024-12-16"
+    },
+    {
+      "rang": 93,
+      "siren": "338253081",
+      "raisonSociale": "SIREN 338253081",
+      "totalMontantEur": 1047538360,
+      "nbMarches": 34,
+      "ticketMoyenEur": 30809952,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2021-03-11",
+      "derniereDate": "2026-03-09"
+    },
+    {
+      "rang": 94,
+      "siren": "818575730",
+      "raisonSociale": "SIREN 818575730",
+      "totalMontantEur": 1040394241,
+      "nbMarches": 11,
+      "ticketMoyenEur": 94581295,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2024-02-27",
+      "derniereDate": "2026-02-11"
+    },
+    {
+      "rang": 95,
+      "siren": "424942209",
+      "raisonSociale": "SIREN 424942209",
+      "totalMontantEur": 1038537386,
+      "nbMarches": 48,
+      "ticketMoyenEur": 21636196,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2022-12-02",
+      "derniereDate": "2026-01-13"
+    },
+    {
+      "rang": 96,
+      "siren": "401501283",
+      "raisonSociale": "SIREN 401501283",
+      "totalMontantEur": 1033360986,
+      "nbMarches": 30,
+      "ticketMoyenEur": 34445366,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2024-07-18",
+      "derniereDate": "2026-03-30"
+    },
+    {
+      "rang": 97,
+      "siren": "443866769",
+      "raisonSociale": "SIREN 443866769",
+      "totalMontantEur": 1030062937,
+      "nbMarches": 55,
+      "ticketMoyenEur": 18728417,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2020-12-29",
+      "derniereDate": "2026-02-18"
+    },
+    {
+      "rang": 98,
+      "siren": "382401222",
+      "raisonSociale": "SIREN 382401222",
+      "totalMontantEur": 1027933317,
+      "nbMarches": 72,
+      "ticketMoyenEur": 14276852,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2021-11-25",
+      "derniereDate": "2026-01-01"
+    },
+    {
+      "rang": 99,
+      "siren": "350050589",
+      "raisonSociale": "SIREN 350050589",
+      "totalMontantEur": 1020191064,
+      "nbMarches": 117,
+      "ticketMoyenEur": 8719582,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2020-11-30",
+      "derniereDate": "2026-02-27"
+    },
+    {
+      "rang": 100,
+      "siren": "642028609",
+      "raisonSociale": "SIREN 642028609",
+      "totalMontantEur": 1018671999,
+      "nbMarches": 3,
+      "ticketMoyenEur": 339557333,
+      "topNatures": [
+        "Marché"
+      ],
+      "premiereDate": "2021-08-10",
+      "derniereDate": "2025-03-10"
+    }
+  ]
 }
