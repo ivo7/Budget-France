@@ -27,6 +27,7 @@ import { SalairesElusPage } from "./components/SalairesElusPage";
 import { SecuSocialeDetailleePage } from "./components/SecuSocialeDetailleePage";
 import { RegalienPage } from "./components/RegalienPage";
 import { MarchesPublicsPage } from "./components/MarchesPublicsPage";
+import { AidesEntreprisesPage } from "./components/AidesEntreprisesPage";
 import { MaVillePage } from "./components/MaVillePage";
 import { BudgetBreakdown } from "./components/BudgetBreakdown";
 import { Glossary } from "./components/Glossary";
@@ -70,7 +71,7 @@ type Page =
   | "dashboard" | "europe" | "historique" | "fraudes" | "mes-impots"
   | "pedagogie" | "secu-collec" | "sources" | "glossaire" | "institutions"
   | "donnees-publiques" | "niches-fiscales" | "salaires-elus"
-  | "securite-sociale" | "regalien" | "marches-publics"
+  | "securite-sociale" | "regalien" | "marches-publics" | "aides-entreprises"
   | "tarifs" | "paiement-reussi" | "compte" | "admin"
   | "ville-synthese" | "ville-recettes" | "ville-depenses"
   | "ville-historique" | "ville-comparaison" | "ville-voisines" | "ville-sources";
@@ -131,6 +132,7 @@ function resolveRoute(hash: string): RouteResolution {
   else if (hash.startsWith("salaires-elus") || hash.startsWith("indemnites-elus") || hash.startsWith("remunerations-elus")) page = "salaires-elus";
   else if (hash.startsWith("regalien") || hash.startsWith("police-justice") || hash.startsWith("police") || hash.startsWith("justice-prisons")) page = "regalien";
   else if (hash.startsWith("marches-publics") || hash.startsWith("commande-publique") || hash.startsWith("decp") || hash.startsWith("boamp")) page = "marches-publics";
+  else if (hash.startsWith("aides-entreprises") || hash.startsWith("aides-publiques") || hash.startsWith("subventions-entreprises")) page = "aides-entreprises";
   return { page, villeSlug: null };
 }
 
@@ -184,6 +186,7 @@ export default function App() {
           {page === "securite-sociale" && <SecuSocialeDetailleePage />}
           {page === "regalien" && <RegalienPage />}
           {page === "marches-publics" && <MarchesPublicsPage />}
+          {page === "aides-entreprises" && <AidesEntreprisesPage />}
 
           {/* Pages ville (sub-tabs au sein du contexte ville) */}
           {data && isVillePage && (
@@ -1459,7 +1462,8 @@ function Header({ page, ville, allVilles }: HeaderProps) {
     {
       title: "Pour les entreprises",
       items: [
-        { href: "#/marches-publics", label: "Marchés publics", target: "marches-publics", description: "~120 Md€/an, qui achète, qui vend" },
+        { href: "#/marches-publics",    label: "Marchés publics",     target: "marches-publics",    description: "~120 Md€/an, qui achète, qui vend" },
+        { href: "#/aides-entreprises",  label: "Aides aux entreprises", target: "aides-entreprises", description: "~110 Md€/an, CIR, BPI, France 2030…" },
       ],
     },
     {
