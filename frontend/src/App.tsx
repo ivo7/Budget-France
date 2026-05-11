@@ -29,6 +29,7 @@ import { RegalienPage } from "./components/RegalienPage";
 import { MarchesPublicsPage } from "./components/MarchesPublicsPage";
 import { AidesEntreprisesPage } from "./components/AidesEntreprisesPage";
 import { FiscaliteSecteurPage } from "./components/FiscaliteSecteurPage";
+import { DetteEntreprisesPubliquesPage } from "./components/DetteEntreprisesPubliquesPage";
 import { MaVillePage } from "./components/MaVillePage";
 import { BudgetBreakdown } from "./components/BudgetBreakdown";
 import { Glossary } from "./components/Glossary";
@@ -73,7 +74,7 @@ type Page =
   | "pedagogie" | "secu-collec" | "sources" | "glossaire" | "institutions"
   | "donnees-publiques" | "niches-fiscales" | "salaires-elus"
   | "securite-sociale" | "regalien" | "marches-publics" | "aides-entreprises"
-  | "fiscalite-secteur"
+  | "fiscalite-secteur" | "dette-entreprises-publiques"
   | "tarifs" | "paiement-reussi" | "compte" | "admin"
   | "ville-synthese" | "ville-recettes" | "ville-depenses"
   | "ville-historique" | "ville-comparaison" | "ville-voisines" | "ville-sources";
@@ -136,6 +137,7 @@ function resolveRoute(hash: string): RouteResolution {
   else if (hash.startsWith("marches-publics") || hash.startsWith("commande-publique") || hash.startsWith("decp") || hash.startsWith("boamp")) page = "marches-publics";
   else if (hash.startsWith("aides-entreprises") || hash.startsWith("aides-publiques") || hash.startsWith("subventions-entreprises")) page = "aides-entreprises";
   else if (hash.startsWith("fiscalite-secteur") || hash.startsWith("fiscalite-entreprises") || hash.startsWith("impot-societes")) page = "fiscalite-secteur";
+  else if (hash.startsWith("dette-entreprises-publiques") || hash.startsWith("dette-cachee") || hash.startsWith("dette-publique-cachee")) page = "dette-entreprises-publiques";
   return { page, villeSlug: null };
 }
 
@@ -191,6 +193,7 @@ export default function App() {
           {page === "marches-publics" && <MarchesPublicsPage />}
           {page === "aides-entreprises" && <AidesEntreprisesPage />}
           {page === "fiscalite-secteur" && <FiscaliteSecteurPage />}
+          {page === "dette-entreprises-publiques" && <DetteEntreprisesPubliquesPage />}
 
           {/* Pages ville (sub-tabs au sein du contexte ville) */}
           {data && isVillePage && (
@@ -1466,9 +1469,10 @@ function Header({ page, ville, allVilles }: HeaderProps) {
     {
       title: "Pour les entreprises",
       items: [
-        { href: "#/marches-publics",    label: "Marchés publics",       target: "marches-publics",    description: "~120 Md€/an, qui achète, qui vend" },
-        { href: "#/aides-entreprises",  label: "Aides aux entreprises", target: "aides-entreprises",  description: "~110 Md€/an, CIR, BPI, France 2030…" },
-        { href: "#/fiscalite-secteur",  label: "Fiscalité par secteur", target: "fiscalite-secteur",  description: "CAC 40 paie 18 %, PME 28 %" },
+        { href: "#/marches-publics",              label: "Marchés publics",          target: "marches-publics",              description: "~120 Md€/an, qui achète, qui vend" },
+        { href: "#/aides-entreprises",            label: "Aides aux entreprises",    target: "aides-entreprises",            description: "~110 Md€/an, CIR, BPI, France 2030…" },
+        { href: "#/fiscalite-secteur",            label: "Fiscalité par secteur",    target: "fiscalite-secteur",            description: "CAC 40 paie 18 %, PME 28 %" },
+        { href: "#/dette-entreprises-publiques",  label: "Dette cachée publique",    target: "dette-entreprises-publiques",  description: "EDF, SNCF, SGP : ~270 Md€ hors Maastricht" },
       ],
     },
     {
