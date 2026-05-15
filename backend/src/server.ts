@@ -16,6 +16,7 @@ import { registerAdminRoutes, isAdminAuthenticated } from "./routes/admin.ts";
 import { registerAnalyticsRoutes } from "./routes/analytics.ts";
 import { registerCommunesRoutes } from "./routes/communes.ts";
 import { registerAssistantRoutes } from "./routes/assistant.ts";
+import { registerOpenapiRoutes } from "./routes/openapi.ts";
 import { loadCommunesIfNeeded } from "./seed/loadCommunes.ts";
 import { checkThresholds } from "./jobs/threshold.ts";
 import { sendMonthlyBulletin } from "./jobs/monthly.ts";
@@ -98,6 +99,7 @@ async function main() {
   registerAnalyticsRoutes(app);
   registerCommunesRoutes(app);
   registerAssistantRoutes(app);
+  registerOpenapiRoutes(app);
 
   // Charge les datasets en DB au démarrage (idempotent).
   // À faire APRÈS prisma db push (géré dans le Dockerfile) et AVANT listen.
