@@ -31,6 +31,7 @@ import { AidesEntreprisesPage } from "./components/AidesEntreprisesPage";
 import { FiscaliteSecteurPage } from "./components/FiscaliteSecteurPage";
 import { DetteEntreprisesPubliquesPage } from "./components/DetteEntreprisesPubliquesPage";
 import { ApiDocsPage } from "./components/ApiDocsPage";
+import { ExportsPage } from "./components/ExportsPage";
 import { AssistantChat } from "./components/AssistantChat";
 import { MaVillePage } from "./components/MaVillePage";
 import { BudgetBreakdown } from "./components/BudgetBreakdown";
@@ -76,7 +77,7 @@ type Page =
   | "pedagogie" | "secu-collec" | "sources" | "glossaire" | "institutions"
   | "donnees-publiques" | "niches-fiscales" | "salaires-elus"
   | "securite-sociale" | "regalien" | "marches-publics" | "aides-entreprises"
-  | "fiscalite-secteur" | "dette-entreprises-publiques" | "api-docs"
+  | "fiscalite-secteur" | "dette-entreprises-publiques" | "api-docs" | "exports"
   | "tarifs" | "paiement-reussi" | "compte" | "admin"
   | "ville-synthese" | "ville-recettes" | "ville-depenses"
   | "ville-historique" | "ville-comparaison" | "ville-voisines" | "ville-sources";
@@ -140,6 +141,7 @@ function resolveRoute(hash: string): RouteResolution {
   else if (hash.startsWith("aides-entreprises") || hash.startsWith("aides-publiques") || hash.startsWith("subventions-entreprises")) page = "aides-entreprises";
   else if (hash.startsWith("fiscalite-secteur") || hash.startsWith("fiscalite-entreprises") || hash.startsWith("impot-societes")) page = "fiscalite-secteur";
   else if (hash.startsWith("dette-entreprises-publiques") || hash.startsWith("dette-cachee") || hash.startsWith("dette-publique-cachee")) page = "dette-entreprises-publiques";
+  else if (hash.startsWith("exports") || hash.startsWith("telecharger") || hash.startsWith("downloads")) page = "exports";
   else if (hash.startsWith("api-docs") || hash.startsWith("api") || hash.startsWith("developpeurs")) page = "api-docs";
   return { page, villeSlug: null };
 }
@@ -198,6 +200,7 @@ export default function App() {
           {page === "fiscalite-secteur" && <FiscaliteSecteurPage />}
           {page === "dette-entreprises-publiques" && <DetteEntreprisesPubliquesPage />}
           {page === "api-docs" && <ApiDocsPage />}
+          {page === "exports" && <ExportsPage />}
 
           {/* Pages ville (sub-tabs au sein du contexte ville) */}
           {data && isVillePage && (
@@ -1486,6 +1489,7 @@ function Header({ page, ville, allVilles }: HeaderProps) {
       title: "Pour les instituts",
       items: [
         { href: "#/api-docs", label: "API publique", target: "api-docs", description: "Documentation OpenAPI · données brutes des 35 000 communes" },
+        { href: "#/exports",  label: "Exports bulk", target: "exports",  description: "Télécharger 35 000 communes en CSV / JSON / Excel" },
       ],
     },
     {
