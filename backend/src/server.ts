@@ -15,6 +15,7 @@ import { registerStripeRoutes } from "./routes/stripe.ts";
 import { registerAdminRoutes, isAdminAuthenticated } from "./routes/admin.ts";
 import { registerAnalyticsRoutes } from "./routes/analytics.ts";
 import { registerCommunesRoutes } from "./routes/communes.ts";
+import { registerAssistantRoutes } from "./routes/assistant.ts";
 import { loadCommunesIfNeeded } from "./seed/loadCommunes.ts";
 import { checkThresholds } from "./jobs/threshold.ts";
 import { sendMonthlyBulletin } from "./jobs/monthly.ts";
@@ -96,6 +97,7 @@ async function main() {
   registerAdminRoutes(app);
   registerAnalyticsRoutes(app);
   registerCommunesRoutes(app);
+  registerAssistantRoutes(app);
 
   // Charge les datasets en DB au démarrage (idempotent).
   // À faire APRÈS prisma db push (géré dans le Dockerfile) et AVANT listen.

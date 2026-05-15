@@ -30,6 +30,7 @@ import { MarchesPublicsPage } from "./components/MarchesPublicsPage";
 import { AidesEntreprisesPage } from "./components/AidesEntreprisesPage";
 import { FiscaliteSecteurPage } from "./components/FiscaliteSecteurPage";
 import { DetteEntreprisesPubliquesPage } from "./components/DetteEntreprisesPubliquesPage";
+import { AssistantChat } from "./components/AssistantChat";
 import { MaVillePage } from "./components/MaVillePage";
 import { BudgetBreakdown } from "./components/BudgetBreakdown";
 import { Glossary } from "./components/Glossary";
@@ -244,6 +245,9 @@ export default function App() {
           </footer>
         )}
       </main>
+
+      {/* Assistant IA flottant — visible sur toutes les pages */}
+      <AssistantChat />
     </div>
   );
 }
