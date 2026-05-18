@@ -218,3 +218,146 @@ Une fois la Phase 2 stable :
 Ce module deviendrait un **business à part entière** dans Budget France — équivalent
 gratuit/freemium d'outils payants type Direct'INFO ou Vecteur Plus (qui facturent
 ~200-2 000 €/mois aux entreprises pour la veille marchés publics).
+
+---
+
+## Angles morts & sujets chauds 2025-2026 — perspective budget
+
+Brainstorming structuré des sujets à fort potentiel pédagogique et viral, où
+Budget France peut apporter de la transparence factuelle. Organisé par
+catégorie, avec ordre de grandeur budgétaire et faisabilité données.
+
+### Sécurité & régalien étendu
+
+- **Immigration (coût budgétaire net)** — ~3-7 Md€/an selon périmètre. AME
+  (1,2 Md€), OFII, CRA, MNA (2 Md€ via ASE départements), Sentinelle. Énorme
+  angle mort : aucune page grand public ne présente factuellement coûts ET
+  recettes (cotisations versées par étrangers en règle ~70 Md€/an). Sources :
+  Cour des comptes 2024, INSEE, OFII, OFPRA, IPP, France Stratégie.
+- **Trafic de drogue** — ~3 Md€/an répression (police judiciaire stups, prisons
+  cocaïne). Plan Mongin 2023, narcotrafic Marseille, saisies douanes. Sources :
+  OFDT, Cour des comptes.
+- **Délinquance & sentiment d'insécurité** — Coût total ~30 Md€ (police +
+  justice + prisons + victimes). Comparaison international : France pas plus
+  criminelle qu'avant mais ressenti élevé. Sources : ONDRP, Eurostat crime.
+- **Terrorisme** — Sentinelle 5 Md€ depuis 2015, services renseignement
+  (DGSI/DGSE) ~2 Md€/an, déradicalisation, FNAT. Sources : SGDSN, LOPSI.
+- **Cybersécurité** — ANSSI 200 M€ + cyberattaques coût ~2 Md€/an. Hôpitaux,
+  communes, entreprises. Sources : ANSSI, CESIN, Wavestone.
+- **Police municipale** — 1,2 Md€/an, +5 %/an. Inégalités territoriales
+  fortes. Sources : DGCL, AMF.
+
+### Climat & transition écologique
+
+- **Nouveau nucléaire (EPR2)** — 52 Md€ programmés sur 2024-2050 pour 6
+  réacteurs. Financement public/privé débattu. Sources : EDF, COR
+  nucléaire, Cour des comptes.
+- **Voiture électrique** — 1,3 Md€/an (bonus + leasing social).
+  Comparaison Allemagne (qui a stoppé). Sources : Ademe, ministère
+  Transition.
+- **Adaptation climatique** — 0,5-2 Md€/an actuellement, mais besoin
+  estimé ~30 Md€/an d'ici 2030 selon France Stratégie. Sécheresses,
+  inondations, irrigation agricole, digues littoral.
+- **Taxe carbone gelée depuis 2018** — Aurait rapporté ~8 Md€/an si non
+  gelée après Gilets jaunes. Pourquoi politiquement intouchable. Sources :
+  I4CE, Conseil des Prélèvements Obligatoires.
+
+### Démographie & société
+
+- **5ᵉ branche Autonomie / EHPAD** — 38 Md€/an, +25 % d'ici 2030.
+  Vieillissement, scandale Orpea, dépendance. Sources : DREES, CNSA.
+- **Natalité en chute libre** — -20 % naissances depuis 2014. Politique
+  familiale 50 Md€/an. Politique nataliste à repenser. Sources : INSEE
+  Bilan démographique, CNAF.
+- **Logement / crise du neuf** — APL 14 Md€, PTZ, locatif social ~10 Md€.
+  Production logements neufs s'effondre. Sources : USH, FFB, ANIL.
+- **Pauvreté infantile** — 1 enfant sur 5 sous seuil pauvreté. Aides
+  ciblées, repas scolaires. Sources : INSEE, Secours Catholique.
+- **Égalité H/F (au-delà des slogans)** — Écart salarial 22 %, retraites
+  -40 % pour femmes. Sources : INSEE, Index Egapro.
+
+### Santé en détail
+
+- **Hôpital public en crise** — Urgences fermées, pénuries soignants,
+  médecins étrangers. Sources : FHF, Cour des comptes RALFSS.
+- **Médicaments — pénuries & dépendance Chine** — Marché 30 Md€, 80 %
+  génériques produits hors UE. Souveraineté sanitaire. Sources : LEEM,
+  ANSM, mission Bohn.
+- **Psychiatrie en effondrement** — ~25 Md€, déserts psy, suicides,
+  jeunes en crise post-Covid. Sources : DREES, Santé Publique France.
+- **Déserts médicaux** — 1 Français sur 8 sans médecin traitant. CPTS,
+  CESP. Sources : DREES, Ordre des médecins.
+
+### Économie & souveraineté
+
+- **Crise agricole (PAC + revenu)** — PAC 9 Md€/an France + retraites
+  agricoles. Suicides, manifestations 2024, dépendance importations.
+  Sources : MASA, FNSEA, INRAE.
+- **Aide publique au développement (APD)** — 13 Md€/an, objectif 0,7 %
+  PIB non atteint. AFD, ONG, polémique Sahel. Sources : MAEDI, AFD, CAD
+  OCDE.
+- **Contribution France à l'UE** — 23 Md€/an + retours UE 17 Md€ =
+  contribution nette -6 Md€. Sujet sensible (Frexit). Sources : Bercy,
+  Commission européenne.
+- **Défense (LPM 2024-2030)** — 413 Md€ sur 7 ans. Engagement OTAN 2 %
+  atteint, soutien Ukraine. Sources : Ministère Armées, IRSEM, SIPRI.
+
+### Gouvernance & coûts cachés
+
+- **Coût total de la démocratie française** — Élections + partis + Sénat
+  + AN ~2 Md€/an. Cumul scrutins, abstention vs coût. Sources : Conseil
+  constitutionnel, HATVP, CSA.
+- **Opérateurs de l'État (700+ structures)** — ~80 Md€/an consolidés.
+  ADEME, BPI, ANR, France Travail… Trop nombreux ? Sources : DB, Cour
+  des comptes opérateurs.
+- **Patrimoine immobilier État** — 200 Md€ d'actifs, 30 % sous-utilisés.
+  Sources : France Domaine, DIE.
+- **Fonction publique (5,5 M agents)** — Masse salariale 320 Md€/an
+  (État + collec + SS). Effectifs vs missions, comparaisons internationales.
+  Sources : DGAFP, Cour des comptes, OCDE.
+
+### Crises & actualité 2024-2026
+
+- **Bouclier tarifaire énergie 2022-2024** — 50 Md€ déboursés (le record
+  historique). Comment ça finit, retour à la vérité des prix. Sources :
+  Bercy, CRE.
+- **JO Paris 2024 — bilan complet** — 8,8 Md€ + héritage. Coûts réels
+  vs prévu, retombées éco régionales. Sources : Cojo, Cour des comptes
+  2024.
+- **Émeutes 2023** — 1 Md€ dégâts directs, ~3 Md€ avec coûts indirects.
+  Sources : Insee, MEDEF, France Assureurs.
+- **Crise Nouvelle-Calédonie 2024** — 2 Md€ coût direct + reconstructions.
+  Fiscalité du nickel. Sources : HCNC, ministère Outre-mer.
+- **Soutien Ukraine** — ~5 Md€ cumulés (armement + civil). Comparaison
+  pays UE. Sources : Kiel Institute, MINEFI.
+
+### Données dérangeantes sous-traitées
+
+- **Évasion fiscale internationale** — 15-30 Md€/an France. Paradise
+  Papers, Pandora Papers. Sources : EU Tax Observatory (Zucman),
+  Conseil d'analyse économique.
+- **Travail dissimulé** — 8 Md€ cotisations perdues. BTP, restau,
+  auto-entrepreneurs. Sources : ACOSS-URSSAF, HCFiPS.
+- **Niches fiscales sectorielles** — Cinéma (300 M€), audiovisuel
+  (200 M€), jeu vidéo (100 M€), mode, métiers d'art. Maintenues malgré
+  bilan mitigé. Sources : Voies et moyens tome II.
+- **Subventions associations** — 30 Md€/an total État + collec,
+  traçabilité variable. Sources : DJEPVA, ACOSS, Cour des comptes.
+- **Frais de fonctionnement État** — 5 Md€/an (locations, véhicules,
+  déplacements ministériels). Sources : Direction du budget, IGF.
+
+### Priorité personnelle (mon avis)
+
+Si tu devais choisir 5 sujets à attaquer en priorité, l'ordre selon impact
+pédagogique + actualité + faisabilité données :
+
+1. **🚨 Immigration (coût net + démographie)** — angle mort suprême,
+   sujet électoralement martelé sans pédagogie. Données INSEE/CdC/IPP
+   solides. Énorme valeur transparence.
+2. **🌡️ Climat & adaptation** — besoin 30 Md€/an d'ici 2030, peu de
+   pédagogie actuellement.
+3. **👵 Autonomie / EHPAD** — bombe à retardement démographique, post-Orpea.
+4. **🏥 Psychiatrie + déserts médicaux** — crise silencieuse, données
+   dispersées.
+5. **💵 Bouclier tarifaire + transition énergie** — comment finit le
+   cadeau de 50 Md€.
