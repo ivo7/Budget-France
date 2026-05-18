@@ -34,6 +34,7 @@ import { ApiDocsPage } from "./components/ApiDocsPage";
 import { ExportsPage } from "./components/ExportsPage";
 import { InegalitesFiscalesPage } from "./components/InegalitesFiscalesPage";
 import { EvaluationsPolitiquesPage } from "./components/EvaluationsPolitiquesPage";
+import { ComparaisonsInternationalesPage } from "./components/ComparaisonsInternationalesPage";
 import { AssistantChat } from "./components/AssistantChat";
 import { MaVillePage } from "./components/MaVillePage";
 import { BudgetBreakdown } from "./components/BudgetBreakdown";
@@ -80,7 +81,7 @@ type Page =
   | "donnees-publiques" | "niches-fiscales" | "salaires-elus"
   | "securite-sociale" | "regalien" | "marches-publics" | "aides-entreprises"
   | "fiscalite-secteur" | "dette-entreprises-publiques" | "api-docs" | "exports"
-  | "inegalites-fiscales" | "evaluations-politiques"
+  | "inegalites-fiscales" | "evaluations-politiques" | "comparaisons-internationales"
   | "tarifs" | "paiement-reussi" | "compte" | "admin"
   | "ville-synthese" | "ville-recettes" | "ville-depenses"
   | "ville-historique" | "ville-comparaison" | "ville-voisines" | "ville-sources";
@@ -147,6 +148,7 @@ function resolveRoute(hash: string): RouteResolution {
   else if (hash.startsWith("exports") || hash.startsWith("telecharger") || hash.startsWith("downloads")) page = "exports";
   else if (hash.startsWith("inegalites-fiscales") || hash.startsWith("inegalites") || hash.startsWith("deciles")) page = "inegalites-fiscales";
   else if (hash.startsWith("evaluations-politiques") || hash.startsWith("evaluations") || hash.startsWith("politiques-publiques")) page = "evaluations-politiques";
+  else if (hash.startsWith("comparaisons-internationales") || hash.startsWith("comparaisons") || hash.startsWith("ocde") || hash.startsWith("benchmark")) page = "comparaisons-internationales";
   else if (hash.startsWith("api-docs") || hash.startsWith("api") || hash.startsWith("developpeurs")) page = "api-docs";
   return { page, villeSlug: null };
 }
@@ -208,6 +210,7 @@ export default function App() {
           {page === "exports" && <ExportsPage />}
           {page === "inegalites-fiscales" && <InegalitesFiscalesPage />}
           {page === "evaluations-politiques" && <EvaluationsPolitiquesPage />}
+          {page === "comparaisons-internationales" && <ComparaisonsInternationalesPage />}
 
           {/* Pages ville (sub-tabs au sein du contexte ville) */}
           {data && isVillePage && (
@@ -1495,10 +1498,11 @@ function Header({ page, ville, allVilles }: HeaderProps) {
     {
       title: "Pour les instituts",
       items: [
-        { href: "#/api-docs",                label: "API publique",              target: "api-docs",                 description: "Documentation OpenAPI · données brutes des 35 000 communes" },
-        { href: "#/exports",                 label: "Exports bulk",              target: "exports",                  description: "Télécharger 35 000 communes en CSV / JSON / Excel" },
-        { href: "#/inegalites-fiscales",     label: "Inégalités par décile",     target: "inegalites-fiscales",      description: "Qui paie quoi ? Taux effectif par D1-D10 + top 0,01 %" },
-        { href: "#/evaluations-politiques",  label: "Évaluations politiques",    target: "evaluations-politiques",   description: "15 grandes politiques évaluées par Cour des comptes / IPP / France Stratégie" },
+        { href: "#/api-docs",                     label: "API publique",              target: "api-docs",                       description: "Documentation OpenAPI · données brutes des 35 000 communes" },
+        { href: "#/exports",                      label: "Exports bulk",              target: "exports",                        description: "Télécharger 35 000 communes en CSV / JSON / Excel" },
+        { href: "#/inegalites-fiscales",          label: "Inégalités par décile",     target: "inegalites-fiscales",            description: "Qui paie quoi ? Taux effectif par D1-D10 + top 0,01 %" },
+        { href: "#/evaluations-politiques",       label: "Évaluations politiques",    target: "evaluations-politiques",         description: "15 grandes politiques évaluées par Cour des comptes / IPP / France Stratégie" },
+        { href: "#/comparaisons-internationales", label: "Comparaisons UE/OCDE",      target: "comparaisons-internationales",   description: "France vs 10 pays sur 15 indicateurs (dette, fiscalité, dépenses, société)" },
       ],
     },
     {
