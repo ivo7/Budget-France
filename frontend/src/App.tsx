@@ -39,6 +39,7 @@ import { ImmigrationPage } from "./components/ImmigrationPage";
 import { ClimatPage } from "./components/ClimatPage";
 import { AutonomiePage } from "./components/AutonomiePage";
 import { PsychiatriePage } from "./components/PsychiatriePage";
+import { BouclierTarifairePage } from "./components/BouclierTarifairePage";
 import { AssistantChat } from "./components/AssistantChat";
 import { MaVillePage } from "./components/MaVillePage";
 import { BudgetBreakdown } from "./components/BudgetBreakdown";
@@ -86,7 +87,7 @@ type Page =
   | "securite-sociale" | "regalien" | "marches-publics" | "aides-entreprises"
   | "fiscalite-secteur" | "dette-entreprises-publiques" | "api-docs" | "exports"
   | "inegalites-fiscales" | "evaluations-politiques" | "comparaisons-internationales"
-  | "immigration" | "climat" | "autonomie" | "psychiatrie"
+  | "immigration" | "climat" | "autonomie" | "psychiatrie" | "bouclier-tarifaire"
   | "tarifs" | "paiement-reussi" | "compte" | "admin"
   | "ville-synthese" | "ville-recettes" | "ville-depenses"
   | "ville-historique" | "ville-comparaison" | "ville-voisines" | "ville-sources";
@@ -158,6 +159,7 @@ function resolveRoute(hash: string): RouteResolution {
   else if (hash.startsWith("climat") || hash.startsWith("transition-ecologique") || hash.startsWith("ecologie") || hash.startsWith("environnement")) page = "climat";
   else if (hash.startsWith("autonomie") || hash.startsWith("ehpad") || hash.startsWith("grand-age") || hash.startsWith("dependance")) page = "autonomie";
   else if (hash.startsWith("psychiatrie") || hash.startsWith("sante-mentale") || hash.startsWith("psy")) page = "psychiatrie";
+  else if (hash.startsWith("bouclier-tarifaire") || hash.startsWith("bouclier") || hash.startsWith("crise-energie") || hash.startsWith("aides-energie")) page = "bouclier-tarifaire";
   else if (hash.startsWith("api-docs") || hash.startsWith("api") || hash.startsWith("developpeurs")) page = "api-docs";
   return { page, villeSlug: null };
 }
@@ -224,6 +226,7 @@ export default function App() {
           {page === "climat" && <ClimatPage />}
           {page === "autonomie" && <AutonomiePage />}
           {page === "psychiatrie" && <PsychiatriePage />}
+          {page === "bouclier-tarifaire" && <BouclierTarifairePage />}
 
           {/* Pages ville (sub-tabs au sein du contexte ville) */}
           {data && isVillePage && (
@@ -1501,6 +1504,7 @@ function Header({ page, ville, allVilles }: HeaderProps) {
         { href: "#/climat",          label: "Climat",            target: "climat",          description: "Invest. ~110 Md€/an, besoin +66 Md€ (Pisani-Ferry), niches défavorables ~10 Md€" },
         { href: "#/autonomie",       label: "Autonomie & EHPAD", target: "autonomie",       description: "5ᵉ branche 38 Md€, reste à charge 1 900-3 500 €/mois, mur démographique 2050" },
         { href: "#/psychiatrie",     label: "Santé mentale",     target: "psychiatrie",     description: "1 Français sur 5/an, 24 Md€ publics, 163 Md€ coût social, délais CMP enfant 6-18 mois" },
+        { href: "#/bouclier-tarifaire", label: "Bouclier tarifaire", target: "bouclier-tarifaire", description: "~110 Md€ cumulés 2021-2024, ciblage critiqué, financement par dette" },
       ],
     },
     {
