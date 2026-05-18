@@ -36,6 +36,7 @@ import { InegalitesFiscalesPage } from "./components/InegalitesFiscalesPage";
 import { EvaluationsPolitiquesPage } from "./components/EvaluationsPolitiquesPage";
 import { ComparaisonsInternationalesPage } from "./components/ComparaisonsInternationalesPage";
 import { ImmigrationPage } from "./components/ImmigrationPage";
+import { ClimatPage } from "./components/ClimatPage";
 import { AssistantChat } from "./components/AssistantChat";
 import { MaVillePage } from "./components/MaVillePage";
 import { BudgetBreakdown } from "./components/BudgetBreakdown";
@@ -83,7 +84,7 @@ type Page =
   | "securite-sociale" | "regalien" | "marches-publics" | "aides-entreprises"
   | "fiscalite-secteur" | "dette-entreprises-publiques" | "api-docs" | "exports"
   | "inegalites-fiscales" | "evaluations-politiques" | "comparaisons-internationales"
-  | "immigration"
+  | "immigration" | "climat"
   | "tarifs" | "paiement-reussi" | "compte" | "admin"
   | "ville-synthese" | "ville-recettes" | "ville-depenses"
   | "ville-historique" | "ville-comparaison" | "ville-voisines" | "ville-sources";
@@ -152,6 +153,7 @@ function resolveRoute(hash: string): RouteResolution {
   else if (hash.startsWith("evaluations-politiques") || hash.startsWith("evaluations") || hash.startsWith("politiques-publiques")) page = "evaluations-politiques";
   else if (hash.startsWith("comparaisons-internationales") || hash.startsWith("comparaisons") || hash.startsWith("ocde") || hash.startsWith("benchmark")) page = "comparaisons-internationales";
   else if (hash.startsWith("immigration") || hash.startsWith("migrations") || hash.startsWith("etrangers")) page = "immigration";
+  else if (hash.startsWith("climat") || hash.startsWith("transition-ecologique") || hash.startsWith("ecologie") || hash.startsWith("environnement")) page = "climat";
   else if (hash.startsWith("api-docs") || hash.startsWith("api") || hash.startsWith("developpeurs")) page = "api-docs";
   return { page, villeSlug: null };
 }
@@ -215,6 +217,7 @@ export default function App() {
           {page === "evaluations-politiques" && <EvaluationsPolitiquesPage />}
           {page === "comparaisons-internationales" && <ComparaisonsInternationalesPage />}
           {page === "immigration" && <ImmigrationPage />}
+          {page === "climat" && <ClimatPage />}
 
           {/* Pages ville (sub-tabs au sein du contexte ville) */}
           {data && isVillePage && (
@@ -1489,6 +1492,7 @@ function Header({ page, ville, allVilles }: HeaderProps) {
         { href: "#/niches-fiscales", label: "Niches fiscales",  target: "niches-fiscales", description: "~95 Md€/an de manque à gagner" },
         { href: "#/salaires-elus",   label: "Salaires des élus", target: "salaires-elus",   description: "Indemnités, frais, retraites" },
         { href: "#/immigration",     label: "Immigration",       target: "immigration",     description: "Coûts ~7 Md€ vs contributions ~48 Md€ · approche factuelle neutre" },
+        { href: "#/climat",          label: "Climat",            target: "climat",          description: "Invest. ~110 Md€/an, besoin +66 Md€ (Pisani-Ferry), niches défavorables ~10 Md€" },
       ],
     },
     {
