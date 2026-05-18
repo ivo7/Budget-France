@@ -184,12 +184,12 @@ export function BouclierTarifairePage() {
               />
               <Tooltip
                 formatter={(v: number) => [`${v} Md€`, "Coût annuel"]}
-                labelFormatter={(label, payload) =>
-                  (payload as { payload?: { contexte?: string } }[])?.[0]
-                    ?.payload?.contexte
-                    ? `${label} — ${(payload as { payload?: { contexte?: string } }[])[0].payload?.contexte}`
-                    : label
-                }
+                labelFormatter={(label, payload) => {
+                  const contexte = (
+                    payload as { payload?: { contexte?: string } }[]
+                  )?.[0]?.payload?.contexte;
+                  return contexte ? `${label} — ${contexte}` : label;
+                }}
                 contentStyle={{
                   background: "white",
                   border: "1px solid #e2e8f0",
