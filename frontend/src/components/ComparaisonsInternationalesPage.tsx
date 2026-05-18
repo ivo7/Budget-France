@@ -197,7 +197,7 @@ export function ComparaisonsInternationalesPage() {
                         {v === 0 && (ind.id === "tva-normal" || ind.id === "smic-relatif" || ind.id === "cotisations-sociales-pib") ? (
                           <span className="text-slate-400 italic text-[10px]">n/a</span>
                         ) : v != null ? (
-                          formatValue(v, ind.unite)
+                          formatValue(v)
                         ) : (
                           <span className="text-slate-400">—</span>
                         )}
@@ -244,7 +244,7 @@ export function ComparaisonsInternationalesPage() {
                 <div className="mt-2 flex items-baseline gap-3 text-xs">
                   <strong className="text-brand">🇫🇷 France :</strong>
                   <span className="font-display text-base font-bold tabular-nums text-slate-900">
-                    {formatValue(vFr, ind.unite)} {ind.unite}
+                    {formatValue(vFr ?? 0)} {ind.unite}
                   </span>
                   <span className="text-slate-400 text-[10px] ml-auto">
                     Source : {ind.source}
@@ -422,7 +422,7 @@ function computeHeatmapColor(v: number | undefined, ind: Indicateur): string {
   return "rgba(220, 38, 38, 0.15)"; // rouge
 }
 
-function formatValue(v: number, unite: string): string {
+function formatValue(v: number): string {
   if (v === 0) return "0";
   if (Math.abs(v) >= 100) return v.toFixed(0);
   if (Math.abs(v) >= 10) return v.toFixed(1);
