@@ -217,14 +217,18 @@ export function PsychiatriePage() {
                 interval={0}
               />
               <Tooltip
-                formatter={(v: number, _name, item) => {
-                  const min = (item.payload as { delaiMin?: number })?.delaiMin ?? 0;
-                  return [`${min}-${v} jours`, "Délai"];
+                formatter={(v: number) => [`jusqu'à ${v} jours`, "Délai max"]}
+                labelFormatter={(label, payload) => {
+                  const item = (
+                    payload as {
+                      payload?: { nomComplet?: string; delaiMin?: number };
+                    }[]
+                  )?.[0]?.payload;
+                  if (item?.delaiMin !== undefined && item?.nomComplet) {
+                    return `${item.nomComplet} (min ${item.delaiMin} j)`;
+                  }
+                  return item?.nomComplet ?? label;
                 }}
-                labelFormatter={(label, payload) =>
-                  (payload as { payload?: { nomComplet?: string } }[])?.[0]
-                    ?.payload?.nomComplet ?? label
-                }
                 contentStyle={{
                   background: "white",
                   border: "1px solid #e2e8f0",
